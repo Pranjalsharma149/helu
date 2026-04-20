@@ -123,7 +123,7 @@ export default function Home() {
       <section className="relative w-full overflow-hidden bg-white pt-[72px] md:pt-[88px]">
         <div className="w-full h-auto flex flex-col items-center">
           <Image
-            src="/jd.png"
+            src="/her.png"
             alt="HealviaCare Banner"
             width={1920}
             height={1080}
@@ -307,9 +307,6 @@ export default function Home() {
           <div className="text-center lg:text-left">
             <h2 className="text-3xl md:text-4xl font-bold text-[#1D646B] mb-6">Real Patient Experiences</h2>
             <p className="text-slate-500 text-base md:text-lg mb-8 max-w-md mx-auto lg:mx-0">Hear directly from our patients about their treatment journey with HealviaCare.</p>
-            
-              
-            
           </div>
 
           <div className="relative flex flex-row lg:flex-none items-center justify-center lg:min-h-[450px] gap-4 lg:gap-0 mt-10 lg:mt-0">
@@ -343,111 +340,112 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <div className="relative bg-white"> {/* Outer container */}
-  {/* ---------------- DYNAMIC FAQ SECTION ---------------- */}
-  <section className="py-24 px-6 lg:px-20 bg-white overflow-hidden">
-    <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16">
-      
-      {/* Left Side: Sticky Brand Trust (4 Cols) */}
-      <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
-        <div className="bg-[#1D646B] rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-          
-          <h2 className="text-4xl font-black mb-6 leading-tight">
-            Common <br /> 
-            <span className="text-teal-300">Doubts?</span>
-          </h2>
-          <p className="text-teal-50/80 mb-8 leading-relaxed">
-            We understand that surgery is a big decision. Here are the facts to help you choose with confidence.
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-teal-400/20 flex items-center justify-center text-teal-300">✓</div>
-              <span className="text-sm font-bold">Verified Surgeons</span>
+
+      <div className="relative bg-white">
+        {/* ---------------- DYNAMIC FAQ SECTION ---------------- */}
+        <section className="py-24 px-6 lg:px-20 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16">
+            
+            {/* Left Side: Sticky Brand Trust (4 Cols) */}
+            <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
+              <div className="bg-[#1D646B] rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                
+                <h2 className="text-4xl font-black mb-6 leading-tight">
+                  Common <br /> 
+                  <span className="text-teal-300">Doubts?</span>
+                </h2>
+                <p className="text-teal-50/80 mb-8 leading-relaxed">
+                  We understand that surgery is a big decision. Here are the facts to help you choose with confidence.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-teal-400/20 flex items-center justify-center text-teal-300">✓</div>
+                    <span className="text-sm font-bold">Verified Surgeons</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-teal-400/20 flex items-center justify-center text-teal-300">✓</div>
+                    <span className="text-sm font-bold">0% EMI Options</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-teal-400/20 flex items-center justify-center text-teal-300">✓</div>
-              <span className="text-sm font-bold">0% EMI Options</span>
+
+            {/* Right Side: Interactive Accordion (8 Cols) */}
+            <div className="lg:col-span-8 space-y-4">
+              {[
+                {
+                  q: "Is the first consultation really free?",
+                  a: "Yes! At HealviaCare, your initial consultation with our medical experts is 100% free. We aim to help you understand your condition without any financial pressure.",
+                },
+                {
+                  q: "Will you handle my insurance paperwork?",
+                  a: "Completely. Our dedicated Care Managers coordinate directly with your insurance provider (TPA) for cashless approvals, usually in under 30 minutes.",
+                },
+                {
+                  q: "What is the typical waiting time for surgery?",
+                  a: "We prioritize efficiency. Once diagnosed, surgeries are typically scheduled within 24 to 48 hours at a premium hospital near you.",
+                },
+                {
+                  q: "Are the hospitals NABH accredited?",
+                  a: "Yes, we only partner with top-tier premium hospitals that meet the highest safety, hygiene, and luxury standards in India.",
+                },
+                {
+                  q: "How does the Zero-Cost EMI work?",
+                  a: "You can split your surgery cost into 6, 9, or 12 monthly installments. There is 0% interest and no hidden processing fees.",
+                },
+                {
+                  q: "Do I get support after the surgery?",
+                  a: "Yes. From diet plans to follow-up checkups with the surgeon, your Care Manager stays with you until you are 100% recovered.",
+                },
+              ].map((item, i) => (
+                <details
+                  key={i}
+                  className="group border-b border-slate-100 bg-slate-50/50 rounded-3xl transition-all duration-500 open:bg-white open:shadow-[0_20px_40px_rgba(29,100,107,0.08)] open:border-teal-100"
+                >
+                  <summary className="flex items-center justify-between p-8 cursor-pointer list-none">
+                    <div className="flex items-center gap-6">
+                      <span className="text-slate-300 font-black text-2xl group-open:text-teal-500 transition-colors">
+                        0{i + 1}
+                      </span>
+                      <span className="text-lg md:text-xl font-bold text-slate-700 group-open:text-[#1D646B] transition-colors">
+                        {item.q}
+                      </span>
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center group-open:bg-[#1D646B] group-open:text-white transition-all duration-500">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-transform duration-500 group-open:rotate-45"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </div>
+                  </summary>
+                  <div className="px-8 pb-8 ml-14 text-slate-500 text-base leading-relaxed animate-in fade-in slide-in-from-top-4">
+                    <p className="max-w-2xl">{item.a}</p>
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
       </div>
-
-      {/* Right Side: Interactive Accordion (8 Cols) */}
-      <div className="lg:col-span-8 space-y-4">
-        {[
-          {
-            q: "Is the first consultation really free?",
-            a: "Yes! At HealviaCare, your initial consultation with our medical experts is 100% free. We aim to help you understand your condition without any financial pressure.",
-          },
-          {
-            q: "Will you handle my insurance paperwork?",
-            a: "Completely. Our dedicated Care Managers coordinate directly with your insurance provider (TPA) for cashless approvals, usually in under 30 minutes.",
-          },
-          {
-            q: "What is the typical waiting time for surgery?",
-            a: "We prioritize efficiency. Once diagnosed, surgeries are typically scheduled within 24 to 48 hours at a premium hospital near you.",
-          },
-          {
-            q: "Are the hospitals NABH accredited?",
-            a: "Yes, we only partner with top-tier premium hospitals that meet the highest safety, hygiene, and luxury standards in India.",
-          },
-          {
-            q: "How does the Zero-Cost EMI work?",
-            a: "You can split your surgery cost into 6, 9, or 12 monthly installments. There is 0% interest and no hidden processing fees.",
-          },
-          {
-            q: "Do I get support after the surgery?",
-            a: "Yes. From diet plans to follow-up checkups with the surgeon, your Care Manager stays with you until you are 100% recovered.",
-          },
-        ].map((item, i) => (
-          <details
-            key={i}
-            className="group border-b border-slate-100 bg-slate-50/50 rounded-3xl transition-all duration-500 open:bg-white open:shadow-[0_20px_40px_rgba(29,100,107,0.08)] open:border-teal-100"
-          >
-            <summary className="flex items-center justify-between p-8 cursor-pointer list-none">
-              <div className="flex items-center gap-6">
-                <span className="text-slate-300 font-black text-2xl group-open:text-teal-500 transition-colors">
-                  0{i + 1}
-                </span>
-                <span className="text-lg md:text-xl font-bold text-slate-700 group-open:text-[#1D646B] transition-colors">
-                  {item.q}
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center group-open:bg-[#1D646B] group-open:text-white transition-all duration-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-transform duration-500 group-open:rotate-45"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </div>
-            </summary>
-            <div className="px-8 pb-8 ml-14 text-slate-500 text-base leading-relaxed animate-in fade-in slide-in-from-top-4">
-              <p className="max-w-2xl">{item.a}</p>
-            </div>
-          </details>
-        ))}
-      </div>
-    </div>
-  </section>
-</div>
 
       {/* ---------------- CTA SECTION ---------------- */}
-     <section 
-  id="talk-to-specialist"
-  className="relative py-20 md:py-28 px-6 lg:px-20 overflow-hidden"
->
+      <section 
+        id="talk-to-specialist"
+        className="relative py-20 md:py-28 px-6 lg:px-20 overflow-hidden"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-[#0F3D3E] via-[#145A5C] to-[#1D646B]"></div>
         <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#0F3D3E]/80 to-transparent"></div>
         <div className="relative z-10 max-w-5xl mx-auto text-center">
@@ -459,9 +457,9 @@ export default function Home() {
                 Book Free Consultation
               </button>
             </Link>
-            <a href="tel:8700508321" className="w-full sm:w-auto">
+            <a href="tel:8882804301" className="w-full sm:w-auto">
               <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
-                Call Now: 8700508321
+                Call Now: 8882804301
               </button>
             </a>
           </div>

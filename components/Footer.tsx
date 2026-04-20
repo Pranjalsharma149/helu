@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -29,8 +29,13 @@ export default function Footer() {
           </p>
 
           <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <Mail size={16} /> info@healviacare.in
+            <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
+              <Phone size={16} /> 
+              <a href="tel:+918882804301">+91 8882804301</a>
+            </div>
+            <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
+              <Mail size={16} /> 
+              <a href="mailto:info@healviacare.in">info@healviacare.in</a>
             </div>
             <div className="flex items-center gap-2">
               <MapPin size={16} /> India
@@ -45,10 +50,10 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-3 text-gray-600 text-sm">
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/#why-choose-us">About Us</Link></li>
-            <li><Link href="/#talk-to-specialist">Contact Us</Link></li>
-            <li><Link href="/book-now">Book Consultation</Link></li>
+            <li><Link href="/" className="hover:text-[#1D646B] transition-colors">Home</Link></li>
+            <li><Link href="/#why-choose-us" className="hover:text-[#1D646B] transition-colors">About Us</Link></li>
+            <li><Link href="/#talk-to-specialist" className="hover:text-[#1D646B] transition-colors">Contact Us</Link></li>
+            <li><Link href="/book-now" className="hover:text-[#1D646B] transition-colors">Book Consultation</Link></li>
           </ul>
         </div>
 
@@ -59,14 +64,14 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-3 text-gray-600 text-sm">
-            <li><Link href="/lasik">LASIK Eye Surgery</Link></li>
-            <li><Link href="/cataract">Cataract Surgery</Link></li>
-            <li><Link href="/urology">Urology (Kidney Stones)</Link></li>
-            <li><Link href="/vascular">Vascular (Varicose Veins)</Link></li>
-            <li><Link href="/orthopedics">Orthopedics</Link></li>
-            <li><Link href="/gastro">Gastroenterology</Link></li>
-            <li><Link href="/piles">Piles (Proctology)</Link></li>
-            <li><Link href="/internalmedicine">Internal Medicine</Link></li>
+            <li><Link href="/lasik" className="hover:text-[#1D646B] transition-colors">LASIK Eye Surgery</Link></li>
+            <li><Link href="/cataract" className="hover:text-[#1D646B] transition-colors">Cataract Surgery</Link></li>
+            <li><Link href="/urology" className="hover:text-[#1D646B] transition-colors">Urology (Kidney Stones)</Link></li>
+            <li><Link href="/vascular" className="hover:text-[#1D646B] transition-colors">Vascular (Varicose Veins)</Link></li>
+            <li><Link href="/orthopedics" className="hover:text-[#1D646B] transition-colors">Orthopedics</Link></li>
+            <li><Link href="/gastro" className="hover:text-[#1D646B] transition-colors">Gastroenterology</Link></li>
+            <li><Link href="/piles" className="hover:text-[#1D646B] transition-colors">Piles (Proctology)</Link></li>
+            <li><Link href="/internalmedicine" className="hover:text-[#1D646B] transition-colors">Internal Medicine</Link></li>
           </ul>
         </div>
 
@@ -76,9 +81,12 @@ export default function Footer() {
             Need Help?
           </h3>
 
-          <p className="text-gray-600 text-sm mb-5">
+          <p className="text-gray-600 text-sm mb-2">
             Talk to our medical experts and get guidance for the right treatment.
-            We’re available 24/7 for your support.
+          </p>
+          
+          <p className="text-[#1D646B] font-bold text-lg mb-5 flex items-center gap-2">
+            <Phone size={18} /> 8882804301
           </p>
 
           <Link href="/book-now">

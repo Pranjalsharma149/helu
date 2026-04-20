@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X, MessageCircle } from "lucide-react"; // Imported MessageCircle
 
 const treatments = [
   { name: "LASIK Eye Surgery", href: "/lasik" },
@@ -19,6 +19,11 @@ const treatments = [
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // WhatsApp Configuration
+  const phoneNumber = "918882804301"; // Added country code (91 for India)
+  const message = encodeURIComponent("Hello HealviaCare, I would like to book a consultation.");
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
   const scrollToSection = (id: string) => {
     setIsOpen(false);
@@ -44,9 +49,9 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
       
       {/* MAIN HEADER */}
-      <div className="max-w-7xl mx-auto pr-6 flex items-center justify-between h-[80px]">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
         
-        {/* ✅ LOGO (EXTREME LEFT FIX ONLY) */}
+        {/* LOGO */}
         <Link href="/" className="flex items-center -ml-4 md:-ml-6">
           <Image
             src="/vb.png"
@@ -59,8 +64,7 @@ export default function Header() {
         </Link>
 
         {/* DESKTOP NAV */}
-        <nav className="hidden lg:flex items-center gap-10">
-          
+        <nav className="hidden lg:flex items-center gap-8">
           <Link href="/" className="text-[15px] font-bold text-slate-700 hover:text-[#1D646B] transition">
             Home
           </Link>
@@ -113,18 +117,29 @@ export default function Header() {
           </button>
         </nav>
 
-        {/* CTA */}
-        <div className="hidden md:flex items-center gap-6">
+        {/* CTA & WHATSAPP */}
+        <div className="hidden md:flex items-center gap-3">
           <Link href="/book-now">
             <button className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
               Book Free Consultation
             </button>
           </Link>
+          
+          {/* WhatsApp Button */}
+          <a 
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3 rounded-2xl bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center"
+            title="Chat on WhatsApp"
+          >
+            <MessageCircle size={24} fill="currentColor" />
+          </a>
         </div>
 
         {/* MOBILE MENU BUTTON */}
         <button
-          className="lg:hidden p-2 text-slate-700"
+          className="lg:hidden p-2 text-slate-800"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X size={32} /> : <Menu size={32} />}
@@ -133,25 +148,29 @@ export default function Header() {
 
       {/* MOBILE MENU */}
       {isOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t shadow-2xl p-6">
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-200 shadow-2xl p-6 h-[calc(100vh-80px)] overflow-y-auto">
           <div className="flex flex-col gap-6">
 
-            <Link href="/" onClick={() => setIsOpen(false)} className="text-lg font-bold">
+            <Link
+              href="/"
+              onClick={() => setIsOpen(false)}
+              className="text-lg font-bold text-slate-900 hover:text-[#1D646B] transition"
+            >
               Home
             </Link>
 
             <div className="space-y-4">
-              <p className="text-[10px] font-black uppercase text-slate-400">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#1D646B]">
                 Our Treatments
               </p>
 
-              <div className="grid gap-3 pl-3 border-l-2 border-[#1D646B]/10">
+              <div className="grid gap-1 pl-3 border-l-2 border-[#1D646B]/30">
                 {treatments.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className="text-[15px]"
+                    className="text-[15px] font-semibold text-slate-800 hover:text-[#1D646B] hover:bg-[#F0FFF4] px-3 py-2 rounded-lg transition"
                   >
                     {item.name}
                   </Link>
@@ -161,23 +180,36 @@ export default function Header() {
 
             <button
               onClick={() => scrollToSection("why-choose-us")}
-              className="text-lg font-bold text-left"
+              className="text-lg font-bold text-left text-slate-900 hover:text-[#1D646B] transition"
             >
               About Us
             </button>
 
             <button
               onClick={() => scrollToSection("talk-to-specialist")}
-              className="text-lg font-bold text-left"
+              className="text-lg font-bold text-left text-slate-900 hover:text-[#1D646B] transition"
             >
               Contact Us
             </button>
 
-            <Link href="/book-now" onClick={() => setIsOpen(false)}>
-              <button className="w-full py-4 rounded-2xl bg-[#1D646B] text-white font-bold">
-                Book Free Consultation
-              </button>
-            </Link>
+            {/* Mobile CTAs */}
+            <div className="flex flex-col gap-3 pt-4">
+                <Link href="/book-now" onClick={() => setIsOpen(false)}>
+                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold shadow-lg hover:shadow-xl transition">
+                    Book Free Consultation
+                </button>
+                </Link>
+
+                <a 
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-4 rounded-2xl bg-[#25D366] text-white font-bold shadow-lg flex items-center justify-center gap-2 transition"
+                >
+                    <MessageCircle size={20} fill="currentColor" />
+                    Chat on WhatsApp
+                </a>
+            </div>
 
           </div>
         </div>

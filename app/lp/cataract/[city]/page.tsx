@@ -1,7 +1,10 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import {
   ArrowRight,
@@ -27,12 +30,109 @@ import {
   Sparkles,
   Activity,
   BarChart3,
+  Zap,
+  Hospital,
+  HeartPulse,
+  ClipboardList,
 } from "lucide-react";
 
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// ─── City Config ─────────────────────────────────────────────────────────────
+type CityKey = "delhi" | "mumbai" | "lucknow" | "noida" | "hyderabad" | "bangalore";
 
-// ─── Animated counter ──────────────────────────────────────────────────────
+type CityConfig = {
+  name: string;
+  shortName: string;
+  badge: string;
+  headline: string;
+  subheadline: string;
+  overview: string;
+  hospitalLine: string;
+  tpaNote: string;
+  nearbyAreas: string[];
+};
+
+const cityData: Record<CityKey, CityConfig> = {
+  delhi: {
+    name: "Delhi NCR",
+    shortName: "Delhi",
+    badge: "Delhi NCR",
+    headline: "World-class cataract surgery in Delhi NCR",
+    subheadline:
+      "Stitch-free, painless cataract removal with premium IOL options — at NABH-accredited hospitals across Delhi, Gurgaon, and Noida.",
+    overview:
+      "Delhi NCR is home to some of India's best ophthalmic centres. HealviaCare connects you with senior cataract surgeons in your area, handles all paperwork, and ensures end-to-end support from first call to final follow-up.",
+    hospitalLine: "Partner hospitals across Delhi, Gurgaon, Faridabad & Noida",
+    tpaNote: "Cashless insurance supported",
+    nearbyAreas: ["Dwarka", "Rohini", "Saket", "Gurgaon", "Noida", "Faridabad"],
+  },
+  mumbai: {
+    name: "Mumbai",
+    shortName: "Mumbai",
+    badge: "Mumbai",
+    headline: "Premium cataract care in Mumbai",
+    subheadline:
+      "Same-day discharge cataract surgery with top-tier IOL technology — across South Mumbai, Thane, and Navi Mumbai.",
+    overview:
+      "Mumbai's fast-paced lifestyle demands fast, reliable care. Our partner hospitals offer cutting-edge phacoemulsification, premium lens options, and post-op teleconsults so you never miss a follow-up.",
+    hospitalLine: "Partner hospitals across South Mumbai, Thane & Navi Mumbai",
+    tpaNote: "Cashless & TPA claims supported",
+    nearbyAreas: ["Andheri", "Bandra", "Thane", "Navi Mumbai", "Dadar", "Borivali"],
+  },
+  lucknow: {
+    name: "Lucknow",
+    shortName: "Lucknow",
+    badge: "Lucknow",
+    headline: "Trusted cataract surgery in Lucknow",
+    subheadline:
+      "Affordable, modern cataract care for Lucknow families — from phaco surgery to premium multifocal IOLs.",
+    overview:
+      "HealviaCare's Lucknow network brings NABH-accredited cataract surgery to your city, with special support for elderly patients, insurance filing, and transport assistance.",
+    hospitalLine: "Partner hospitals across Lucknow & Kanpur",
+    tpaNote: "Insurance assistance provided",
+    nearbyAreas: ["Hazratganj", "Gomti Nagar", "Alambagh", "Indira Nagar", "Aliganj", "Kanpur"],
+  },
+  noida: {
+    name: "Noida",
+    shortName: "Noida",
+    badge: "Noida / Greater Noida",
+    headline: "Advanced cataract surgery in Noida",
+    subheadline:
+      "India's latest IOL technology, delivered at Noida's leading ophthalmic hospitals — with zero-wait scheduling.",
+    overview:
+      "Noida residents get access to the same quality of care as Delhi's top hospitals — closer to home. HealviaCare coordinates screening, surgery, and follow-up at partner centres in Noida Sector 18, 62, and Greater Noida.",
+    hospitalLine: "Partner hospitals in Noida Sectors & Greater Noida",
+    tpaNote: "Pre-auth & cashless insurance supported",
+    nearbyAreas: ["Sector 18", "Sector 62", "Greater Noida", "Sector 44", "Indirapuram", "Vasundhara"],
+  },
+  hyderabad: {
+    name: "Hyderabad",
+    shortName: "Hyderabad",
+    badge: "Hyderabad",
+    headline: "Cataract surgery excellence in Hyderabad",
+    subheadline:
+      "Top-tier cataract care in the City of Pearls — with premium IOL options and dedicated coordinator support.",
+    overview:
+      "Hyderabad has a strong tradition of ophthalmic excellence. HealviaCare partners with city's best eye hospitals to bring you advanced phaco surgery, trifocal lenses, and complete post-operative care.",
+    hospitalLine: "Partner hospitals across Hyderabad & Secunderabad",
+    tpaNote: "TPA & cashless claims supported",
+    nearbyAreas: ["Banjara Hills", "Jubilee Hills", "Secunderabad", "Ameerpet", "Kukatpally", "Miyapur"],
+  },
+  bangalore: {
+    name: "Bangalore",
+    shortName: "Bangalore",
+    badge: "Bengaluru",
+    headline: "Precision cataract care in Bangalore",
+    subheadline:
+      "Silicon Valley of India deserves world-class eye care — advanced IOL surgery with same-day discharge in Bengaluru.",
+    overview:
+      "Bangalore's tech-savvy patients expect the best. Our partner hospitals use Zeiss and Alcon phaco systems, offer tele-follow-ups, and provide detailed digital reports after every consultation.",
+    hospitalLine: "Partner hospitals across Bengaluru North, South & East",
+    tpaNote: "All major insurers supported",
+    nearbyAreas: ["Koramangala", "Jayanagar", "Whitefield", "Malleswaram", "HSR Layout", "Indiranagar"],
+  },
+};
+
+// ─── Animated counter ─────────────────────────────────────────────────────────
 function useCounter(end: number, duration = 2000, started = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -61,7 +161,7 @@ function StatCounter({ value, suffix, label, prefix = "" }: {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="text-center group">
+    <div ref={ref} className="text-center">
       <div className="text-5xl font-black tracking-tight text-[#C9A84C] lg:text-6xl font-serif">
         {prefix}{count}{suffix}
       </div>
@@ -70,7 +170,7 @@ function StatCounter({ value, suffix, label, prefix = "" }: {
   );
 }
 
-// ─── FAQ ──────────────────────────────────────────────────────────────────
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -92,7 +192,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   );
 }
 
-// ─── Testimonial ──────────────────────────────────────────────────────────
+// ─── Testimonial ─────────────────────────────────────────────────────────────
 function TestimonialCard({ name, city, text, rating, procedure, age }: {
   name: string; city: string; text: string; rating: number; procedure: string; age: number;
 }) {
@@ -122,7 +222,7 @@ function TestimonialCard({ name, city, text, rating, procedure, age }: {
   );
 }
 
-// ─── Symptom Card ─────────────────────────────────────────────────────────
+// ─── Symptom Card ─────────────────────────────────────────────────────────────
 function SymptomCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="flex gap-4 p-5 rounded-xl bg-[#0E1A2B] border border-slate-800 hover:border-[#C9A84C]/30 transition-all duration-200">
@@ -137,7 +237,7 @@ function SymptomCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
   );
 }
 
-// ─── Lens Option Card ─────────────────────────────────────────────────────
+// ─── Lens Option Card ─────────────────────────────────────────────────────────
 function LensCard({ name, subtitle, price, badge, features, isPopular, desc }: {
   name: string; subtitle: string; price: string; badge?: string;
   features: string[]; isPopular?: boolean; desc: string;
@@ -178,16 +278,43 @@ function LensCard({ name, subtitle, price, badge, features, isPopular, desc }: {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────
-export default function CataractLandingPage() {
+// ─── Main Component ───────────────────────────────────────────────────────────
+export default function CataractCityLandingPage() {
+  const params = useParams();
+
+  // Resolve city from URL param — supports /cataract-surgery-delhi, /cataract-delhi, /delhi, etc.
+  const rawParam = String(params?.city || "delhi")
+    .toLowerCase()
+    .replace(/cataract[-_]surgery[-_]/g, "")
+    .replace(/cataract[-_]/g, "")
+    .replace(/[-_]cataract.*/g, "")
+    .trim();
+
+  const CITY_ALIASES: Record<string, CityKey> = {
+    delhi: "delhi",
+    "delhi-ncr": "delhi",
+    ncr: "delhi",
+    gurgaon: "delhi",
+    faridabad: "delhi",
+    mumbai: "mumbai",
+    bombay: "mumbai",
+    lucknow: "lucknow",
+    noida: "noida",
+    "greater-noida": "noida",
+    hyderabad: "hyderabad",
+    bangalore: "bangalore",
+    bengaluru: "bangalore",
+  };
+
+  const cityKey: CityKey = CITY_ALIASES[rawParam] ?? "delhi";
+  const city = cityData[cityKey];
+
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
-  const [city, setCity] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [activeSymptom, setActiveSymptom] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,10 +326,12 @@ export default function CataractLandingPage() {
     setLoading(true);
     try {
       const { error } = await supabase.from("leads").insert([{
-        name, phone, city,
+        name,
+        phone,
+        city: city.name,
         age_range: age || "not specified",
-        service: "Cataract Surgery",
-        source: "landing-page-cataract",
+        service: `Cataract Surgery ${city.shortName}`,
+        source: `landing-page-cataract-${cityKey}`,
       }]);
       if (error) throw error;
       setSubmitted(true);
@@ -216,18 +345,12 @@ export default function CataractLandingPage() {
   const faqs = [
     { q: "Is cataract surgery painful?", a: "No. The surgery is performed under local anaesthesia (eye drops). You'll feel no pain — only mild pressure for a few seconds. The entire procedure takes 15–20 minutes and most patients are surprised at how easy it is." },
     { q: "How long does vision recovery take?", a: "Most patients notice dramatic improvement within 24 hours. Vision stabilises over 4–6 weeks as the eye heals. You can resume most daily activities — reading, screen work, cooking — within a day or two." },
-    { q: "What age is suitable for cataract surgery?", a: "Cataracts are most common after 60, but can appear earlier. Surgery is recommended when clouding significantly affects daily life — driving, reading, or recognising faces. There is no 'too early' or 'too late' once vision is impaired." },
+    { q: `Which hospitals does HealviaCare partner with in ${city.name}?`, a: `We work with NABH-accredited eye care centres across ${city.name}. ${city.hospitalLine}. Your coordinator will recommend the most convenient and suitable centre for you.` },
     { q: "What is the difference between monofocal and multifocal lenses?", a: "Monofocal lenses correct vision at one distance (usually distance). Reading glasses may still be needed. Multifocal / trifocal lenses correct near, intermediate, and distance vision, reducing dependence on glasses significantly." },
-    { q: "Is cataract surgery covered by insurance?", a: "Yes — most health insurance policies cover cataract surgery for standard monofocal lenses. Premium lenses (multifocal, toric) may have partial or no coverage. We assist with pre-authorisation paperwork at no cost." },
+    { q: "Is cataract surgery covered by insurance?", a: `Yes — most health insurance policies cover cataract surgery for standard monofocal lenses. ${city.tpaNote}. Premium lenses (multifocal, toric) may have partial or no coverage. We assist with pre-authorisation paperwork at no cost.` },
     { q: "Can both eyes be operated in the same sitting?", a: "Typically, surgeons prefer to operate one eye at a time (1–2 weeks apart) for safety. If both eyes have cataracts, the better-seeing eye is usually treated last." },
     { q: "What is phacoemulsification?", a: "Phaco (ultrasound cataract removal) is the modern, stitch-free technique. A tiny probe liquefies the cloudy lens with ultrasound and removes it, after which the intraocular lens (IOL) is implanted — all through a 2mm incision." },
     { q: "Will I need glasses after surgery?", a: "With standard monofocal lenses, reading glasses are usually still needed. Premium multifocal or EDOF lenses significantly reduce or eliminate the need for glasses. Your doctor will recommend the best lens for your lifestyle." },
-  ];
-
-  const testimonials = [
-    { name: "Suresh Gupta", city: "Delhi", text: "I had been putting off surgery for two years, scared of the procedure. The team at HealviaCare walked me through every step. I went home the same evening and could read the newspaper the next morning — first time in years.", rating: 5, procedure: "Multifocal IOL", age: 67 },
-    { name: "Meena Agarwal", city: "Lucknow", text: "My mother was 74 and had been struggling with glare and blurring for months. After surgery she said she could see colours she had forgotten existed. The coordinators arranged everything including our transport — absolute five-star care.", rating: 5, procedure: "Phaco + Monofocal", age: 74 },
-    { name: "Ramesh Verma", city: "Noida", text: "I opted for the trifocal lens. Now I drive at night, read without glasses, and use my phone comfortably. Worth every rupee. The post-op follow-up was thorough and the doctor was reachable whenever I had questions.", rating: 5, procedure: "Trifocal IOL", age: 61 },
   ];
 
   const symptoms = [
@@ -239,6 +362,12 @@ export default function CataractLandingPage() {
     { icon: <BarChart3 size={16} />, title: "Poor night vision", desc: "Vision deteriorates significantly in dim light or at dusk." },
   ];
 
+  const testimonials = [
+    { name: "Suresh Gupta", city: city.shortName, text: "I had been putting off surgery for two years, scared of the procedure. The team at HealviaCare walked me through every step. I went home the same evening and could read the newspaper the next morning — first time in years.", rating: 5, procedure: "Multifocal IOL", age: 67 },
+    { name: "Meena Agarwal", city: city.shortName, text: "My mother was 74 and had been struggling with glare and blurring for months. After surgery she said she could see colours she had forgotten existed. The coordinators arranged everything — absolute five-star care.", rating: 5, procedure: "Phaco + Monofocal", age: 74 },
+    { name: "Ramesh Verma", city: city.shortName, text: "I opted for the trifocal lens. Now I drive at night, read without glasses, and use my phone comfortably. Worth every rupee. The post-op follow-up was thorough and the doctor was reachable whenever I had questions.", rating: 5, procedure: "Trifocal IOL", age: 61 },
+  ];
+
   return (
     <main className="bg-[#070D18] text-slate-100 overflow-x-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
@@ -248,26 +377,20 @@ export default function CataractLandingPage() {
         @keyframes float-slow { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
         .float-anim { animation: float-slow 6s ease-in-out infinite; }
-        .pulse-ring::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 1px solid #C9A84C; animation: pulse-ring 2.5s ease-out infinite; }
-        .step-line::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 40px; background: linear-gradient(to bottom, #C9A84C40, transparent); }
       `}</style>
 
       <Header />
 
       {/* ══════════════════════ HERO ══════════════════════ */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#070D18] via-[#080F1F] to-[#0a0f1a]" />
-        {/* Gold mesh */}
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(ellipse 80% 60% at 70% 50%, rgba(201,168,76,0.07) 0%, transparent 60%)`,
         }} />
-        {/* Dot pattern */}
         <div className="absolute inset-0 opacity-[0.025]" style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, #C9A84C 1px, transparent 0)`,
           backgroundSize: "36px 36px",
         }} />
-        {/* Large eye illustration glow */}
         <div className="absolute right-0 top-0 w-[700px] h-[700px] rounded-full" style={{
           background: "radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 65%)",
         }} />
@@ -277,36 +400,69 @@ export default function CataractLandingPage() {
 
             {/* LEFT */}
             <div className="space-y-8">
-              {/* Eyebrow */}
-              <div className="flex items-center gap-3">
-                <div className="h-px w-10 bg-[#C9A84C]" />
-                <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-[0.3em]">HealviaCare · Ophthalmology</span>
+              {/* City badge */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#C9A84C]">
+                <MapPin size={13} />
+                HealviaCare · {city.badge}
               </div>
 
-              <h1 className="serif text-6xl font-black leading-[1.0] tracking-tight text-white sm:text-7xl lg:text-[6rem]">
-                Reclaim<br />
-                <span className="text-[#C9A84C]">Clear</span><br />
-                Vision.
+              <h1 className="serif text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-[5.5rem]">
+                {city.headline.split(" with ")[0]}
+                <br />
+                <span className="text-[#C9A84C]">Cataract Surgery</span>
               </h1>
 
               <p className="text-base leading-8 text-slate-400 max-w-lg">
-                World-class cataract surgery with premium intraocular lenses. Stitch-free. Painless. Life-changing results in under 20 minutes — by India's most trusted ophthalmologists.
+                {city.subheadline}
               </p>
+
+              <p className="text-sm leading-7 text-slate-500 max-w-lg">
+                {city.overview}
+              </p>
+
+              {/* Quick stats grid */}
+              <div className="grid grid-cols-2 gap-4 max-w-lg sm:grid-cols-4">
+                {[
+                  { label: "Procedure", val: "20-min surgery", icon: <Zap size={18} className="text-[#C9A84C]" /> },
+                  { label: "Screening", val: "Pre-op first", icon: <ClipboardList size={18} className="text-[#C9A84C]" /> },
+                  { label: "Discharge", val: "Same day", icon: <Clock3 size={18} className="text-[#C9A84C]" /> },
+                  { label: "Insurance", val: city.tpaNote, icon: <ShieldCheck size={18} className="text-[#C9A84C]" /> },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl border border-slate-800 bg-[#0E1A2B] p-4">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      {item.icon}
+                      {item.label}
+                    </div>
+                    <div className="mt-1.5 text-xs font-semibold text-slate-300">{item.val}</div>
+                  </div>
+                ))}
+              </div>
 
               {/* Trust tags */}
               <div className="flex flex-wrap gap-2.5">
                 {[
-                  "20-min Procedure",
                   "No Stitches Required",
-                  "NABH Accredited Hospitals",
+                  "NABH Accredited",
                   "Lifetime Aftercare",
                   "Same-day Discharge",
                 ].map((t) => (
                   <span key={t} className="flex items-center gap-1.5 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/5 px-3.5 py-1.5 text-xs font-medium text-[#C9A84C]">
-                    <CheckCircle2 size={11} className="text-[#C9A84C]" />
+                    <CheckCircle2 size={11} />
                     {t}
                   </span>
                 ))}
+              </div>
+
+              {/* Nearby areas */}
+              <div>
+                <p className="text-xs text-slate-600 uppercase tracking-widest font-semibold mb-2">Serving areas in {city.shortName}</p>
+                <div className="flex flex-wrap gap-2">
+                  {city.nearbyAreas.map((area) => (
+                    <span key={area} className="rounded-full border border-slate-800 bg-[#0E1A2B] px-3 py-1 text-xs text-slate-500 hover:border-[#C9A84C]/30 hover:text-[#C9A84C] transition-colors cursor-default">
+                      {area}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               {/* Social proof */}
@@ -331,7 +487,7 @@ export default function CataractLandingPage() {
                 </div>
               </div>
 
-              {/* CTA buttons - desktop */}
+              {/* CTA buttons desktop */}
               <div className="hidden lg:flex items-center gap-4 pt-2">
                 <a href="tel:8882804301"
                   className="flex items-center gap-2.5 rounded-xl bg-[#C9A84C] px-7 py-3.5 font-bold text-[#0a0f1a] hover:bg-[#d4b55a] transition-all hover:-translate-y-0.5 shadow-lg shadow-[#C9A84C]/20"
@@ -359,7 +515,7 @@ export default function CataractLandingPage() {
                   </div>
                   <h3 className="serif text-2xl font-black text-white">Consultation Confirmed</h3>
                   <p className="mt-3 text-slate-400 text-sm leading-7">
-                    Our senior patient coordinator will call you within <strong className="text-[#C9A84C]">30 minutes</strong> to schedule your comprehensive eye evaluation.
+                    Our senior patient coordinator in <strong className="text-[#C9A84C]">{city.name}</strong> will call you within <strong className="text-[#C9A84C]">30 minutes</strong> to schedule your comprehensive eye evaluation.
                   </p>
                   <div className="mt-6 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 p-4">
                     <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Or call directly</p>
@@ -369,7 +525,6 @@ export default function CataractLandingPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="relative rounded-2xl bg-[#0E1A2B] border border-slate-800 p-8 shadow-2xl">
-                  {/* Gold accent line */}
                   <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
 
                   <div className="mb-7">
@@ -377,12 +532,13 @@ export default function CataractLandingPage() {
                       <div className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
                       <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-widest">Free · No obligation</span>
                     </div>
-                    <h2 className="serif text-2xl font-black text-white">Book Free Eye Evaluation</h2>
+                    <h2 className="serif text-2xl font-black text-white">
+                      Free Eye Evaluation in {city.shortName}
+                    </h2>
                     <p className="text-sm text-slate-500 mt-1.5">Get a personalised cataract assessment within 24 hrs</p>
                   </div>
 
                   <div className="space-y-4">
-                    {/* Name */}
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Full Name</label>
                       <input
@@ -394,7 +550,6 @@ export default function CataractLandingPage() {
                       />
                     </div>
 
-                    {/* Phone */}
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
                         Mobile Number <span className="text-red-400 normal-case font-normal">*required</span>
@@ -418,19 +573,6 @@ export default function CataractLandingPage() {
                       {phoneError && <p className="mt-1.5 text-xs text-red-400">{phoneError}</p>}
                     </div>
 
-                    {/* City */}
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">City</label>
-                      <input
-                        type="text"
-                        placeholder="Your city"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className="w-full rounded-xl border border-slate-700 bg-[#070D18] px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/20 transition"
-                      />
-                    </div>
-
-                    {/* Age range */}
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Patient Age Range</label>
                       <div className="grid grid-cols-4 gap-2">
@@ -451,7 +593,6 @@ export default function CataractLandingPage() {
                       </div>
                     </div>
 
-                    {/* Submit */}
                     <button
                       type="submit"
                       disabled={loading}
@@ -503,6 +644,35 @@ export default function CataractLandingPage() {
         </div>
       </section>
 
+      {/* ══════════════════════ CONTACT STRIP ══════════════════════ */}
+      <section className="px-6 py-8 bg-[#0E1A2B]">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-4 rounded-2xl bg-[#070D18] p-5 border border-slate-800 md:grid-cols-3">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#0E1A2B] p-4">
+              <Phone className="text-[#C9A84C]" size={20} />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Call Us</p>
+                <p className="font-bold text-slate-200">8882804301</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#0E1A2B] p-4">
+              <Mail className="text-[#C9A84C]" size={20} />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Email</p>
+                <p className="font-bold text-slate-200">info@healviacare.in</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#0E1A2B] p-4">
+              <MapPin className="text-[#C9A84C]" size={20} />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Serving</p>
+                <p className="font-bold text-slate-200">{city.hospitalLine}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══════════════════════ SYMPTOMS ══════════════════════ */}
       <section id="symptoms" className="px-6 py-24">
         <div className="mx-auto max-w-7xl">
@@ -517,7 +687,7 @@ export default function CataractLandingPage() {
                 <span className="text-[#C9A84C]">Cataract Surgery?</span>
               </h2>
               <p className="text-slate-400 leading-8 text-sm mb-8 max-w-md">
-                Cataracts develop slowly and are often mistaken for normal aging. These are the key warning signs that surgery may be needed. If you experience three or more, book an evaluation today.
+                Cataracts develop slowly and are often mistaken for normal aging. These are the key warning signs that surgery may be needed. If you experience three or more, book an evaluation in {city.shortName} today.
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -529,12 +699,11 @@ export default function CataractLandingPage() {
               <div className="mt-8 rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/5 p-5">
                 <p className="text-sm text-[#C9A84C] font-semibold mb-1">⚠ When to act immediately</p>
                 <p className="text-xs text-slate-400 leading-6">
-                  If you can no longer read, drive safely, or recognise faces — cataract surgery should not be delayed. Untreated cataracts can lead to complete vision loss.
+                  If you can no longer read, drive safely, or recognise faces — cataract surgery should not be delayed. Untreated cataracts can lead to complete vision loss. Book your evaluation in {city.name} today.
                 </p>
               </div>
             </div>
 
-            {/* Eye imagery */}
             <div className="relative">
               <div className="overflow-hidden rounded-3xl shadow-2xl h-[520px]">
                 <Image
@@ -554,12 +723,11 @@ export default function CataractLandingPage() {
                     </div>
                     <div>
                       <p className="font-black text-white">Advanced IOL Technology</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Premium monofocal, multifocal & toric lenses available</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Premium monofocal, multifocal & toric lenses in {city.shortName}</p>
                     </div>
                   </div>
                 </div>
               </div>
-              {/* Floating badge */}
               <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-[#C9A84C] flex flex-col items-center justify-center text-[#0a0f1a] shadow-xl">
                 <span className="text-2xl font-black leading-none">20</span>
                 <span className="text-[9px] font-black uppercase tracking-wider leading-tight">min</span>
@@ -674,7 +842,7 @@ export default function CataractLandingPage() {
           <div className="text-center mb-16">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-px w-8 bg-[#C9A84C]" />
-              <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Your Journey</span>
+              <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Your Journey in {city.shortName}</span>
               <div className="h-px w-8 bg-[#C9A84C]" />
             </div>
             <h2 className="serif text-5xl font-black text-white">
@@ -684,10 +852,10 @@ export default function CataractLandingPage() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { num: "01", icon: <Phone size={22} />, title: "Free Consultation Call", desc: "Our coordinator calls within 30 minutes. We understand your symptoms, age, and medical history." },
+              { num: "01", icon: <Phone size={22} />, title: "Free Consultation Call", desc: `Our ${city.shortName} coordinator calls within 30 minutes. We understand your symptoms, age, and medical history.` },
               { num: "02", icon: <Eye size={22} />, title: "Comprehensive Screening", desc: "90-min eye evaluation: biometry, corneal mapping, retina check. Lens recommendation by senior surgeon." },
-              { num: "03", icon: <Layers size={22} />, title: "Surgery Day", desc: "Arrive, receive anaesthetic drops, and in 20 minutes you walk out with a new lens — no stitch, no patch." },
-              { num: "04", icon: <Sunrise size={22} />, title: "See the World Anew", desc: "Vision improves within hours. 3 follow-up visits included. Most patients are back to full routine in 48 hours." },
+              { num: "03", icon: <Layers size={22} />, title: "Surgery Day", desc: "Arrive at our partner hospital, receive anaesthetic drops, and in 20 minutes you walk out with a new lens — no stitch, no patch." },
+              { num: "04", icon: <Sunrise size={22} />, title: "See the World Anew", desc: `Vision improves within hours. 3 follow-up visits included. Most ${city.shortName} patients are back to full routine in 48 hours.` },
             ].map((step, i) => (
               <div key={i} className="relative group">
                 <div className="rounded-2xl bg-[#0E1A2B] border border-slate-800 p-7 h-full hover:border-[#C9A84C]/30 transition-all duration-300 hover:-translate-y-1">
@@ -733,14 +901,13 @@ export default function CataractLandingPage() {
                   </div>
                 </div>
               </div>
-              {/* Floating stat */}
               <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 lg:-bottom-5 lg:left-auto lg:translate-x-0 lg:-right-6 whitespace-nowrap bg-[#0E1A2B] border border-[#C9A84C]/30 rounded-2xl p-4 shadow-2xl flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center">
                   <Award size={22} className="text-[#C9A84C]" />
                 </div>
                 <div>
                   <p className="font-black text-white">NABH Accredited</p>
-                  <p className="text-xs text-slate-500">All partner hospitals</p>
+                  <p className="text-xs text-slate-500">All partner hospitals in {city.shortName}</p>
                 </div>
               </div>
             </div>
@@ -749,22 +916,22 @@ export default function CataractLandingPage() {
             <div className="order-1 lg:order-2">
               <div className="flex items-center gap-3 mb-5">
                 <div className="h-px w-8 bg-[#C9A84C]" />
-                <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Why Choose HealviaCare</span>
+                <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Why Choose HealviaCare in {city.shortName}</span>
               </div>
               <h2 className="serif text-5xl font-black text-white mb-6">
                 Excellence in Every<br />
                 <span className="text-[#C9A84C]">Detail.</span>
               </h2>
               <p className="text-slate-400 leading-8 text-sm mb-8">
-                We don't just operate on eyes — we restore independence, confidence, and joy to our patients. Our approach combines clinical precision with genuine compassion.
+                We don't just operate on eyes — we restore independence, confidence, and joy to our patients across {city.name}. Our approach combines clinical precision with genuine compassion.
               </p>
 
               <div className="space-y-5">
                 {[
                   { icon: <Microscope size={18} />, title: "Zeiss & Alcon Phaco Systems", desc: "We use only the world's most advanced ultrasound phacoemulsification machines — the same used in top European clinics." },
                   { icon: <ShieldCheck size={18} />, title: "All-inclusive Transparent Pricing", desc: "No surprise bills. Your quote covers surgery, lens, follow-ups, and medications — nothing hidden." },
-                  { icon: <Users size={18} />, title: "Dedicated Family Coordinator", desc: "One point of contact for the patient and family — from first call to last follow-up. Available 7 days a week." },
-                  { icon: <TrendingUp size={18} />, title: "Post-op Tele-consultation", desc: "Video follow-ups available for patients travelling from other cities — see your surgeon from home." },
+                  { icon: <Users size={18} />, title: `Dedicated ${city.shortName} Coordinator`, desc: `One point of contact for the patient and family in ${city.name} — from first call to last follow-up. Available 7 days a week.` },
+                  { icon: <TrendingUp size={18} />, title: "Post-op Tele-consultation", desc: "Video follow-ups available for patients travelling from other areas — see your surgeon from home." },
                   { icon: <Heart size={18} />, title: "Geriatric Care Support", desc: "Specialised support for elderly patients including transport assistance, escort coordination, and home visit options." },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-4 group">
@@ -804,7 +971,7 @@ export default function CataractLandingPage() {
               { emoji: "🎨", title: "Vivid Colours", desc: "Patients consistently report colours appearing brighter and richer than they have in years." },
               { emoji: "👨‍👩‍👧", title: "Recognise Faces", desc: "See your grandchildren's expressions clearly. Reconnect with the people who matter most." },
             ].map((b) => (
-              <div key={b.title} className="rounded-2xl bg-[#0E1A2B] border border-slate-800 p-7 hover:border-[#C9A84C]/25 transition-all duration-300 hover:-translate-y-1 group">
+              <div key={b.title} className="rounded-2xl bg-[#0E1A2B] border border-slate-800 p-7 hover:border-[#C9A84C]/25 transition-all duration-300 hover:-translate-y-1">
                 <div className="text-4xl mb-4">{b.emoji}</div>
                 <h4 className="font-black text-white">{b.title}</h4>
                 <p className="mt-2 text-xs text-slate-500 leading-6">{b.desc}</p>
@@ -823,7 +990,7 @@ export default function CataractLandingPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-[#070D18]/80 via-transparent to-transparent" />
             <div className="absolute left-10 top-1/2 -translate-y-1/2">
               <p className="serif text-3xl font-black text-white leading-tight">"I forgot what it felt like<br />to see clearly. Now I remember."</p>
-              <p className="text-sm text-[#C9A84C] mt-2">— Suresh, 67, Delhi · Multifocal IOL patient</p>
+              <p className="text-sm text-[#C9A84C] mt-2">— Patient from {city.shortName} · Multifocal IOL</p>
             </div>
           </div>
         </div>
@@ -877,7 +1044,7 @@ export default function CataractLandingPage() {
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-px w-8 bg-[#C9A84C]" />
-              <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Pricing</span>
+              <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Pricing in {city.shortName}</span>
               <div className="h-px w-8 bg-[#C9A84C]" />
             </div>
             <h2 className="serif text-5xl font-black text-white">
@@ -945,7 +1112,7 @@ export default function CataractLandingPage() {
                       : "border border-[#C9A84C]/30 text-[#C9A84C] hover:bg-[#C9A84C]/10"
                   }`}
                 >
-                  Get Free Evaluation
+                  Get Free Evaluation in {city.shortName}
                 </button>
               </div>
             ))}
@@ -962,8 +1129,8 @@ export default function CataractLandingPage() {
             <div className="rounded-xl border border-[#C9A84C]/20 bg-[#C9A84C]/5 p-5 flex items-center gap-4">
               <ShieldCheck size={24} className="text-[#C9A84C] shrink-0" />
               <div>
-                <p className="font-bold text-white text-sm">Insurance Assistance</p>
-                <p className="text-xs text-slate-500 mt-0.5">We handle pre-auth, cashless & reimbursement claims</p>
+                <p className="font-bold text-white text-sm">Insurance Assistance in {city.shortName}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{city.tpaNote} · We handle pre-auth & cashless claims</p>
               </div>
             </div>
           </div>
@@ -994,7 +1161,6 @@ export default function CataractLandingPage() {
       <section id="final-cta" className="px-6 py-24">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-3xl border border-[#C9A84C]/20">
-            {/* BG */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#0E1A2B] to-[#070D18]" />
             <div className="absolute inset-0" style={{
               backgroundImage: `radial-gradient(ellipse 60% 80% at 15% 50%, rgba(201,168,76,0.08) 0%, transparent 60%)`,
@@ -1005,7 +1171,7 @@ export default function CataractLandingPage() {
               <div>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
-                  <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Limited slots available this week</span>
+                  <span className="text-[#C9A84C] text-xs font-semibold uppercase tracking-widest">Limited slots available in {city.shortName} this week</span>
                 </div>
                 <h2 className="serif text-5xl font-black text-white leading-tight sm:text-6xl">
                   Don't Let Cataracts<br />
@@ -1013,13 +1179,13 @@ export default function CataractLandingPage() {
                   World.
                 </h2>
                 <p className="mt-6 text-slate-400 leading-8 text-sm max-w-md">
-                  Join 1,20,000 people across India who chose to see clearly. Your comprehensive evaluation — worth ₹2,500 — is completely free when you book today.
+                  Join 1,20,000 people across India who chose to see clearly. Your comprehensive evaluation in {city.name} — worth ₹2,500 — is completely free when you book today.
                 </p>
                 <div className="mt-7 space-y-3">
                   {[
                     "Free 90-minute comprehensive eye evaluation (₹2,500 value)",
                     "Expert lens recommendation by senior surgeon",
-                    "Insurance pre-authorisation assistance",
+                    `Insurance pre-authorisation assistance in ${city.shortName}`,
                     "Zero pressure — decide entirely at your pace",
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3 text-sm text-slate-300">
@@ -1045,13 +1211,12 @@ export default function CataractLandingPage() {
                 <div className="rounded-2xl bg-[#0E1A2B] border border-[#C9A84C]/30 p-8 text-center">
                   <CheckCircle2 size={48} className="text-[#C9A84C] mx-auto mb-4" />
                   <h3 className="serif text-2xl font-black text-white">We'll Call You Soon!</h3>
-                  <p className="mt-2 text-slate-400 text-sm">Expect a call within 30 minutes from our senior coordinator.</p>
+                  <p className="mt-2 text-slate-400 text-sm">Expect a call within 30 minutes from our {city.shortName} coordinator.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="rounded-2xl bg-[#070D18] border border-slate-800 p-7 shadow-2xl">
-                  <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/30 to-transparent" />
+                <form onSubmit={handleSubmit} className="relative rounded-2xl bg-[#070D18] border border-slate-800 p-7 shadow-2xl">
                   <h3 className="serif text-xl font-black text-white mb-6">
-                    Claim Your <span className="text-[#C9A84C]">Free Evaluation</span>
+                    Claim Your <span className="text-[#C9A84C]">Free Evaluation</span> in {city.shortName}
                   </h3>
                   <div className="space-y-4">
                     <input
@@ -1084,6 +1249,10 @@ export default function CataractLandingPage() {
                     >
                       {loading ? "Booking..." : <><Phone size={16} /> Book Free Consultation <ArrowRight size={16} /></>}
                     </button>
+                    <p className="text-center text-xs text-slate-600 flex items-center justify-center gap-1.5">
+                      <ShieldCheck size={11} className="text-[#C9A84C]" />
+                      100% confidential · No spam · Cancel anytime
+                    </p>
                   </div>
                 </form>
               )}
