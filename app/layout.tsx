@@ -1,4 +1,5 @@
 import "./globals.css";
+import ConsultationPopup from "@/components/ConsultationPopup";
 
 export const metadata = {
   title: "HealviaCare",
@@ -12,7 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ConsultationPopup />
+      </body>
     </html>
   );
 }

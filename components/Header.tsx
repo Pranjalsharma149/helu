@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, Menu, X, MessageCircle } from "lucide-react"; // Imported MessageCircle
+import { ChevronDown, Menu, X, MessageCircle } from "lucide-react";
 
 const treatments = [
   { name: "LASIK Eye Surgery", href: "/lasik" },
@@ -20,8 +20,7 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // WhatsApp Configuration
-  const phoneNumber = "918882804301"; // Added country code (91 for India)
+  const phoneNumber = "918882804301";
   const message = encodeURIComponent("Hello HealviaCare, I would like to book a consultation.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
@@ -47,10 +46,10 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
-      
+
       {/* MAIN HEADER */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
-        
+
         {/* LOGO */}
         <Link href="/" className="flex items-center -ml-4 md:-ml-6">
           <Image
@@ -117,33 +116,37 @@ export default function Header() {
           </button>
         </nav>
 
-        {/* CTA & WHATSAPP */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* CTA & WHATSAPP + MOBILE HAMBURGER */}
+        <div className="flex items-center gap-2 md:gap-3">
+
+          {/* Book Now Button — always visible */}
           <Link href="/book-now">
-            <button className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
-              Book Free Consultation
+            <button className="px-3 md:px-6 py-2 md:py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-xs md:text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
+              <span className="hidden md:inline">Book Free Consultation</span>
+              <span className="md:hidden">Book Now</span>
             </button>
           </Link>
-          
-          {/* WhatsApp Button */}
-          <a 
+
+          {/* WhatsApp Button — always visible */}
+          <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-3 rounded-2xl bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center"
+            className="p-2 md:p-3 rounded-2xl bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center"
             title="Chat on WhatsApp"
           >
-            <MessageCircle size={24} fill="currentColor" />
+            <MessageCircle size={20} fill="currentColor" />
           </a>
-        </div>
 
-        {/* MOBILE MENU BUTTON */}
-        <button
-          className="lg:hidden p-2 text-slate-800"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X size={32} /> : <Menu size={32} />}
-        </button>
+          {/* Hamburger — only on mobile/tablet */}
+          <button
+            className="lg:hidden p-2 text-slate-800"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X size={32} /> : <Menu size={32} />}
+          </button>
+
+        </div>
       </div>
 
       {/* MOBILE MENU */}
@@ -191,25 +194,6 @@ export default function Header() {
             >
               Contact Us
             </button>
-
-            {/* Mobile CTAs */}
-            <div className="flex flex-col gap-3 pt-4">
-                <Link href="/book-now" onClick={() => setIsOpen(false)}>
-                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold shadow-lg hover:shadow-xl transition">
-                    Book Free Consultation
-                </button>
-                </Link>
-
-                <a 
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-4 rounded-2xl bg-[#25D366] text-white font-bold shadow-lg flex items-center justify-center gap-2 transition"
-                >
-                    <MessageCircle size={20} fill="currentColor" />
-                    Chat on WhatsApp
-                </a>
-            </div>
 
           </div>
         </div>
