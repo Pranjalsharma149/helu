@@ -246,7 +246,6 @@ export default function Home() {
                 className="group relative flex items-center justify-center p-6 bg-white border border-slate-100 rounded-2xl shadow-sm transition-all duration-300 hover:border-[#1D646B]/30 hover:-translate-y-1 cursor-default h-24 md:h-28"
               >
                 <div className="absolute inset-0 rounded-2xl bg-[#F0FFF4] opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 shadow-[0_0_25px_rgba(29,100,107,0.15)]"></div>
-                
                 <p className="text-center text-xs md:text-sm font-semibold text-slate-700 group-hover:text-[#1D646B] transition-colors duration-300">
                   {partner}
                 </p>
@@ -301,7 +300,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------------- PATIENT EXPERIENCES ---------------- */}
+      {/* ---------------- PATIENT EXPERIENCES (COMMENTED OUT) ---------------- */}
+      {/* 
       <section className="py-16 md:py-24 px-6 lg:px-20 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center">
           <div className="text-center lg:text-left">
@@ -340,6 +340,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
 
       <div className="relative bg-white">
         {/* ---------------- DYNAMIC FAQ SECTION ---------------- */}
