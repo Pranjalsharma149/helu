@@ -301,8 +301,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------------- PATIENT EXPERIENCES (TEMPORARILY HIDDEN — videos not available yet) ---------------- */}
-      {/*
+      {/* ---------------- PATIENT EXPERIENCES ---------------- */}
       <section className="py-16 md:py-24 px-6 lg:px-20 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center">
           <div className="text-center lg:text-left">
@@ -341,7 +340,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      */}
 
       <div className="relative bg-white">
         {/* ---------------- DYNAMIC FAQ SECTION ---------------- */}

@@ -20,8 +20,12 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // WhatsApp Configuration
   const phoneNumber = "918882804301";
-  const message = encodeURIComponent("Hello HealviaCare, I would like to book a consultation.");
+  const message = encodeURIComponent(
+    "Hello HealviaCare, I would like to book a consultation."
+  );
+
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
   const scrollToSection = (id: string) => {
@@ -33,38 +37,47 @@ export default function Header() {
     }
 
     const element = document.getElementById(id);
+
     if (element) {
       const yOffset = -90;
+
       const y =
         element.getBoundingClientRect().top +
         window.pageYOffset +
         yOffset;
 
-      window.scrollTo({ top: y, behavior: "smooth" });
+      window.scrollTo({
+        top: y,
+        behavior: "smooth",
+      });
     }
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
-
+      
       {/* MAIN HEADER */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
-
-        {/* LOGO */}
-        <Link href="/" className="flex items-center -ml-4 md:-ml-6">
+        
+        {/* LOGO — reduced size */}
+        <Link href="/" className="flex items-center">
           <Image
-            src="/vb.png"
+            src="/vv.png"
             alt="HealviaCare"
-            width={320}
-            height={80}
+            width={160}
+            height={40}
             priority
-            className="h-14 md:h-16 w-auto object-contain"
+            className="h-9 md:h-10 w-auto object-contain"
           />
         </Link>
 
         {/* DESKTOP NAV */}
         <nav className="hidden lg:flex items-center gap-8">
-          <Link href="/" className="text-[15px] font-bold text-slate-700 hover:text-[#1D646B] transition">
+          
+          <Link
+            href="/"
+            className="text-[15px] font-bold text-slate-700 hover:text-[#1D646B] transition"
+          >
             Home
           </Link>
 
@@ -76,6 +89,7 @@ export default function Header() {
           >
             <button className="flex items-center gap-1 text-[15px] font-bold text-slate-700 group-hover:text-[#1D646B] transition">
               Treatments
+
               <ChevronDown
                 size={16}
                 className={`transition-transform duration-300 ${
@@ -87,6 +101,7 @@ export default function Header() {
             {showDropdown && (
               <div className="absolute top-full -left-10 pt-4 w-[260px]">
                 <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-2">
+                  
                   {treatments.map((item) => (
                     <Link
                       key={item.name}
@@ -96,6 +111,7 @@ export default function Header() {
                       {item.name}
                     </Link>
                   ))}
+
                 </div>
               </div>
             )}
@@ -116,42 +132,41 @@ export default function Header() {
           </button>
         </nav>
 
-        {/* CTA & WHATSAPP + MOBILE HAMBURGER */}
-        <div className="flex items-center gap-2 md:gap-3">
-
-          {/* Book Now Button — always visible */}
+        {/* CTA & WHATSAPP */}
+        <div className="hidden md:flex items-center gap-3">
+          
           <Link href="/book-now">
-            <button className="px-3 md:px-6 py-2 md:py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-xs md:text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
-              <span className="hidden md:inline">Book Free Consultation</span>
-              <span className="md:hidden">Book Now</span>
+            <button className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
+              Book Free Consultation
             </button>
           </Link>
 
-          {/* WhatsApp Button — always visible */}
+          {/* WhatsApp Button */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 md:p-3 rounded-2xl bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center"
+            className="p-3 rounded-2xl bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center"
             title="Chat on WhatsApp"
           >
-            <MessageCircle size={20} fill="currentColor" />
+            <MessageCircle size={24} fill="currentColor" />
           </a>
 
-          {/* Hamburger — only on mobile/tablet */}
-          <button
-            className="lg:hidden p-2 text-slate-800"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X size={32} /> : <Menu size={32} />}
-          </button>
-
         </div>
+
+        {/* MOBILE MENU BUTTON */}
+        <button
+          className="lg:hidden p-2 text-slate-800"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={32} /> : <Menu size={32} />}
+        </button>
       </div>
 
       {/* MOBILE MENU */}
       {isOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-200 shadow-2xl p-6 h-[calc(100vh-80px)] overflow-y-auto">
+          
           <div className="flex flex-col gap-6">
 
             <Link
@@ -163,11 +178,13 @@ export default function Header() {
             </Link>
 
             <div className="space-y-4">
+              
               <p className="text-[10px] font-black uppercase tracking-widest text-[#1D646B]">
                 Our Treatments
               </p>
 
               <div className="grid gap-1 pl-3 border-l-2 border-[#1D646B]/30">
+                
                 {treatments.map((item) => (
                   <Link
                     key={item.name}
@@ -178,6 +195,7 @@ export default function Header() {
                     {item.name}
                   </Link>
                 ))}
+
               </div>
             </div>
 
@@ -194,6 +212,27 @@ export default function Header() {
             >
               Contact Us
             </button>
+
+            {/* MOBILE CTA */}
+            <div className="flex flex-col gap-3 pt-4">
+
+              <Link href="/book-now" onClick={() => setIsOpen(false)}>
+                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold shadow-lg hover:shadow-xl transition">
+                  Book Free Consultation
+                </button>
+              </Link>
+
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 rounded-2xl bg-[#25D366] text-white font-bold shadow-lg flex items-center justify-center gap-2 transition"
+              >
+                <MessageCircle size={20} fill="currentColor" />
+                Chat on WhatsApp
+              </a>
+
+            </div>
 
           </div>
         </div>
