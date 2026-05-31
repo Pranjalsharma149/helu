@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg class="hero-visual" viewBox="0 0 340 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style>
+  .floating { animation: float 5s ease-in-out infinite; }
+  .floating2 { animation: float 6s ease-in-out infinite reverse; }
+  .floating3 { animation: float 4s ease-in-out infinite; animation-delay: 1s; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .ring-spin { animation: spin 20s linear infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .ring-spin2 { animation: spin2 15s linear infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes spin2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+  .pulse-ring { animation: pulseRing 3s ease-in-out infinite; }
+  @keyframes pulseRing { 0%,100%{opacity:0.3;r:38} 50%{opacity:0.6;r:44} }
+  .card-float { animation: cardFloat 4s ease-in-out infinite; }
+  @keyframes cardFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .card-float2 { animation: cardFloat 5s ease-in-out infinite reverse; }
+  .dash-anim { stroke-dasharray: 6 4; animation: dashMove 2s linear infinite; }
+  @keyframes dashMove { to{stroke-dashoffset:-20} }
+</style>
+</defs>
+
+
+        <!-- Outer decorative ring -->
+        <circle cx="170" cy="195" r="140" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <circle cx="170" cy="195" r="140" fill="none" stroke="rgba(94,231,208,0.15)" stroke-width="1" stroke-dasharray="8 6" class="ring-spin"/>
+        <circle cx="170" cy="195" r="110" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4 8" class="ring-spin2"/>
+
+        <!-- Glowing center circle -->
+        <circle cx="170" cy="195" r="78" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <circle cx="170" cy="195" r="78" fill="none" stroke="rgba(94,231,208,0.3)" stroke-width="1.5" class="pulse-ring"/>
+
+        <!-- Medical cross symbol in center -->
+        <g class="floating">
+          <rect x="155" y="175" width="30" height="40" rx="5" fill="rgba(94,231,208,0.2)" stroke="rgba(94,231,208,0.5)" stroke-width="1.5"/>
+          <rect x="148" y="182" width="44" height="26" rx="5" fill="rgba(94,231,208,0.2)" stroke="rgba(94,231,208,0.5)" stroke-width="1.5"/>
+          <rect x="155" y="175" width="30" height="40" rx="5" fill="rgba(94,231,208,0.1)"/>
+          <rect x="148" y="182" width="44" height="26" rx="5" fill="rgba(94,231,208,0.1)"/>
+          <!-- Cross fill -->
+          <rect x="158" y="178" width="24" height="34" rx="4" fill="rgba(94,231,208,0.15)"/>
+          <rect x="151" y="185" width="38" height="20" rx="4" fill="rgba(94,231,208,0.15)"/>
+          <!-- Heart inside -->
+          <path d="M170 200 C170 200 162 193 162 187 C162 183 166 181 170 185 C174 181 178 183 178 187 C178 193 170 200 170 200Z" fill="#5ee7d0" opacity="0.8"/>
+        </g>
+
+        <!-- Orbit dots -->
+        <circle cx="170" cy="55" r="5" fill="#5ee7d0" opacity="0.7" class="ring-spin" style="transform-origin:170px 195px"/>
+        <circle cx="310" cy="195" r="4" fill="rgba(255,255,255,0.4)" class="ring-spin2" style="transform-origin:170px 195px"/>
+        <circle cx="170" cy="335" r="5" fill="#5ee7d0" opacity="0.5" class="ring-spin" style="transform-origin:170px 195px; animation-delay:-10s"/>
+        <circle cx="30" cy="195" r="4" fill="rgba(255,255,255,0.4)" class="ring-spin2" style="transform-origin:170px 195px; animation-delay:-7s"/>
+
+        <!-- Floating card: Instant Callback -->
+        <g class="card-float" style="transform-origin:60px 90px">
+          <rect x="10" y="60" width="130" height="52" rx="12" fill="rgba(255,255,255,0.92)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+          <circle cx="33" cy="86" r="13" fill="#E6F7F5"/>
+          <text x="33" y="91" text-anchor="middle" font-size="14" fill="#1D646B">🕐</text>
+          <text x="52" y="80" font-size="10" font-weight="700" fill="#1D646B">Instant Callback</text>
+          <text x="52" y="93" font-size="9" fill="#888">Response in 5 min</text>
+          <circle cx="120" cy="80" r="5" fill="#22c55e"/>
+          <text x="120" y="97" text-anchor="middle" font-size="7" fill="#22c55e">LIVE</text>
+        </g>
+
+        <!-- Floating card: NABH Certified -->
+        <g class="card-float2" style="transform-origin:270px 120px">
+          <rect x="200" y="90" width="130" height="52" rx="12" fill="rgba(255,255,255,0.92)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+          <circle cx="223" cy="116" r="13" fill="#EAF2FF"/>
+          <text x="223" y="121" text-anchor="middle" font-size="14" fill="#1D646B">🏥</text>
+          <text x="242" y="110" font-size="10" font-weight="700" fill="#1D646B">NABH Certified</text>
+          <text x="242" y="122" font-size="9" fill="#888">Premium Hospitals</text>
+          <rect x="242" y="127" width="36" height="7" rx="3" fill="#dcfce7"/>
+          <text x="260" y="133" text-anchor="middle" font-size="6" font-weight="700" fill="#16a34a">ACCREDITED</text>
+        </g>
+
+        <!-- Floating card: 0% EMI -->
+        <g class="card-float" style="transform-origin:75px 310px; animation-delay:1.5s">
+          <rect x="12" y="285" width="125" height="52" rx="12" fill="rgba(255,255,255,0.92)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+          <circle cx="34" cy="311" r="13" fill="#FFF4E6"/>
+          <text x="34" y="316" text-anchor="middle" font-size="14" fill="#1D646B">💰</text>
+          <text x="53" y="304" font-size="10" font-weight="700" fill="#1D646B">Zero-Cost EMI</text>
+          <text x="53" y="316" font-size="9" fill="#888">Flexible payments</text>
+          <rect x="53" y="321" width="42" height="7" rx="3" fill="#fef9c3"/>
+          <text x="74" y="327" text-anchor="middle" font-size="6" font-weight="700" fill="#a16207">0% INTEREST</text>
+        </g>
+
+        <!-- Floating card: Verified Doctors -->
+        <g class="card-float2" style="transform-origin:265px 310px; animation-delay:0.5s">
+          <rect x="200" y="285" width="130" height="52" rx="12" fill="rgba(255,255,255,0.92)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+          <circle cx="223" cy="311" r="13" fill="#FFF0F6"/>
+          <text x="223" y="316" text-anchor="middle" font-size="14" fill="#1D646B">👨‍⚕️</text>
+          <text x="242" y="304" font-size="10" font-weight="700" fill="#1D646B">500+ Doctors</text>
+          <text x="242" y="316" font-size="9" fill="#888">Verified Specialists</text>
+          <!-- Mini avatars -->
+          <circle cx="244" cy="326" r="5" fill="#5ee7d0"/>
+          <circle cx="252" cy="326" r="5" fill="#a78bfa"/>
+          <circle cx="260" cy="326" r="5" fill="#fb923c"/>
+          <text x="270" y="330" font-size="8" fill="#888">+497</text>
+        </g>
+
+        <!-- Connector lines (dashed) -->
+        <line x1="140" y1="86" x2="155" y2="160" stroke="rgba(94,231,208,0.25)" stroke-width="1" class="dash-anim"/>
+        <line x1="200" y1="116" x2="215" y2="165" stroke="rgba(94,231,208,0.25)" stroke-width="1" class="dash-anim"/>
+        <line x1="137" y1="311" x2="148" y2="240" stroke="rgba(94,231,208,0.25)" stroke-width="1" class="dash-anim"/>
+        <line x1="200" y1="311" x2="195" y2="245" stroke="rgba(94,231,208,0.25)" stroke-width="1" class="dash-anim"/>
+      </svg>

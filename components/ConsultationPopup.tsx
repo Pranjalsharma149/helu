@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { X, CheckCircle2, Loader2, Phone, Stethoscope, CalendarCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
-const POPUP_SESSION_KEY = "consultation_popup_shown";
-
 const steps = [
   { icon: Phone, text: "Care coordinator will contact you." },
   { icon: Stethoscope, text: "They'll understand your symptoms." },
@@ -25,22 +23,15 @@ export default function ConsultationPopup() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    // Only run on client, skip if already shown this session
-    if (typeof window === "undefined") return;
-    if (sessionStorage.getItem(POPUP_SESSION_KEY)) return;
-
+    // Show on every page load/refresh after 1 second
     const timer = setTimeout(() => {
-      // Double-check again at fire time (in case something set it between mount and 15s)
-      if (!sessionStorage.getItem(POPUP_SESSION_KEY)) {
-        setIsVisible(true);
-      }
-    }, 15000);
+      setIsVisible(true);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
-    sessionStorage.setItem(POPUP_SESSION_KEY, "true"); // Mark shown ONLY when user dismisses
     setIsVisible(false);
   };
 
@@ -62,7 +53,6 @@ export default function ConsultationPopup() {
       ]);
       if (error) throw error;
       setSubmitted(true);
-      sessionStorage.setItem(POPUP_SESSION_KEY, "true"); // Mark shown on successful submit
       setTimeout(() => setIsVisible(false), 3000);
     } catch (error: any) {
       alert("Error: " + error.message);
