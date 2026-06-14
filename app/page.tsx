@@ -13,8 +13,6 @@ import {
   Stethoscope,
   Hospital,
   Activity,
-  X,
-  CheckCircle,
   ChevronDown,
 } from "lucide-react";
 
@@ -152,140 +150,6 @@ const testimonials = [
   },
 ];
 
-/* ---------------- CONSULTATION MODAL ---------------- */
-function ConsultationModal({ onClose }: { onClose: () => void }) {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", concern: "" });
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSubmitted(true);
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <div className="bg-gradient-to-r from-[#0F3D3E] to-[#1D646B] px-8 py-6">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition"
-          >
-            <X size={18} />
-          </button>
-          <p className="text-teal-300 text-xs font-bold uppercase tracking-widest mb-1">
-            100% Free · No Obligation
-          </p>
-          <h2 className="text-2xl font-black text-white leading-snug">
-            Book Your Free <br /> Consultation
-          </h2>
-        </div>
-
-        <div className="px-8 py-6">
-          {submitted ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center gap-4">
-              <CheckCircle size={56} className="text-[#1D646B]" />
-              <h3 className="text-2xl font-bold text-[#1D646B]">We'll Call You Shortly!</h3>
-              <p className="text-slate-500 text-sm max-w-xs">
-                Our care team will reach out within 5–10 minutes to confirm your appointment.
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-4 px-8 py-3 rounded-xl bg-[#1D646B] text-white font-semibold hover:bg-[#145A5C] transition"
-              >
-                Done
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  Full Name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text" name="name" required placeholder="e.g. Rahul Sharma"
-                  value={form.name} onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1D646B] focus:ring-2 focus:ring-[#1D646B]/20 text-slate-700 text-sm transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  Phone Number <span className="text-red-400">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <span className="flex items-center px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-sm font-semibold">+91</span>
-                  <input
-                    type="tel" name="phone" required maxLength={10} pattern="[6-9][0-9]{9}"
-                    placeholder="98XXXXXXXX" value={form.phone} onChange={handleChange}
-                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1D646B] focus:ring-2 focus:ring-[#1D646B]/20 text-slate-700 text-sm transition"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  City <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text" name="city" required placeholder="e.g. Delhi, Mumbai, Pune..."
-                  value={form.city} onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1D646B] focus:ring-2 focus:ring-[#1D646B]/20 text-slate-700 text-sm transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">
-                  Medical Concern
-                </label>
-                <select
-                  name="concern" value={form.concern} onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1D646B] focus:ring-2 focus:ring-[#1D646B]/20 text-slate-700 text-sm transition bg-white"
-                >
-                  <option value="">Select a concern (optional)</option>
-                  <option value="lasik">LASIK Eye Surgery</option>
-                  <option value="cataract">Cataract Surgery</option>
-                  <option value="urology">Urology / Kidney Stones</option>
-                  <option value="vascular">Vascular / Varicose Veins</option>
-                  <option value="orthopedics">Orthopedics / Joint Pain</option>
-                  <option value="gastro">Gastroenterology</option>
-                  <option value="piles">Piles / Fissure / Fistula</option>
-                  <option value="medicine">Internal Medicine</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                🔒 Your information is 100% safe. We will never share your details with anyone.
-              </p>
-              <button
-                type="submit" disabled={loading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                    </svg>
-                    Booking...
-                  </span>
-                ) : "Book Free Consultation →"}
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ---------------- HERO SVG VISUAL ---------------- */
 function HeroSVG() {
   return (
@@ -399,7 +263,6 @@ function Stars({ count }: { count: number }) {
 
 /* ---------------- MAIN PAGE ---------------- */
 export default function Home() {
-  const [showModal, setShowModal] = useState(false);
   const [showAllServices, setShowAllServices] = useState(false);
   const [showAllInsurance, setShowAllInsurance] = useState(false);
 
@@ -431,8 +294,6 @@ export default function Home() {
         .value-card.green { background: #F0FFF4; }
         .value-card.light { background: #F5F3FF; }
       `}</style>
-
-      {showModal && <ConsultationModal onClose={() => setShowModal(false)} />}
 
       <Header />
 
@@ -472,15 +333,15 @@ export default function Home() {
               ))}
             </div>
 
-            <button
-              onClick={() => setShowModal(true)}
+            <Link
+              href="/book-now"
               className="flex items-center gap-3 mt-2 px-8 py-4 rounded-2xl bg-white text-[#1D646B] font-bold text-base shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Book Free Consultation →
-            </button>
+            </Link>
           </div>
 
           <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
@@ -517,15 +378,7 @@ export default function Home() {
             </div>
             <span className="text-sm font-semibold text-slate-700">4.8/5 Patient Rating</span>
           </div>
-          <div className="hidden sm:block w-px h-5 bg-slate-200" />
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span>Trusted by</span>
-            <span className="font-bold text-[#1D646B]">Star Health</span>
-            <span>·</span>
-            <span className="font-bold text-[#1D646B]">HDFC ERGO</span>
-            <span>·</span>
-            <span className="font-bold text-[#1D646B]">Bajaj Allianz</span>
-          </div>
+         
         </div>
       </section>
 
@@ -792,12 +645,12 @@ export default function Home() {
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Talk to a Specialist Today</h2>
           <p className="text-base md:text-lg text-white/80 mb-10">Get expert guidance for the right treatment from trusted doctors.</p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-6 mb-10">
-            <button
-              onClick={() => setShowModal(true)}
-              className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-semibold shadow-xl hover:scale-105 transition"
+            <Link
+              href="/book-now"
+              className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-semibold shadow-xl hover:scale-105 transition text-center"
             >
               Book Free Consultation
-            </button>
+            </Link>
             <a href="tel:8882804301" className="w-full sm:w-auto">
               <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
                 📞 Call Now: 8882804301
@@ -805,7 +658,7 @@ export default function Home() {
             </a>
           </div>
           <p className="text-white/70 text-xs md:text-sm tracking-wide">
-            No cost consultation&nbsp;&nbsp;|&nbsp;&nbsp;Quick response&nbsp;&nbsp;|&nbsp;&nbsp;100% assistance
+            Free consultation&nbsp;&nbsp;|&nbsp;&nbsp;Quick response&nbsp;&nbsp;|&nbsp;&nbsp;100% assistance
           </p>
         </div>
       </section>

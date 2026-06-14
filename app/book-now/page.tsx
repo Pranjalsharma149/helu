@@ -78,7 +78,6 @@ export default function BookNowPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#e6f4f5] via-white to-[#d4eeed] flex items-center justify-center px-4 pt-24 pb-12">
         <div className="w-full max-w-lg bg-white rounded-[40px] shadow-2xl p-10 border border-slate-200">
 
-          {/* Header */}
           <div className="text-center mb-10">
             <h2 className="text-4xl font-black text-[#1D646B] mb-3">Free Consultation</h2>
             <p className="text-slate-600 text-sm font-medium">Take the first step towards your recovery today.</p>
@@ -94,7 +93,7 @@ export default function BookNowPage() {
               <input
                 type="text"
                 name="name"
-                placeholder="John Doe"
+                placeholder=""
                 value={form.name}
                 onChange={handleChange}
                 required
@@ -107,15 +106,22 @@ export default function BookNowPage() {
               <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
                 Phone Number
               </label>
-              <input
-                type="tel"
-                name="phone"
-                placeholder="+91 00000 00000"
-                value={form.phone}
-                onChange={handleChange}
-                required
-                className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition"
-              />
+              <div className="flex">
+                <span className="flex items-center px-4 bg-slate-100 border border-r-0 border-slate-300 rounded-l-2xl text-slate-600 font-bold">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder=""
+                  value={form.phone}
+                  onChange={handleChange}
+                  required
+                  pattern="[0-9]{10}"
+                  maxLength={10}
+                  className="w-full p-4 bg-slate-100 border border-slate-300 rounded-r-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition"
+                />
+              </div>
             </div>
 
             {/* City + Service */}
@@ -127,7 +133,7 @@ export default function BookNowPage() {
                 <input
                   type="text"
                   name="city"
-                  placeholder="Delhi"
+                  placeholder=""
                   value={form.city}
                   onChange={handleChange}
                   required
@@ -145,7 +151,7 @@ export default function BookNowPage() {
                   required
                   className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition appearance-none cursor-pointer"
                 >
-                  <option value="" disabled className="text-slate-400">Select</option>
+                  <option value="" disabled>Select</option>
                   <option value="LASIK">LASIK</option>
                   <option value="Cataract">Cataract</option>
                   <option value="Urology">Urology</option>

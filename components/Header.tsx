@@ -35,9 +35,9 @@ export default function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   // ===== CONTACT CONFIG (edit here) =====
-  const phoneDisplay = "+91 88828 04301";
-  const phoneTel = "+918882804301";
-  const whatsappNumber = "918882804301";
+  const phoneDisplay = "+91 9310984753";
+  const phoneTel = "+919310984753";
+  const whatsappNumber = "919310984753";
   const whatsappMessage = encodeURIComponent(
     "Hello HealviaCare, I would like to book a consultation."
   );
@@ -66,7 +66,7 @@ export default function Header() {
       <div className="h-[3px] w-full bg-gradient-to-r from-[#1D646B] via-[#3BA99C] to-[#1D646B]"></div>
 
       {/* MAIN HEADER */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
+      <div className="w-full px-2 md:px-4 flex items-center justify-between h-[80px]">
         {/* LOGO */}
         <Link href="/" className="flex items-center flex-shrink-0">
           <Image
@@ -134,6 +134,13 @@ export default function Header() {
           >
             Contact Us
           </button>
+
+          <Link
+            href="/blog"
+            className="text-[15px] font-bold text-slate-700 hover:text-[#1D646B] transition"
+          >
+            Blog
+          </Link>
         </nav>
 
         {/* RIGHT SIDE: CONTACT NUMBER + WHATSAPP (DESKTOP / TABLET) */}
@@ -249,6 +256,14 @@ export default function Header() {
             >
               Contact Us
             </button>
+
+            <Link
+              href="/blog"
+              onClick={() => setIsOpen(false)}
+              className="text-lg font-bold text-left text-slate-900 hover:text-[#1D646B] transition"
+            >
+              Blog
+            </Link>
 
             {/* MOBILE CTA — Contact Number + WhatsApp */}
             <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
