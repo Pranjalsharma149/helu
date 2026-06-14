@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -26,23 +25,25 @@ export default function BookNowPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("leads")
-        .insert([
-          {
-            name: form.name,
-            phone: form.phone,
-            city: form.city,
-            service: form.service,
-            status: "New",
-          },
-        ]);
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          city: form.city,
+          service: form.service,
+          source: 'book-now-page',
+        }),
+      });
 
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+
       setSubmitted(true);
-      setForm({ name: "", phone: "", city: "", service: "" });
+      setForm({ name: '', phone: '', city: '', service: '' });
     } catch (error: any) {
-      alert("Error: " + error.message);
+      alert('Error: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +86,6 @@ export default function BookNowPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Full Name */}
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
                 Full Name
@@ -93,7 +93,6 @@ export default function BookNowPage() {
               <input
                 type="text"
                 name="name"
-                placeholder=""
                 value={form.name}
                 onChange={handleChange}
                 required
@@ -101,7 +100,6 @@ export default function BookNowPage() {
               />
             </div>
 
-            {/* Phone Number */}
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
                 Phone Number
@@ -113,7 +111,6 @@ export default function BookNowPage() {
                 <input
                   type="tel"
                   name="phone"
-                  placeholder=""
                   value={form.phone}
                   onChange={handleChange}
                   required
@@ -124,7 +121,6 @@ export default function BookNowPage() {
               </div>
             </div>
 
-            {/* City + Service */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
@@ -133,7 +129,6 @@ export default function BookNowPage() {
                 <input
                   type="text"
                   name="city"
-                  placeholder=""
                   value={form.city}
                   onChange={handleChange}
                   required
@@ -164,7 +159,6 @@ export default function BookNowPage() {
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}

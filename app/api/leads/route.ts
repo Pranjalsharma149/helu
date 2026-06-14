@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!  // ← only this line changed
 );
 
 export async function POST(request: Request) {
@@ -20,7 +20,6 @@ export async function POST(request: Request) {
       source = "default",
     } = body;
 
-    // Only phone is truly required for landing page leads
     if (!phone) {
       return NextResponse.json(
         { error: "Phone number is required" },
