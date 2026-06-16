@@ -398,51 +398,99 @@ export default function Home() {
 
       {/* ================ HERO SECTION ================ */}
       <section className="relative w-full overflow-hidden pt-[72px] md:pt-[88px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0d4a50] via-[#1D646B] to-[#1a8a7a]" />
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42]" />
+        {/* Dot-grid texture */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-white/5 blur-3xl translate-x-1/3 -translate-y-1/3" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-white/5 blur-3xl -translate-x-1/3 translate-y-1/3" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 flex flex-col lg:flex-row items-center min-h-[580px] py-14 lg:py-0 gap-12">
+
+          {/* ── Left copy ── */}
           <div className="w-full lg:w-1/2 flex flex-col items-start gap-6">
+
+            {/* Badge */}
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-              <span className="w-2 h-2 rounded-full bg-teal-300 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#00c8aa] animate-pulse" />
               <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted Healthcare Network</span>
             </div>
 
+            {/* Headline */}
             <h1 className="text-4xl md:text-5xl xl:text-6xl font-black text-white leading-tight">
-              Advanced Care,<br />
-              <span className="text-teal-300">Expert Doctors.</span>
+              Har Surgery,<br />
+              <span className="text-[#00c8aa]">Ab Aasaan.</span>
             </h1>
 
+            {/* Teal underline accent */}
+            <div style={{ width: "52px", height: "4px", background: "#00c8aa", borderRadius: "4px", marginTop: "-8px" }} />
+
+            {/* Sub-copy */}
             <p className="text-white/70 text-base md:text-lg max-w-md leading-relaxed">
-              Get connected with experienced doctors for advanced surgical treatments
-              with seamless support and zero-cost EMI options.
+              Expert surgeons, trusted hospitals and complete care
+              from consultation to recovery — all in one place.
             </p>
 
+            {/* Stats */}
             <div className="flex flex-wrap gap-3">
               {[
-                { num: "50+",  label: "Doctors"  },
-                { num: "20+",  label: "Diseases" },
-                { num: "10+",  label: "Cities"   },
+                { num: "500+", label: "Expert Doctors"   },
+                { num: "20+",  label: "Diseases Treated" },
+                { num: "10+",  label: "Cities Covered"   },
               ].map((s) => (
-                <div key={s.label} className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-3 min-w-[90px]">
+                <div
+                  key={s.label}
+                  className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-3 min-w-[100px]"
+                >
                   <span className="text-white font-black text-xl">{s.num}</span>
                   <span className="text-white/60 text-xs mt-0.5">{s.label}</span>
                 </div>
               ))}
             </div>
 
-            <Link
-              href="/book-now"
-              className="flex items-center gap-3 mt-2 px-8 py-4 rounded-2xl bg-white text-[#1D646B] font-bold text-base shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Book Free Consultation →
-            </Link>
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-3 mt-2">
+              <Link
+                href="/book-now"
+                className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: "#00c8aa",
+                  color: "#0a3d36",
+                  boxShadow: "0 8px 28px rgba(0,200,170,0.35)",
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Book Free Consultation
+              </Link>
+              <a
+                href={`tel:${phoneTel}`}
+                className="flex items-center gap-3 px-7 py-4 rounded-2xl font-semibold text-base transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  color: "#ffffff",
+                  border: "1.5px solid rgba(255,255,255,0.22)",
+                }}
+              >
+                <Phone size={18} strokeWidth={2.5} />
+                Talk to a Care Expert
+              </a>
+            </div>
+
+            {/* Trust note */}
+            <p className="text-white/40 text-xs mt-1">
+              🔒 100% Cashless &nbsp;·&nbsp; NABH Accredited &nbsp;·&nbsp; Free Consultation
+            </p>
           </div>
 
+          {/* ── Right: SVG visual ── */}
           <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
             <HeroSVG />
           </div>
@@ -727,25 +775,33 @@ export default function Home() {
 
       {/* ================ CTA SECTION ================ */}
       <section id="talk-to-specialist" className="relative py-20 md:py-28 px-6 lg:px-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0F3D3E] via-[#145A5C] to-[#1D646B]" />
-        <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#0F3D3E]/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42]" />
+        <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#0d3d38]/80 to-transparent" />
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-white/90 text-xs font-semibold">Limited consultation slots available this week</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Talk to a Specialist Today</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+            Need Medical Attention{" "}
+            <span style={{ color: "#00c8aa" }}>Right Now?</span>
+          </h2>
           <p className="text-base md:text-lg text-white/80 mb-10">Get expert guidance for the right treatment from trusted doctors.</p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-6 mb-10">
             <Link
               href="/book-now"
-              className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-semibold shadow-xl hover:scale-105 transition text-center"
+              className="w-full sm:w-auto px-10 py-4 rounded-xl font-semibold shadow-xl hover:scale-105 transition text-center"
+              style={{
+                background: "#00c8aa",
+                color: "#0a3d36",
+                boxShadow: "0 8px 28px rgba(0,200,170,0.35)",
+              }}
             >
               Book Free Consultation
             </Link>
-            <a href="tel:8882804301" className="w-full sm:w-auto">
+            <a href={`tel:${phoneTel}`} className="w-full sm:w-auto">
               <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
-                📞 Call Now: 8882804301
+                📞 Call Now: {phoneDisplay}
               </button>
             </a>
           </div>

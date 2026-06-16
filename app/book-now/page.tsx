@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Loader2, ShieldCheck, Info, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function BookNowPage() {
   const router = useRouter();
@@ -17,9 +17,8 @@ export default function BookNowPage() {
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
 
-  // Fake/invalid number patterns to block
   const FAKE_PATTERNS = [
-    /^(\d)\1{9}$/, // all same digits: 9999999999, 1111111111
+    /^(\d)\1{9}$/,
     /^1234567890$/,
     /^0987654321$/,
     /^1234554321$/,
@@ -138,7 +137,6 @@ export default function BookNowPage() {
                 />
               </div>
 
-              {/* Phone error message */}
               {phoneError && (
                 <div className="flex items-center gap-1.5 mt-2">
                   <AlertCircle size={14} className="text-red-500 shrink-0" />
@@ -146,7 +144,6 @@ export default function BookNowPage() {
                 </div>
               )}
 
-              {/* Phone valid message */}
               {form.phone.length === 10 && !phoneError && (
                 <p className="text-xs text-green-600 font-medium mt-2">✓ Valid phone number</p>
               )}
@@ -176,28 +173,6 @@ export default function BookNowPage() {
               </select>
             </div>
 
-            {/* Privacy Notice */}
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              <div className="flex gap-2 items-start mb-2">
-                <ShieldCheck size={18} className="text-[#1D646B] mt-0.5 shrink-0" />
-                <p className="text-xs font-bold text-[#1D646B] uppercase tracking-wide">Privacy Notice</p>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                The personal information you provide (name, phone number, and treatment preference) will be collected and stored securely by HealviaCare. This information will only be used to contact you regarding your consultation request and will not be sold or shared with any third parties.
-              </p>
-            </div>
-
-            {/* Disclaimer */}
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-              <div className="flex gap-2 items-start mb-2">
-                <Info size={18} className="text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Medical Disclaimer</p>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                This form is for booking a free consultation only and does not constitute medical advice. HealviaCare coordinators will connect you with qualified doctors. Please consult a licensed medical professional before making any health decisions.
-              </p>
-            </div>
-
             {/* Consent Checkbox */}
             <div className="flex items-start gap-3">
               <input
@@ -209,7 +184,16 @@ export default function BookNowPage() {
                 className="mt-1 w-4 h-4 accent-[#1D646B] cursor-pointer shrink-0"
               />
               <label htmlFor="consent" className="text-xs text-slate-600 leading-relaxed cursor-pointer">
-                I agree to the collection and use of my personal information as described above. I consent to being contacted by HealviaCare regarding my consultation request. I understand this is not a substitute for professional medical advice.
+                I agree to the{" "}
+                <a
+                  href="/terms-and-conditions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1D646B] font-semibold underline underline-offset-2 hover:text-[#2a8d96] transition-colors"
+                >
+                  Terms & Conditions
+                </a>{" "}
+                and consent to being contacted by HealviaCare regarding my consultation request.
               </label>
             </div>
 
