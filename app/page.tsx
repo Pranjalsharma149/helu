@@ -143,37 +143,36 @@ const moreInsurance = [
 /* ---------------- TESTIMONIALS DATA ---------------- */
 const testimonials = [
   {
-    name: "Rajesh Kumar",
-    city: "Delhi",
-    treatment: "LASIK Eye Surgery",
+    name: "Amit Manwani",
+    city: "Gurugram",
+    treatment: "Post Surgery Care",
     rating: 5,
-    text: "I had been wearing glasses for 15 years. The team at HealviaCare made the entire process so smooth — from the free consultation to the surgery and follow-up. Zero stress, zero cost EMI, and now zero glasses!",
-    initials: "RK",
+    text: "Tarun was really helpful. End to end from insurance to post surgery checkup...He suggested best surgery and informed all the precautions that i should take...also followed up post surgery for few day.....all in all it was an awesome experience. Keep up the good work. Thank you",
+    initials: "AM",
     color: "bg-[#E6F7F5]",
     textColor: "text-[#1D646B]",
   },
   {
-    name: "Priya Sharma",
-    city: "Mumbai",
-    treatment: "Piles Laser Surgery",
+    name: "Verified Patient",
+    city: "India",
+    treatment: "LASIK Eye Surgery",
     rating: 5,
-    text: "I was hesitant and scared about surgery, but the care manager explained everything clearly. Insurance was handled within 30 minutes. I recovered in just 2 days. Truly grateful for the post-op support.",
-    initials: "PS",
+    text: "I recently had my LASIK done, and my experience was amazing. The entire process was handled very smoothly, with no hassle at all. Everything was well-organized, and the staff was supportive and professional throughout. I felt comfortable and well taken care of at every step. I would definitely recommend connecting with them if you're considering LASIK or anything else.",
+    initials: "VP",
+    color: "bg-[#EAF2FF]",
+    textColor: "text-[#1D646B]",
+  },
+  {
+    name: "Niti 007",
+    city: "India",
+    treatment: "Cataract Surgery",
+    rating: 5,
+    text: "It was best experience for my dad's cataract surgery from hospital consultation process to post surgery follow ups. Ease claim process by Tarun's guidance and suggestions.",
+    initials: "N7",
     color: "bg-[#F5F3FF]",
     textColor: "text-[#7C3AED]",
   },
-  {
-    name: "Suresh Verma",
-    city: "Pune",
-    treatment: "Kidney Stone (Urology)",
-    rating: 5,
-    text: "From booking the consultation to getting discharged, everything was handled professionally. The hospital was NABH accredited and the doctors were excellent. Highly recommend HealviaCare.",
-    initials: "SV",
-    color: "bg-[#FFF4E6]",
-    textColor: "text-[#C2570A]",
-  },
 ];
-
 /* ---------------- HERO SVG VISUAL ---------------- */
 function HeroSVG() {
   return (
