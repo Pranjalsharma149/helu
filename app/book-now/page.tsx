@@ -1,27 +1,61 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck, Info, AlertCircle } from "lucide-react";
 
 export default function BookNowPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    city: "",
     service: "",
   });
-
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+
+  // Fake/invalid number patterns to block
+  const FAKE_PATTERNS = [
+    /^(\d)\1{9}$/, // all same digits: 9999999999, 1111111111
+    /^1234567890$/,
+    /^0987654321$/,
+    /^1234554321$/,
+    /^0000000000$/,
+    /^9876543210$/,
+  ];
+
+  const validatePhone = (phone: string): string => {
+    if (!phone) return "Phone number is required";
+    if (!/^\d{10}$/.test(phone)) return "Enter a valid 10-digit number";
+    if (!/^[6-9]/.test(phone)) return "Indian numbers must start with 6, 7, 8, or 9";
+    if (FAKE_PATTERNS.some((p) => p.test(phone))) return "Enter a real phone number";
+    return "";
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "phone") {
+      const digits = value.replace(/\D/g, "").slice(0, 10);
+      setForm({ ...form, phone: digits });
+      if (digits.length > 0) setPhoneError(validatePhone(digits));
+      else setPhoneError("");
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const error = validatePhone(form.phone);
+    if (error) {
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -29,9 +63,8 @@ export default function BookNowPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name,
+          name: form.name.trim(),
           phone: form.phone,
-          city: form.city,
           service: form.service,
           source: 'book-now-page',
         }),
@@ -40,38 +73,14 @@ export default function BookNowPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
 
-      setSubmitted(true);
-      setForm({ name: '', phone: '', city: '', service: '' });
+      router.push('/thank-you');
+
     } catch (error: any) {
       alert('Error: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen flex items-center justify-center bg-[#f5fbfb] px-6">
-          <div className="bg-white p-10 rounded-[40px] shadow-2xl text-center max-w-md w-full border border-teal-100">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 size={40} />
-            </div>
-            <h2 className="text-3xl font-bold text-[#1D646B] mb-3">Booking Confirmed!</h2>
-            <p className="text-slate-600 mb-8">Our medical coordinator will contact you within 5–10 minutes.</p>
-            <button
-              onClick={() => setSubmitted(false)}
-              className="w-full bg-[#1D646B] text-white px-6 py-4 rounded-2xl font-bold hover:bg-[#155055] transition"
-            >
-              Book Another Consultation
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
 
   return (
     <>
@@ -86,6 +95,7 @@ export default function BookNowPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
+            {/* Full Name */}
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
                 Full Name
@@ -96,13 +106,15 @@ export default function BookNowPage() {
                 value={form.name}
                 onChange={handleChange}
                 required
+                minLength={2}
                 className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition"
               />
             </div>
 
+            {/* Phone Number */}
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
-                Phone Number
+                Phone Number <span className="text-red-500">*</span>
               </label>
               <div className="flex">
                 <span className="flex items-center px-4 bg-slate-100 border border-r-0 border-slate-300 rounded-l-2xl text-slate-600 font-bold">
@@ -114,55 +126,97 @@ export default function BookNowPage() {
                   value={form.phone}
                   onChange={handleChange}
                   required
-                  pattern="[0-9]{10}"
                   maxLength={10}
-                  className="w-full p-4 bg-slate-100 border border-slate-300 rounded-r-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition"
+                  placeholder="10-digit mobile number"
+                  className={`w-full p-4 bg-slate-100 border rounded-r-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                    phoneError
+                      ? "border-red-400 focus:ring-red-400"
+                      : form.phone.length === 10 && !phoneError
+                      ? "border-green-400 focus:ring-green-400"
+                      : "border-slate-300 focus:ring-[#1D646B]"
+                  }`}
                 />
               </div>
+
+              {/* Phone error message */}
+              {phoneError && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <AlertCircle size={14} className="text-red-500 shrink-0" />
+                  <p className="text-xs text-red-500 font-medium">{phoneError}</p>
+                </div>
+              )}
+
+              {/* Phone valid message */}
+              {form.phone.length === 10 && !phoneError && (
+                <p className="text-xs text-green-600 font-medium mt-2">✓ Valid phone number</p>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
-                  City
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition"
-                />
+            {/* Choose Treatment */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
+                Choose Treatment
+              </label>
+              <select
+                name="service"
+                value={form.service}
+                onChange={handleChange}
+                required
+                className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition appearance-none cursor-pointer"
+              >
+                <option value="" disabled>Select Treatment</option>
+                <option value="LASIK">LASIK</option>
+                <option value="Cataract">Cataract</option>
+                <option value="Urology">Urology</option>
+                <option value="Vascular">Vascular</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Gastroenterology">Gastroenterology</option>
+                <option value="Piles">Piles (Proctology)</option>
+                <option value="Internal Medicine">Internal Medicine</option>
+              </select>
+            </div>
+
+            {/* Privacy Notice */}
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <div className="flex gap-2 items-start mb-2">
+                <ShieldCheck size={18} className="text-[#1D646B] mt-0.5 shrink-0" />
+                <p className="text-xs font-bold text-[#1D646B] uppercase tracking-wide">Privacy Notice</p>
               </div>
-              <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 ml-1">
-                  Service
-                </label>
-                <select
-                  name="service"
-                  value={form.service}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-4 bg-slate-100 border border-slate-300 rounded-2xl text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1D646B] focus:border-transparent transition appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>Select</option>
-                  <option value="LASIK">LASIK</option>
-                  <option value="Cataract">Cataract</option>
-                  <option value="Urology">Urology</option>
-                  <option value="Vascular">Vascular</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Gastroenterology">Gastroenterology</option>
-                  <option value="Piles">Piles (Proctology)</option>
-                  <option value="Internal Medicine">Internal Medicine</option>
-                </select>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                The personal information you provide (name, phone number, and treatment preference) will be collected and stored securely by HealviaCare. This information will only be used to contact you regarding your consultation request and will not be sold or shared with any third parties.
+              </p>
+            </div>
+
+            {/* Disclaimer */}
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <div className="flex gap-2 items-start mb-2">
+                <Info size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Medical Disclaimer</p>
               </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                This form is for booking a free consultation only and does not constitute medical advice. HealviaCare coordinators will connect you with qualified doctors. Please consult a licensed medical professional before making any health decisions.
+              </p>
+            </div>
+
+            {/* Consent Checkbox */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="consent"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                required
+                className="mt-1 w-4 h-4 accent-[#1D646B] cursor-pointer shrink-0"
+              />
+              <label htmlFor="consent" className="text-xs text-slate-600 leading-relaxed cursor-pointer">
+                I agree to the collection and use of my personal information as described above. I consent to being contacted by HealviaCare regarding my consultation request. I understand this is not a substitute for professional medical advice.
+              </label>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all"
+              disabled={loading || !agreed || !!phoneError || form.phone.length !== 10}
+              className="w-full bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               {loading ? (
                 <Loader2 className="animate-spin" size={22} />

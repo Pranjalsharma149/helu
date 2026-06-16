@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!  // ← only this line changed
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(request: Request) {
@@ -13,7 +13,6 @@ export async function POST(request: Request) {
     const {
       name = "Landing Page Lead",
       phone,
-      city,
       service = null,
       disease = null,
       insurance = null,
@@ -27,16 +26,17 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!city) {
-      return NextResponse.json(
-        { error: "City is required" },
-        { status: 400 }
-      );
-    }
-
     const { data, error } = await supabase
       .from("leads")
-      .insert([{ name, phone, city, service, disease, insurance, source }])
+      .insert([{
+        name,
+        phone,
+        city: "",          // ← satisfies NOT NULL constraint until you remove the column constraint
+        service,
+        disease,
+        insurance,
+        source,
+      }])
       .select();
 
     if (error) throw error;
