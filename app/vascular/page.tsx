@@ -29,7 +29,8 @@ import {
 } from "lucide-react";
 
 export default function VascularSurgeryPage() {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", service: "Vascular Surgery" });
+  const [form, setForm] = useState({ name: "", phone: "", service: "Vascular Surgery" });
+  const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -168,14 +169,39 @@ export default function VascularSurgeryPage() {
 
   const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a vascular surgeon for varicose veins / DVT treatment.")}`;
 
+  const validatePhone = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned) return "Mobile number is required";
+    if (!/^\d+$/.test(cleaned)) return "Mobile number must contain only digits";
+    if (!/^[6-9]\d{9}$/.test(cleaned)) return "Enter a valid 10-digit mobile number";
+    return "";
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow digits, max 10 characters
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneError) {
+      setPhoneError(validatePhone(digitsOnly));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const error = validatePhone(form.phone);
+    if (error) {
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (error) throw error;
+      const { error: dbError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
+      if (dbError) throw dbError;
       setSubmitted(true);
-      setForm({ name: "", phone: "", city: "", service: "Vascular Surgery" });
+      setForm({ name: "", phone: "", service: "Vascular Surgery" });
+      setPhoneError("");
     } catch (error: any) {
       alert("Error: " + error.message);
     } finally {
@@ -205,32 +231,30 @@ export default function VascularSurgeryPage() {
         </div>
         <h2 className="text-2xl font-black mb-1 text-slate-900">Laser Consultation</h2>
         <p className="text-slate-500 text-sm mb-6 font-medium">Book a free screening for Varicose Veins or DVT.</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <input
             type="text" placeholder="Patient Name" required
             className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-red-500 transition-all"
             value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
-          <input
-            type="tel" placeholder="Mobile Number" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-red-500 transition-all"
-            value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
-          <select
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-medium outline-none focus:ring-2 focus:ring-red-500 appearance-none cursor-pointer transition-all"
-            value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-            required
-          >
-            <option value="">Select Your City</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Gurgaon">Gurgaon</option>
-            <option value="Noida">Noida</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Pune">Pune</option>
-          </select>
+          <div>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="Mobile Number"
+              required
+              maxLength={10}
+              className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+                phoneError ? "border-red-500 focus:ring-red-500" : "border-slate-200 focus:ring-red-500"
+              }`}
+              value={form.phone}
+              onChange={handlePhoneChange}
+              onBlur={() => setPhoneError(validatePhone(form.phone))}
+            />
+            {phoneError && (
+              <p className="text-red-600 text-xs font-semibold mt-2 ml-1">{phoneError}</p>
+            )}
+          </div>
           <button
             disabled={loading}
             className="w-full py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2"

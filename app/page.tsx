@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BookingPopup from "@/app/book-now/page";
 
 import {
   Eye,
@@ -173,6 +174,7 @@ const testimonials = [
     textColor: "text-[#7C3AED]",
   },
 ];
+
 /* ---------------- HERO SVG VISUAL ---------------- */
 function HeroSVG() {
   return (
@@ -287,7 +289,7 @@ function Stars({ count }: { count: number }) {
 /* ================================================
    STICKY FLOATING BUTTONS — always visible on scroll
    ================================================ */
-function StickyContactButtons() {
+function StickyContactButtons({ onBookClick }: { onBookClick: () => void }) {
   return (
     <div
       className="fixed bottom-6 right-4 z-[200] flex flex-col items-end gap-3"
@@ -356,10 +358,13 @@ function StickyContactButtons() {
   );
 }
 
-/* ---------------- MAIN PAGE ---------------- */
+/* ================================================
+   MAIN PAGE
+   ================================================ */
 export default function Home() {
   const [showAllServices, setShowAllServices] = useState(false);
   const [showAllInsurance, setShowAllInsurance] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const featuredServices = services.filter((s) => s.featured);
   const moreServices = services.filter((s) => !s.featured);
@@ -390,10 +395,13 @@ export default function Home() {
         .value-card.light { background: #F5F3FF; }
       `}</style>
 
-      <Header />
+    <Header onBookClick={() => setIsBookingOpen(true)} />
+
+      {/* ================ BOOKING POPUP ================ */}
+      <BookingPopup isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
 
       {/* ================ STICKY FLOATING CONTACT BUTTONS ================ */}
-      <StickyContactButtons />
+      <StickyContactButtons onBookClick={() => setIsBookingOpen(true)} />
 
       {/* ================ HERO SECTION ================ */}
       <section className="relative w-full overflow-hidden pt-[72px] md:pt-[88px]">
@@ -455,8 +463,8 @@ export default function Home() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3 mt-2">
-              <Link
-                href="/book-now"
+              <button
+                onClick={() => setIsBookingOpen(true)}
                 className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
                 style={{
                   background: "#00c8aa",
@@ -468,7 +476,7 @@ export default function Home() {
                   <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 Book Free Consultation
-              </Link>
+              </button>
               <a
                 href={`tel:${phoneTel}`}
                 className="flex items-center gap-3 px-7 py-4 rounded-2xl font-semibold text-base transition-all duration-200 hover:scale-105 active:scale-95"
@@ -787,8 +795,8 @@ export default function Home() {
           </h2>
           <p className="text-base md:text-lg text-white/80 mb-10">Get expert guidance for the right treatment from trusted doctors.</p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-6 mb-10">
-            <Link
-              href="/book-now"
+            <button
+              onClick={() => setIsBookingOpen(true)}
               className="w-full sm:w-auto px-10 py-4 rounded-xl font-semibold shadow-xl hover:scale-105 transition text-center"
               style={{
                 background: "#00c8aa",
@@ -797,7 +805,7 @@ export default function Home() {
               }}
             >
               Book Free Consultation
-            </Link>
+            </button>
             <a href={`tel:${phoneTel}`} className="w-full sm:w-auto">
               <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
                 📞 Call Now: {phoneDisplay}
@@ -810,7 +818,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
+      <Footer onBookClick={() => setIsBookingOpen(true)} />
     </>
   );
 }

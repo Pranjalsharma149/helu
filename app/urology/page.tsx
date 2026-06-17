@@ -29,137 +29,158 @@ import {
   Microscope,
 } from "lucide-react";
 
+// ─── PHONE VALIDATION ──────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
+
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
+
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
+
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
+
+  return null;
+}
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const stats = [
+  { value: "20,000+", label: "Procedures Done", icon: <Users size={20} /> },
+  { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
+  { value: "Same Day", label: "Discharge", icon: <Clock size={20} /> },
+  { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
+];
+
+const conditions = [
+  "Kidney Stones (Renal Calculi)",
+  "Ureteric Stones",
+  "Bladder Stones",
+  "Prostate Enlargement (BPH)",
+  "Urinary Tract Infections (UTI)",
+  "Overactive Bladder",
+  "Male Infertility",
+  "Phimosis / Circumcision",
+  "Urethral Stricture",
+  "Hydrocele / Varicocele",
+  "Bladder Cancer Screening",
+  "Incontinence",
+];
+
+const processSteps = [
+  {
+    step: "01",
+    title: "Free Consultation",
+    desc: "Our senior urologist reviews your symptoms, ultrasound reports, and blood work to identify the root cause and recommend the precise treatment option.",
+    icon: <HeartPulse size={22} className="text-sky-400" />,
+  },
+  {
+    step: "02",
+    title: "Diagnostics & Imaging",
+    desc: "X-ray KUB, Ultrasound, CT Urography, Uroflowmetry, or PSA tests — arranged at a NABH hospital near you. Fast reports, same day.",
+    icon: <Microscope size={22} className="text-sky-400" />,
+  },
+  {
+    step: "03",
+    title: "Laser / Minimal Procedure",
+    desc: "Laser stone removal, HoLEP, ZSR circumcision, or vasectomy — performed by expert urologists. Most procedures finish in 30–60 minutes.",
+    icon: <Zap size={22} className="text-sky-400" />,
+  },
+  {
+    step: "04",
+    title: "Same-Day Recovery",
+    desc: "Most patients are discharged the same day. Your care manager schedules follow-ups, diet plan, and medication support until 100% recovery.",
+    icon: <CheckCircle2 size={22} className="text-sky-400" />,
+  },
+];
+
+const faqs = [
+  {
+    q: "How are kidney stones removed without surgery?",
+    a: "We use RIRS (Retrograde Intrarenal Surgery) and URSL — flexible laser scopes that enter through the natural urinary tract. A Holmium laser breaks the stone into fine dust which passes out naturally. No incision, no stitches, same-day discharge. Stones up to 2.5cm can be treated this way.",
+  },
+  {
+    q: "Is HoLEP better than TURP for prostate treatment?",
+    a: "Yes. HoLEP (Holmium Laser Enucleation of the Prostate) is the current gold standard for BPH treatment. It has far less blood loss than TURP, works on any prostate size, requires a shorter hospital stay, and has a 15+ year track record of excellent outcomes with very low retreatment rates.",
+  },
+  {
+    q: "Is ZSR circumcision painful?",
+    a: "No. ZSR Stapler circumcision is done under local anaesthesia — you feel nothing during the procedure. It takes just 10 minutes. There are no stitches, minimal post-op discomfort, and healing is 3× faster than conventional circumcision. Most patients return to work within 2–3 days.",
+  },
+  {
+    q: "What happens if a kidney stone is left untreated?",
+    a: "Untreated kidney stones can cause severe pain (renal colic), block urine flow, lead to kidney infections (pyelonephritis), and eventually cause permanent kidney damage. Stones that don't pass on their own within 4–6 weeks should be treated. Don't wait — early laser treatment is simple and quick.",
+  },
+  {
+    q: "Is urological surgery covered by insurance?",
+    a: "Yes. Kidney stone removal (RIRS, URSL), HoLEP for prostate, hydrocele and varicocele surgeries are all covered by standard health insurance and government schemes (CGHS, ESI, ECHS). Our team handles all TPA cashless approvals — typically within 30 minutes.",
+  },
+  {
+    q: "How quickly can treatment start?",
+    a: "After your free consultation and diagnostic reports, we typically schedule the procedure within 24–48 hours at a premium NABH hospital near you. Emergency cases such as acute urinary obstruction can be handled on the same day.",
+  },
+];
+
+const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a urologist for kidney stone / prostate treatment.")}`;
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
 export default function UrologyPage() {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", service: "Urology" });
+  // Form only collects name + phone
+  const [form, setForm] = useState({ name: "", phone: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
-  const technologies = [
-    {
-      title: "Laser Stone Removal",
-      badge: "Kidney Stones",
-      badgeColor: "bg-sky-500",
-      desc: "Advanced RIRS (Retrograde Intrarenal Surgery) and URSL procedures to completely remove kidney and ureteric stones without any major incisions or hospitalization.",
-      details: ["No incisions needed", "Stones up to 2.5cm", "Same-day discharge", "Prevents recurrence"],
-      icon: <Gem className="text-sky-300" size={28} />,
-      accent: "sky",
-    },
-    {
-      title: "Holmium Laser (HoLEP)",
-      badge: "Prostate / BPH",
-      badgeColor: "bg-blue-500",
-      desc: "The gold standard treatment for Benign Prostatic Hyperplasia (BPH). HoLEP removes excess prostate tissue with laser precision — minimal blood loss, no catheter long-term.",
-      details: ["Gold standard for BPH", "Minimal blood loss", "No long-term catheter", "15-yr proven results"],
-      icon: <Zap className="text-blue-300" size={28} />,
-      accent: "blue",
-    },
-    {
-      title: "Painless Circumcision",
-      badge: "ZSR Stapler",
-      badgeColor: "bg-cyan-500",
-      desc: "ZSR Stapler Circumcision is bloodless, stitchless, and takes only 10 minutes under local anaesthesia. Heal 3× faster than conventional methods with minimal discomfort.",
-      details: ["10-minute procedure", "No stitches / sutures", "3× faster healing", "Local anaesthesia"],
-      icon: <Scissors className="text-cyan-300" size={28} />,
-      accent: "cyan",
-    },
-    {
-      title: "No-Scalpel Vasectomy",
-      badge: "Family Planning",
-      badgeColor: "bg-indigo-500",
-      desc: "Modern minimally invasive vasectomy — no scalpel, no general anaesthesia, no stitches. A 20-minute clinic procedure with zero downtime and 99.9% effectiveness.",
-      details: ["No scalpel or sutures", "20-minute procedure", "99.9% effective", "Zero downtime"],
-      icon: <ShieldCheck className="text-indigo-300" size={28} />,
-      accent: "indigo",
-    },
-  ];
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
 
-  const stats = [
-    { value: "20,000+", label: "Procedures Done", icon: <Users size={20} /> },
-    { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
-    { value: "Same Day", label: "Discharge", icon: <Clock size={20} /> },
-    { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
-  ];
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
 
-  const conditions = [
-    "Kidney Stones (Renal Calculi)",
-    "Ureteric Stones",
-    "Bladder Stones",
-    "Prostate Enlargement (BPH)",
-    "Urinary Tract Infections (UTI)",
-    "Overactive Bladder",
-    "Male Infertility",
-    "Phimosis / Circumcision",
-    "Urethral Stricture",
-    "Hydrocele / Varicocele",
-    "Bladder Cancer Screening",
-    "Incontinence",
-  ];
-
-  const processSteps = [
-    {
-      step: "01",
-      title: "Free Consultation",
-      desc: "Our senior urologist reviews your symptoms, ultrasound reports, and blood work to identify the root cause and recommend the precise treatment option.",
-      icon: <HeartPulse size={22} className="text-sky-400" />,
-    },
-    {
-      step: "02",
-      title: "Diagnostics & Imaging",
-      desc: "X-ray KUB, Ultrasound, CT Urography, Uroflowmetry, or PSA tests — arranged at a NABH hospital near you. Fast reports, same day.",
-      icon: <Microscope size={22} className="text-sky-400" />,
-    },
-    {
-      step: "03",
-      title: "Laser / Minimal Procedure",
-      desc: "Laser stone removal, HoLEP, ZSR circumcision, or vasectomy — performed by expert urologists. Most procedures finish in 30–60 minutes.",
-      icon: <Zap size={22} className="text-sky-400" />,
-    },
-    {
-      step: "04",
-      title: "Same-Day Recovery",
-      desc: "Most patients are discharged the same day. Your care manager schedules follow-ups, diet plan, and medication support until 100% recovery.",
-      icon: <CheckCircle2 size={22} className="text-sky-400" />,
-    },
-  ];
-
-  const faqs = [
-    {
-      q: "How are kidney stones removed without surgery?",
-      a: "We use RIRS (Retrograde Intrarenal Surgery) and URSL — flexible laser scopes that enter through the natural urinary tract. A Holmium laser breaks the stone into fine dust which passes out naturally. No incision, no stitches, same-day discharge. Stones up to 2.5cm can be treated this way.",
-    },
-    {
-      q: "Is HoLEP better than TURP for prostate treatment?",
-      a: "Yes. HoLEP (Holmium Laser Enucleation of the Prostate) is the current gold standard for BPH treatment. It has far less blood loss than TURP, works on any prostate size, requires a shorter hospital stay, and has a 15+ year track record of excellent outcomes with very low retreatment rates.",
-    },
-    {
-      q: "Is ZSR circumcision painful?",
-      a: "No. ZSR Stapler circumcision is done under local anaesthesia — you feel nothing during the procedure. It takes just 10 minutes. There are no stitches, minimal post-op discomfort, and healing is 3× faster than conventional circumcision. Most patients return to work within 2–3 days.",
-    },
-    {
-      q: "What happens if a kidney stone is left untreated?",
-      a: "Untreated kidney stones can cause severe pain (renal colic), block urine flow, lead to kidney infections (pyelonephritis), and eventually cause permanent kidney damage. Stones that don't pass on their own within 4–6 weeks should be treated. Don't wait — early laser treatment is simple and quick.",
-    },
-    {
-      q: "Is urological surgery covered by insurance?",
-      a: "Yes. Kidney stone removal (RIRS, URSL), HoLEP for prostate, hydrocele and varicocele surgeries are all covered by standard health insurance and government schemes (CGHS, ESI, ECHS). Our team handles all TPA cashless approvals — typically within 30 minutes.",
-    },
-    {
-      q: "How quickly can treatment start?",
-      a: "After your free consultation and diagnostic reports, we typically schedule the procedure within 24–48 hours at a premium NABH hospital near you. Emergency cases such as acute urinary obstruction can be handled on the same day.",
-    },
-  ];
-
-  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a urologist for kidney stone / prostate treatment.")}`;
+  const showPhoneError = phoneTouched && phoneError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate name
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (error) throw error;
+      const { error: supabaseError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
+      if (supabaseError) throw supabaseError;
       setSubmitted(true);
-      setForm({ name: "", phone: "", city: "", service: "Urology" });
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
     } catch {
       alert("Connectivity issue. Please try again.");
     } finally {
@@ -177,7 +198,15 @@ export default function UrologyPage() {
         <p className="text-slate-500 mb-8 text-sm leading-relaxed">
           Our urology counselor will call you within 15 minutes.
         </p>
-        <button onClick={() => setSubmitted(false)} className="text-sky-600 font-bold text-sm hover:underline">
+        <button
+          onClick={() => {
+            setSubmitted(false);
+            setForm({ name: "", phone: "" });
+            setPhoneTouched(false);
+            setPhoneError(null);
+          }}
+          className="text-sky-600 font-bold text-sm hover:underline"
+        >
           Book for someone else?
         </button>
       </div>
@@ -189,39 +218,52 @@ export default function UrologyPage() {
         </div>
         <h2 className="text-2xl font-black mb-1 text-slate-900">Book Consultation</h2>
         <p className="text-slate-500 text-sm mb-6 font-medium">Get a free call back from our senior urologist.</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          {/* Name */}
           <input
-            type="text" placeholder="Patient Full Name" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <input
-            type="tel" placeholder="Mobile Number" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-            value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
-          <select
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-medium outline-none focus:ring-2 focus:ring-sky-500 appearance-none cursor-pointer transition-all"
-            value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
+            type="text"
+            placeholder="Patient Full Name"
             required
-          >
-            <option value="">Select Your City</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Gurgaon">Gurgaon</option>
-            <option value="Noida">Noida</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Pune">Pune</option>
-          </select>
+            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+
+          {/* Phone */}
+          <div>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="Mobile Number"
+              required
+              maxLength={10}
+              className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+                showPhoneError
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-slate-200 focus:ring-sky-500"
+              }`}
+              value={form.phone}
+              onChange={handlePhoneChange}
+              onBlur={handlePhoneBlur}
+            />
+            {showPhoneError && (
+              <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+                <AlertCircle size={14} />
+                {phoneError}
+              </div>
+            )}
+          </div>
+
+          {/* Submit */}
           <button
             disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-sky-900/20 transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-sky-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Call Back <ArrowRight size={16} /></>}
           </button>
         </form>
+
         <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
       </div>
     );
@@ -313,7 +355,7 @@ export default function UrologyPage() {
           </div>
         </section>
 
-        {/* ── TECHNOLOGY / PROCEDURE GRID — BRIGHT CARDS ── */}
+        {/* ── TECHNOLOGY / PROCEDURE GRID ── */}
         <section className="py-24 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -377,23 +419,15 @@ export default function UrologyPage() {
                   key={i}
                   className={`group relative bg-white rounded-[32px] p-8 border-2 ${t.border} shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col`}
                 >
-                  {/* Accent top bar */}
                   <div className={`absolute top-0 left-8 right-8 h-1 rounded-b-full ${t.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-
-                  {/* Badge */}
                   <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border mb-5 self-start ${t.badgeColor}`}>
                     {t.badge}
                   </span>
-
-                  {/* Icon */}
                   <div className={`w-14 h-14 ${t.iconBg} rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
                     {t.icon}
                   </div>
-
                   <h3 className="text-xl font-black text-slate-900 mb-3">{t.title}</h3>
                   <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">{t.desc}</p>
-
-                  {/* Detail bullets */}
                   <ul className="space-y-2">
                     {t.details.map((d, di) => (
                       <li key={di} className="flex items-center gap-2 text-xs text-slate-700 font-semibold">

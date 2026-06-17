@@ -9,8 +9,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, Bone, Stethoscope, Zap, CheckCircle2,
   ArrowRight, MapPin, ShieldCheck, Award, Clock, Users,
-  ChevronDown, Star, Phone, Microscope, HeartPulse
+  ChevronDown, Star, Phone, Microscope, HeartPulse, AlertCircle
 } from "lucide-react";
+
+// ─── PHONE VALIDATION ────────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
+
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
+
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
+
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
+
+  return null;
+}
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
@@ -72,10 +96,10 @@ const treatments = [
 ];
 
 const stats = [
-  { value: "15,000+", label: "Joints Replaced", icon: Award },
+  { value: "15,000+", label: "Joints Replaced",       icon: Award },
   { value: "98.5%",   label: "Surgical Success Rate", icon: ShieldCheck },
-  { value: "20+",     label: "Years of Excellence", icon: Clock },
-  { value: "50,000+", label: "Lives Transformed", icon: Users },
+  { value: "20+",     label: "Years of Excellence",   icon: Clock },
+  { value: "50,000+", label: "Lives Transformed",     icon: Users },
 ];
 
 const steps = [
@@ -181,19 +205,46 @@ const accreditations = ["NABH", "ISO 9001:2015", "JCI Accredited", "NABL Lab", "
 // ─── COMPONENT ─────────────────────────────────────────────────────────────
 
 export default function OrthopedicsPage() {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", service: "Orthopedics" });
+  // Form only collects name + phone
+  const [form, setForm] = useState({ name: "", phone: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!form.name.trim()) return;
+
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([form]);
-      if (error) throw error;
+      const { error: supabaseError } = await supabase.from("leads").insert([form]);
+      if (supabaseError) throw supabaseError;
       setSubmitted(true);
-      setForm({ name: "", phone: "", city: "", service: "Orthopedics" });
     } catch {
       alert("Error saving lead. Please check your internet connection.");
     } finally {
@@ -210,11 +261,9 @@ export default function OrthopedicsPage() {
             HERO
         ══════════════════════════════════════════════════════ */}
         <section className="relative bg-[#0A1628] min-h-screen flex items-center py-24 px-6 overflow-hidden">
-          {/* Decorative mesh */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[140px]" />
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-500/10 rounded-full blur-[120px]" />
-            {/* Subtle grid */}
             <div className="absolute inset-0 opacity-[0.03]"
               style={{ backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
           </div>
@@ -223,7 +272,6 @@ export default function OrthopedicsPage() {
 
             {/* Left */}
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="lg:w-1/2">
-              {/* Live badge */}
               <div className="inline-flex items-center gap-2.5 bg-white/8 border border-white/10 px-4 py-2 rounded-full mb-8">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
@@ -243,7 +291,6 @@ export default function OrthopedicsPage() {
                 Robotic-precision surgery for Knee, Hip, and Spine conditions — with 0% EMI, NABH-accredited care, and a team trusted by 50,000+ patients.
               </p>
 
-              {/* Trust chips */}
               <div className="flex flex-wrap gap-3 mb-12">
                 {accreditations.map((a) => (
                   <span key={a} className="flex items-center gap-1.5 bg-white/6 border border-white/10 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -252,7 +299,6 @@ export default function OrthopedicsPage() {
                 ))}
               </div>
 
-              {/* Stat row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-white/8">
                 {stats.map(({ value, label, icon: Icon }, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }}>
@@ -263,8 +309,13 @@ export default function OrthopedicsPage() {
               </div>
             </motion.div>
 
-            {/* Form card */}
-            <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="lg:w-5/12 w-full">
+            {/* ── FORM CARD — name + phone only ── */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="lg:w-5/12 w-full"
+            >
               {submitted ? (
                 <div className="bg-white rounded-[36px] p-12 shadow-2xl text-center">
                   <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -272,9 +323,18 @@ export default function OrthopedicsPage() {
                   </div>
                   <h2 className="text-2xl font-black text-slate-900 mb-3">You're All Set!</h2>
                   <p className="text-slate-500 leading-relaxed mb-8">
-                    Our senior orthopaedic coordinator will call you within <span className="text-[#0F766E] font-bold">30 minutes</span> to confirm your slot.
+                    Our senior orthopaedic coordinator will call you within{" "}
+                    <span className="text-[#0F766E] font-bold">30 minutes</span> to confirm your slot.
                   </p>
-                  <button onClick={() => setSubmitted(false)} className="text-[#0F766E] text-sm font-bold underline underline-offset-4">
+                  <button
+                    onClick={() => {
+                      setSubmitted(false);
+                      setForm({ name: "", phone: "" });
+                      setPhoneTouched(false);
+                      setPhoneError(null);
+                    }}
+                    className="text-[#0F766E] text-sm font-bold underline underline-offset-4"
+                  >
                     Submit another request
                   </button>
                 </div>
@@ -288,46 +348,46 @@ export default function OrthopedicsPage() {
                     <p className="text-slate-400 text-sm mt-1">Expert second opinion within the day.</p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                    {/* Name */}
                     <input
-                      type="text" placeholder="Patient Full Name" required
+                      type="text"
+                      placeholder="Patient Full Name"
+                      required
                       className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
-                      value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
-                    <input
-                      type="tel" placeholder="WhatsApp / Phone Number" required
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
-                      value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    />
-                    <div className="relative">
-                      <select
-                        required
-                        className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none cursor-pointer transition"
-                        style={{ color: form.city ? "#0F172A" : "#94A3B8" }}
-                        value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      >
-                        <option value="">Select Your City</option>
-                        {["Delhi NCR", "Mumbai", "Pune", "Bangalore", "Chennai", "Hyderabad", "Other"].map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                      <MapPin size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>
-                    <select
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer transition"
-                      value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}
-                    >
-                      <option value="Orthopedics">General Orthopaedics</option>
-                      <option value="Knee Replacement">Knee Replacement</option>
-                      <option value="Hip Replacement">Hip Replacement</option>
-                      <option value="Spine Surgery">Spine / Disc Surgery</option>
-                      <option value="Sports Injury">Sports Injury / ACL</option>
-                      <option value="Fracture">Fracture Care</option>
-                    </select>
 
+                    {/* Phone */}
+                    <div>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="WhatsApp / Phone Number"
+                        required
+                        maxLength={10}
+                        className={`w-full px-4 py-3.5 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 placeholder:text-slate-400 transition ${
+                          showPhoneError
+                            ? "border-red-400 focus:ring-red-400"
+                            : "border-slate-200 focus:ring-teal-500"
+                        }`}
+                        value={form.phone}
+                        onChange={handlePhoneChange}
+                        onBlur={handlePhoneBlur}
+                      />
+                      {showPhoneError && (
+                        <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+                          <AlertCircle size={14} />
+                          {phoneError}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Submit */}
                     <button
                       disabled={loading}
-                      className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:bg-teal-300 text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all"
+                      className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:bg-teal-300 disabled:cursor-not-allowed text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all"
                     >
                       {loading ? (
                         <span className="animate-pulse">Booking your slot…</span>
@@ -425,7 +485,6 @@ export default function OrthopedicsPage() {
                   alt="Robotic Orthopedic Surgery"
                   fill className="object-cover opacity-70 mix-blend-luminosity"
                 />
-                {/* Overlay data card */}
                 <div className="absolute bottom-8 left-6 right-6 bg-white/10 backdrop-blur-md border border-white/15 rounded-3xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center">
@@ -447,7 +506,6 @@ export default function OrthopedicsPage() {
                 </div>
               </div>
 
-              {/* Floating recovery badge */}
               <div className="absolute -bottom-6 -right-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl max-w-[220px]">
                 <p className="text-[#0F766E] font-black text-sm flex items-center gap-1.5 mb-2">
                   <Activity size={16} /> Fast-Track Recovery
@@ -546,7 +604,8 @@ export default function OrthopedicsPage() {
                     ))}
                   </div>
 
-                  <button className="w-full mt-5 py-3 rounded-2xl border text-sm font-bold transition-all"
+                  <button
+                    className="w-full mt-5 py-3 rounded-2xl border text-sm font-bold transition-all"
                     style={{ borderColor: d.color + "40", color: d.color }}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = d.color + "15" }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
@@ -583,17 +642,12 @@ export default function OrthopedicsPage() {
                   transition={{ delay: i * 0.12 }}
                   className="bg-slate-50 border border-slate-100 rounded-3xl p-8 flex flex-col"
                 >
-                  {/* Stars */}
                   <div className="flex gap-1 mb-5">
                     {Array.from({ length: t.stars }).map((_, si) => (
                       <Star key={si} size={14} fill="#F59E0B" className="text-amber-400" />
                     ))}
                   </div>
-
-                  <p className="text-slate-700 text-sm leading-relaxed italic flex-1 mb-6">
-                    "{t.text}"
-                  </p>
-
+                  <p className="text-slate-700 text-sm leading-relaxed italic flex-1 mb-6">"{t.text}"</p>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-200">
                     <div className="w-11 h-11 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-black text-sm">
                       {t.name.split(" ").map(n => n[0]).join("")}
@@ -692,10 +746,16 @@ export default function OrthopedicsPage() {
               Book a free, no-obligation Bone Health Audit today. Our specialists will review your condition and give you a clear, honest path forward.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a href="#consult" className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5">
+              <a
+                href="#consult"
+                className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5"
+              >
                 Book Free Consultation <ArrowRight size={18} />
               </a>
-              <a href="tel:+911800000000" className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all">
+              <a
+                href="tel:+911800000000"
+                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all"
+              >
                 <Phone size={18} /> 1800-000-0000
               </a>
             </div>

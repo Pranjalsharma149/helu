@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
-export default function Footer() {
+export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
   return (
     <footer className="relative overflow-hidden">
 
@@ -30,11 +30,11 @@ export default function Footer() {
 
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
-              <Phone size={16} /> 
+              <Phone size={16} />
               <a href="tel:+918882804301">+91 8882804301</a>
             </div>
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
-              <Mail size={16} /> 
+              <Mail size={16} />
               <a href="mailto:info@healviacare.in">info@healviacare.in</a>
             </div>
             <div className="flex items-center gap-2">
@@ -53,7 +53,14 @@ export default function Footer() {
             <li><Link href="/" className="hover:text-[#1D646B] transition-colors">Home</Link></li>
             <li><Link href="/#why-choose-us" className="hover:text-[#1D646B] transition-colors">About Us</Link></li>
             <li><Link href="/#talk-to-specialist" className="hover:text-[#1D646B] transition-colors">Contact Us</Link></li>
-            <li><Link href="/book-now" className="hover:text-[#1D646B] transition-colors">Book Consultation</Link></li>
+            <li>
+              <button
+                onClick={onBookClick}
+                className="hover:text-[#1D646B] transition-colors"
+              >
+                Book Consultation
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -84,16 +91,17 @@ export default function Footer() {
           <p className="text-gray-600 text-sm mb-2">
             Talk to our medical experts and get guidance for the right treatment.
           </p>
-          
+
           <p className="text-[#1D646B] font-bold text-lg mb-5 flex items-center gap-2">
             <Phone size={18} /> 8882804301
           </p>
 
-          <Link href="/book-now">
-            <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-semibold shadow hover:scale-105 transition">
-              Book Free Consultation
-            </button>
-          </Link>
+          <button
+            onClick={onBookClick}
+            className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-semibold shadow hover:scale-105 transition"
+          >
+            Book Free Consultation
+          </button>
         </div>
 
       </div>

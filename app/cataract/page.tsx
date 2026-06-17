@@ -26,11 +26,151 @@ import {
   Sparkles,
 } from "lucide-react";
 
+// ── Phone validation helpers ──
+// Rejects: wrong length, non-numeric, invalid starting digit, all-same-digit
+// "fake" numbers (e.g. 9999999999, 0000000000), and simple sequential runs
+// (e.g. 1234567890, 0123456789).
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
+
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
+
+  // All digits identical (e.g. 9999999999, 8888888888)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
+
+  // Simple ascending/descending sequential numbers (e.g. 1234567890, 9876543210)
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
+
+  return null;
+}
+
+// ── FormCard lifted OUTSIDE the page component to prevent remount/focus-loss on every keystroke ──
+interface FormCardProps {
+  form: { name: string; phone: string; city: string; service: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string; city: string; service: string }>>;
+  loading: boolean;
+  submitted: boolean;
+  setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (e: React.FormEvent) => void;
+  phoneError: string | null;
+  setPhoneError: React.Dispatch<React.SetStateAction<string | null>>;
+  phoneTouched: boolean;
+  setPhoneTouched: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function FormCard({
+  form,
+  setForm,
+  loading,
+  submitted,
+  setSubmitted,
+  onSubmit,
+  phoneError,
+  setPhoneError,
+  phoneTouched,
+  setPhoneTouched,
+}: FormCardProps) {
+  if (submitted) {
+    return (
+      <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-blue-50 text-center">
+        <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 size={40} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-2">Booking Confirmed!</h2>
+        <p className="text-slate-500 mb-8 text-sm leading-relaxed">
+          Our eye specialist will call you within 15 minutes to schedule your free screening.
+        </p>
+        <button onClick={() => setSubmitted(false)} className="text-blue-600 font-bold text-sm hover:underline">
+          Book for someone else?
+        </button>
+      </div>
+    );
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Strip non-digits as the user types, cap at 10 digits
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
+      <div className="flex items-center gap-2 mb-1">
+        <BadgeCheck size={18} className="text-blue-600" />
+        <span className="text-xs font-black text-blue-600 uppercase tracking-widest">100% Free</span>
+      </div>
+      <h2 className="text-2xl font-black mb-1 text-slate-900">Free Vision Screening</h2>
+      <p className="text-slate-500 text-sm mb-6 font-medium">Check your eligibility for laser cataract surgery.</p>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <input
+          type="text"
+          placeholder="Full Name"
+          required
+          className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+        <div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Mobile Number"
+            required
+            maxLength={10}
+            className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+              showPhoneError
+                ? "border-red-400 focus:ring-red-400"
+                : "border-slate-200 focus:ring-blue-500"
+            }`}
+            value={form.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+          />
+          {showPhoneError && (
+            <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+              <AlertCircle size={14} />
+              {phoneError}
+            </div>
+          )}
+        </div>
+        <button
+          disabled={loading}
+          className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Screening <ArrowRight size={16} /></>}
+        </button>
+      </form>
+      <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
+    </div>
+  );
+}
+
 export default function CataractSurgeryPage() {
   const [form, setForm] = useState({ name: "", phone: "", city: "", service: "Cataract Surgery" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const treatments = [
     {
@@ -141,77 +281,29 @@ export default function CataractSurgeryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (error) throw error;
+      const { error: supabaseError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
+      if (supabaseError) throw supabaseError;
       setSubmitted(true);
       setForm({ name: "", phone: "", city: "", service: "Cataract Surgery" });
+      setPhoneTouched(false);
+      setPhoneError(null);
     } catch (error: any) {
       alert("Connectivity issue. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
-
-  const FormCard = () =>
-    submitted ? (
-      <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-blue-50 text-center">
-        <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 size={40} />
-        </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Booking Confirmed!</h2>
-        <p className="text-slate-500 mb-8 text-sm leading-relaxed">
-          Our eye specialist will call you within 15 minutes to schedule your free screening.
-        </p>
-        <button onClick={() => setSubmitted(false)} className="text-blue-600 font-bold text-sm hover:underline">
-          Book for someone else?
-        </button>
-      </div>
-    ) : (
-      <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
-        <div className="flex items-center gap-2 mb-1">
-          <BadgeCheck size={18} className="text-blue-600" />
-          <span className="text-xs font-black text-blue-600 uppercase tracking-widest">100% Free</span>
-        </div>
-        <h2 className="text-2xl font-black mb-1 text-slate-900">Free Vision Screening</h2>
-        <p className="text-slate-500 text-sm mb-6 font-medium">Check your eligibility for laser cataract surgery.</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text" placeholder="Full Name" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <input
-            type="tel" placeholder="Mobile Number" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
-          <select
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-medium outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer transition-all"
-            value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-            required
-          >
-            <option value="">Select Your City</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Gurgaon">Gurgaon</option>
-            <option value="Noida">Noida</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Pune">Pune</option>
-          </select>
-          <button
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Screening <ArrowRight size={16} /></>}
-          </button>
-        </form>
-        <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
-      </div>
-    );
 
   return (
     <>
@@ -259,7 +351,18 @@ export default function CataractSurgeryPage() {
             </div>
 
             <div className="lg:w-5/12 w-full">
-              <FormCard />
+              <FormCard
+                form={form}
+                setForm={setForm}
+                loading={loading}
+                submitted={submitted}
+                setSubmitted={setSubmitted}
+                onSubmit={handleSubmit}
+                phoneError={phoneError}
+                setPhoneError={setPhoneError}
+                phoneTouched={phoneTouched}
+                setPhoneTouched={setPhoneTouched}
+              />
             </div>
           </div>
         </section>

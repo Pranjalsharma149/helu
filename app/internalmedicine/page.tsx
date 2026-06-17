@@ -30,9 +30,9 @@ export default function InternalMedicinePage() {
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    city: "",
     service: "Internal Medicine",
   });
+  const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -118,14 +118,38 @@ export default function InternalMedicinePage() {
     },
   ];
 
+  const validatePhone = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned) return "Mobile number is required";
+    if (!/^\d+$/.test(cleaned)) return "Mobile number must contain only digits";
+    if (!/^[6-9]\d{9}$/.test(cleaned)) return "Enter a valid 10-digit mobile number";
+    return "";
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneError) {
+      setPhoneError(validatePhone(digitsOnly));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const error = validatePhone(form.phone);
+    if (error) {
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([form]);
-      if (error) throw error;
+      const { error: dbError } = await supabase.from("leads").insert([form]);
+      if (dbError) throw dbError;
       setSubmitted(true);
-      setForm({ name: "", phone: "", city: "", service: "Internal Medicine" });
+      setForm({ name: "", phone: "", service: "Internal Medicine" });
+      setPhoneError("");
     } catch (error: unknown) {
       alert("Something went wrong. Please check your connection.");
     } finally {
@@ -247,6 +271,13 @@ export default function InternalMedicinePage() {
           box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
         }
         .im-input::placeholder { color: #94a3b8; }
+        .im-input.error {
+          border-color: #dc2626;
+        }
+        .im-input.error:focus {
+          border-color: #dc2626;
+          box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+        }
 
         /* FAQ */
         .im-faq-item {
@@ -399,38 +430,29 @@ export default function InternalMedicinePage() {
                   <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '22px' }}>
                     For admissions or health checkups.
                   </p>
-                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <input
                       type="text" placeholder="Patient Name" required
                       className="im-input" value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
                     />
-                    <input
-                      type="tel" placeholder="Mobile Number" required
-                      className="im-input" value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
-                    />
-                    <div style={{ position: 'relative' }}>
-                      <select className="im-input" value={form.city}
-                        onChange={e => setForm({ ...form, city: e.target.value })} required
-                        style={{ paddingRight: '40px' }}>
-                        <option value="">Select City</option>
-                        <option>Delhi</option>
-                        <option>Gurgaon</option>
-                        <option>Noida</option>
-                      </select>
-                      <ChevronDown size={15} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <select className="im-input" value={form.service}
-                        onChange={e => setForm({ ...form, service: e.target.value })}
-                        style={{ paddingRight: '40px' }}>
-                        <option value="Internal Medicine">Internal Medicine</option>
-                        <option value="Health Screening">Health Screening</option>
-                        <option value="Diabetes Management">Diabetes Management</option>
-                        <option value="Respiratory Care">Respiratory Care</option>
-                      </select>
-                      <ChevronDown size={15} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                    <div>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="Mobile Number"
+                        required
+                        maxLength={10}
+                        className={`im-input ${phoneError ? "error" : ""}`}
+                        value={form.phone}
+                        onChange={handlePhoneChange}
+                        onBlur={() => setPhoneError(validatePhone(form.phone))}
+                      />
+                      {phoneError && (
+                        <p style={{ color: '#dc2626', fontSize: '12.5px', fontWeight: 600, marginTop: '6px', marginBottom: 0, marginLeft: '2px' }}>
+                          {phoneError}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="submit" disabled={loading}

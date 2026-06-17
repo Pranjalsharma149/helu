@@ -16,7 +16,7 @@ const treatments = [
   { name: "Internal Medicine", href: "/internalmedicine" },
 ];
 
-export default function Header() {
+export default function Header({ onBookClick }: { onBookClick?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -110,38 +110,29 @@ export default function Header() {
           >
             Contact Us
           </button>
-
-          {/* Blog link — commented out for now
-          <Link
-            href="/blog"
-            className="text-[15px] font-bold text-slate-700 hover:text-[#1D646B] transition"
-          >
-            Blog
-          </Link>
-          */}
         </nav>
 
         {/* RIGHT SIDE — Book Free Consultation CTA (desktop/tablet) */}
         <div className="hidden md:flex items-center">
-          <Link
-            href="/book-now"
+          <button
+            onClick={onBookClick}
             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Book Free Consultation
-          </Link>
+          </button>
         </div>
 
         {/* MOBILE RIGHT — CTA button + Hamburger */}
         <div className="flex md:hidden items-center gap-2">
-          <Link
-            href="/book-now"
+          <button
+            onClick={onBookClick}
             className="flex items-center px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold text-xs shadow-md active:scale-95 transition"
           >
             Book Now
-          </Link>
+          </button>
 
           <button
             className="flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 text-slate-800 active:scale-95 transition"
@@ -197,28 +188,17 @@ export default function Header() {
               Contact Us
             </button>
 
-            {/* Blog link — commented out for now
-            <Link
-              href="/blog"
-              onClick={() => setIsOpen(false)}
-              className="text-lg font-bold text-left text-slate-900 hover:text-[#1D646B] transition"
-            >
-              Blog
-            </Link>
-            */}
-
             {/* MOBILE CTA */}
             <div className="pt-4 border-t border-slate-100">
-              <Link
-                href="/book-now"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => { setIsOpen(false); onBookClick?.(); }}
                 className="flex items-center justify-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white font-bold text-base shadow-lg active:scale-[0.98] transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 Book Free Consultation
-              </Link>
+              </button>
             </div>
           </div>
         </div>

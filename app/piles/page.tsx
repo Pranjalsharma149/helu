@@ -9,8 +9,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, ChevronRight, CheckCircle2, Zap, ShieldCheck,
   ArrowRight, Target, Flame, MapPin, Star, Phone,
-  ChevronDown, Clock, Users, Award, HeartPulse, Microscope
+  ChevronDown, Clock, Users, Award, HeartPulse, Microscope,
+  AlertCircle,
 } from "lucide-react";
+
+// ─── PHONE VALIDATION ──────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
+
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
+
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
+
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
+
+  return null;
+}
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -185,17 +210,47 @@ const accreditations = ["NABH", "USFDA Approved Laser", "ISO 9001:2015", "CGHS E
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
 export default function PilesPage() {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", service: "Piles (Proctology)" });
+  // Form only collects name + phone
+  const [form, setForm] = useState({ name: "", phone: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate name
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([form]);
-      if (error) throw error;
+      const { error: supabaseError } = await supabase.from("leads").insert([form]);
+      if (supabaseError) throw supabaseError;
       setSubmitted(true);
     } catch {
       alert("Connectivity issue. Please try again.");
@@ -261,8 +316,13 @@ export default function PilesPage() {
               </div>
             </motion.div>
 
-            {/* Form */}
-            <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="lg:w-5/12 w-full">
+            {/* ── FORM CARD — name + phone only ── */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="lg:w-5/12 w-full"
+            >
               {submitted ? (
                 <div className="bg-white rounded-[36px] p-12 shadow-2xl text-center">
                   <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -270,9 +330,18 @@ export default function PilesPage() {
                   </div>
                   <h2 className="text-2xl font-black text-slate-900 mb-3">Request Confirmed!</h2>
                   <p className="text-slate-500 leading-relaxed mb-8">
-                    Our senior medical counsellor will call you within <span className="text-[#0F766E] font-bold">15 minutes</span> for a private, confidential consultation.
+                    Our senior medical counsellor will call you within{" "}
+                    <span className="text-[#0F766E] font-bold">15 minutes</span> for a private, confidential consultation.
                   </p>
-                  <button onClick={() => setSubmitted(false)} className="text-teal-600 text-sm font-bold underline underline-offset-4">
+                  <button
+                    onClick={() => {
+                      setSubmitted(false);
+                      setForm({ name: "", phone: "" });
+                      setPhoneTouched(false);
+                      setPhoneError(null);
+                    }}
+                    className="text-teal-600 text-sm font-bold underline underline-offset-4"
+                  >
                     Book for another patient
                   </button>
                 </div>
@@ -283,49 +352,49 @@ export default function PilesPage() {
                       Private & Confidential
                     </div>
                     <h2 className="text-2xl font-black text-slate-900">Consult a Specialist</h2>
-                    <p className="text-slate-400 text-sm mt-1">Free expert call, no awkward waiting rooms.</p>
+                    <p className="text-slate-400 text-sm mt-1">Free expert call — no waiting rooms, no embarrassment.</p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                    {/* Name */}
                     <input
-                      type="text" placeholder="Patient Name" required
+                      type="text"
+                      placeholder="Patient Name"
+                      required
                       className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
-                      value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
-                    <input
-                      type="tel" placeholder="WhatsApp / Phone Number" required
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
-                      value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    />
-                    <div className="relative">
-                      <select
-                        required
-                        className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none cursor-pointer transition"
-                        style={{ color: form.city ? "#0F172A" : "#94A3B8" }}
-                        value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      >
-                        <option value="">Select Your City</option>
-                        {["Delhi NCR", "Mumbai", "Pune", "Bangalore", "Chennai", "Hyderabad", "Other"].map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                      <MapPin size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>
-                    <select
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer transition"
-                      value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}
-                    >
-                      <option value="Piles (Proctology)">Piles / Haemorrhoids</option>
-                      <option value="Fissure">Anal Fissure</option>
-                      <option value="Fistula">Fistula-in-Ano</option>
-                      <option value="Pilonidal Sinus">Pilonidal Sinus</option>
-                      <option value="Rectal Prolapse">Rectal Prolapse</option>
-                      <option value="Screening">Colorectal Screening</option>
-                    </select>
 
+                    {/* Phone */}
+                    <div>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="WhatsApp / Phone Number"
+                        required
+                        maxLength={10}
+                        className={`w-full px-4 py-3.5 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 placeholder:text-slate-400 transition ${
+                          showPhoneError
+                            ? "border-red-400 focus:ring-red-400"
+                            : "border-slate-200 focus:ring-teal-500"
+                        }`}
+                        value={form.phone}
+                        onChange={handlePhoneChange}
+                        onBlur={handlePhoneBlur}
+                      />
+                      {showPhoneError && (
+                        <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+                          <AlertCircle size={14} />
+                          {phoneError}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Submit */}
                     <button
                       disabled={loading}
-                      className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:bg-teal-300 text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all"
+                      className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:bg-teal-300 disabled:cursor-not-allowed text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all"
                     >
                       {loading ? (
                         <span className="animate-pulse">Booking your slot…</span>
@@ -620,8 +689,11 @@ export default function PilesPage() {
                   </div>
                 ))}
               </div>
-              <a href="#" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="flex items-center gap-2 bg-[#0F766E] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#0D6460] transition-colors shadow-lg shadow-teal-900/20">
+              <a
+                href="#"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="flex items-center gap-2 bg-[#0F766E] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#0D6460] transition-colors shadow-lg shadow-teal-900/20"
+              >
                 Book Your Consultation <ArrowRight size={16} />
               </a>
             </div>
@@ -686,13 +758,17 @@ export default function PilesPage() {
               Book a free, private consultation today. No waiting room. No embarrassment. Just expert care delivered with dignity.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a href="#"
+              <a
+                href="#"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5">
+                className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5"
+              >
                 Get Free Expert Call <ArrowRight size={18} />
               </a>
-              <a href="tel:+911800000000"
-                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all">
+              <a
+                href="tel:+911800000000"
+                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all"
+              >
                 <Phone size={18} /> 1800-000-0000
               </a>
             </div>
