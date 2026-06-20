@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -10,7 +9,7 @@ import {
   Activity, ChevronRight, CheckCircle2, Zap, ShieldCheck,
   ArrowRight, Target, Flame, MapPin, Star, Phone,
   ChevronDown, Clock, Users, Award, HeartPulse, Microscope,
-  AlertCircle,
+  AlertCircle, BadgeCheck, Loader2,
 } from "lucide-react";
 
 // ─── PHONE VALIDATION ──────────────────────────────────────────────────────
@@ -22,10 +21,8 @@ function getPhoneError(rawValue: string): string | null {
   if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
   if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
 
-  // All digits identical (e.g. 9999999999)
   if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
 
-  // Simple ascending/descending sequential numbers
   const isAscendingSeq = digits
     .split("")
     .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
@@ -35,6 +32,130 @@ function getPhoneError(rawValue: string): string | null {
   if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
 
   return null;
+}
+
+// ─── FORMCARD — lifted outside page component to prevent remount on keystrokes ──
+interface FormCardProps {
+  form: { name: string; phone: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string }>>;
+  loading: boolean;
+  submitted: boolean;
+  setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (e: React.FormEvent) => void;
+  phoneError: string | null;
+  setPhoneError: React.Dispatch<React.SetStateAction<string | null>>;
+  phoneTouched: boolean;
+  setPhoneTouched: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function FormCard({
+  form,
+  setForm,
+  loading,
+  submitted,
+  setSubmitted,
+  onSubmit,
+  phoneError,
+  setPhoneError,
+  phoneTouched,
+  setPhoneTouched,
+}: FormCardProps) {
+  if (submitted) {
+    return (
+      <div className="bg-white rounded-[36px] p-12 shadow-2xl text-center">
+        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 size={44} className="text-emerald-500" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-3">Request Confirmed!</h2>
+        <p className="text-slate-500 leading-relaxed mb-8">
+          Our senior medical counsellor will call you within{" "}
+          <span className="text-[#0F766E] font-bold">15 minutes</span> for a private, confidential consultation.
+        </p>
+        <button
+          onClick={() => setSubmitted(false)}
+          className="text-teal-600 text-sm font-bold underline underline-offset-4"
+        >
+          Book for another patient
+        </button>
+      </div>
+    );
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  return (
+    <div className="bg-white rounded-[36px] p-8 shadow-[0_32px_80px_rgba(0,0,0,0.35)]">
+      <div className="mb-7">
+        <div className="flex items-center gap-2 mb-1">
+          <BadgeCheck size={18} className="text-teal-600" />
+          <span className="text-xs font-black text-teal-600 uppercase tracking-widest">Private & Confidential</span>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">Consult a Specialist</h2>
+        <p className="text-slate-400 text-sm mt-1">Free expert call — no waiting rooms, no embarrassment.</p>
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <input
+          type="text"
+          placeholder="Patient Name"
+          required
+          className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+        <div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="WhatsApp / Phone Number"
+            required
+            maxLength={10}
+            className={`w-full px-4 py-3.5 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 placeholder:text-slate-400 transition ${
+              showPhoneError
+                ? "border-red-400 focus:ring-red-400"
+                : "border-slate-200 focus:ring-teal-500"
+            }`}
+            value={form.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+          />
+          {showPhoneError && (
+            <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+              <AlertCircle size={14} />
+              {phoneError}
+            </div>
+          )}
+        </div>
+        <button
+          disabled={loading}
+          className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all hover:-translate-y-0.5 active:scale-95"
+        >
+          {loading ? (
+            <Loader2 className="animate-spin" size={20} />
+          ) : (
+            <>Get Free Expert Call <ArrowRight size={18} /></>
+          )}
+        </button>
+      </form>
+
+      <p className="text-center text-xs text-slate-400 mt-4">
+        🔒 100% private · Your details are never shared
+      </p>
+    </div>
+  );
 }
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
@@ -207,10 +328,9 @@ const faqs = [
 
 const accreditations = ["NABH", "USFDA Approved Laser", "ISO 9001:2015", "CGHS Empanelled", "100% Confidential"];
 
-// ─── COMPONENT ───────────────────────────────────────────────────────────────
+// ─── PAGE COMPONENT ───────────────────────────────────────────────────────────
 
 export default function PilesPage() {
-  // Form only collects name + phone
   const [form, setForm] = useState({ name: "", phone: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -218,25 +338,9 @@ export default function PilesPage() {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [phoneTouched, setPhoneTouched] = useState(false);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setForm({ ...form, phone: digitsOnly });
-    if (phoneTouched) {
-      setPhoneError(getPhoneError(digitsOnly));
-    }
-  };
-
-  const handlePhoneBlur = () => {
-    setPhoneTouched(true);
-    setPhoneError(getPhoneError(form.phone));
-  };
-
-  const showPhoneError = phoneTouched && phoneError;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate name
     if (!form.name.trim()) return;
 
     // Final guard: block submission on invalid/fake numbers
@@ -249,15 +353,62 @@ export default function PilesPage() {
 
     setLoading(true);
     try {
-      const { error: supabaseError } = await supabase.from("leads").insert([form]);
-      if (supabaseError) throw supabaseError;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Piles / Laser Proctology",
+          source: "piles-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
       setSubmitted(true);
-    } catch {
-      alert("Connectivity issue. Please try again.");
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      console.error("Form submission error:", error);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
   };
+
+  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free consultation for piles / laser proctology.")}`;
 
   return (
     <>
@@ -271,14 +422,24 @@ export default function PilesPage() {
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[140px]" />
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/8 rounded-full blur-[120px]" />
-            <div className="absolute inset-0 opacity-[0.03]"
-              style={{ backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)",
+                backgroundSize: "60px 60px",
+              }}
+            />
           </div>
 
           <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-20 relative z-10">
 
             {/* Left */}
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="lg:w-1/2">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="lg:w-1/2"
+            >
               <div className="inline-flex items-center gap-2.5 bg-white/8 border border-white/10 px-4 py-2 rounded-full mb-8">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
@@ -307,8 +468,13 @@ export default function PilesPage() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-white/8">
-                {stats.map(({ value, label, icon: Icon }, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }}>
+                {stats.map(({ value, label }, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                  >
                     <div className="text-2xl font-black text-white mb-1">{value}</div>
                     <div className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider leading-tight">{label}</div>
                   </motion.div>
@@ -316,99 +482,25 @@ export default function PilesPage() {
               </div>
             </motion.div>
 
-            {/* ── FORM CARD — name + phone only ── */}
+            {/* Right — FormCard */}
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.15 }}
               className="lg:w-5/12 w-full"
             >
-              {submitted ? (
-                <div className="bg-white rounded-[36px] p-12 shadow-2xl text-center">
-                  <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 size={44} className="text-emerald-500" />
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900 mb-3">Request Confirmed!</h2>
-                  <p className="text-slate-500 leading-relaxed mb-8">
-                    Our senior medical counsellor will call you within{" "}
-                    <span className="text-[#0F766E] font-bold">15 minutes</span> for a private, confidential consultation.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSubmitted(false);
-                      setForm({ name: "", phone: "" });
-                      setPhoneTouched(false);
-                      setPhoneError(null);
-                    }}
-                    className="text-teal-600 text-sm font-bold underline underline-offset-4"
-                  >
-                    Book for another patient
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-white rounded-[36px] p-8 shadow-[0_32px_80px_rgba(0,0,0,0.35)]">
-                  <div className="mb-7">
-                    <div className="inline-block bg-teal-50 text-teal-700 text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
-                      Private & Confidential
-                    </div>
-                    <h2 className="text-2xl font-black text-slate-900">Consult a Specialist</h2>
-                    <p className="text-slate-400 text-sm mt-1">Free expert call — no waiting rooms, no embarrassment.</p>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                    {/* Name */}
-                    <input
-                      type="text"
-                      placeholder="Patient Name"
-                      required
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400 transition"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-
-                    {/* Phone */}
-                    <div>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        placeholder="WhatsApp / Phone Number"
-                        required
-                        maxLength={10}
-                        className={`w-full px-4 py-3.5 rounded-2xl bg-slate-50 border text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 placeholder:text-slate-400 transition ${
-                          showPhoneError
-                            ? "border-red-400 focus:ring-red-400"
-                            : "border-slate-200 focus:ring-teal-500"
-                        }`}
-                        value={form.phone}
-                        onChange={handlePhoneChange}
-                        onBlur={handlePhoneBlur}
-                      />
-                      {showPhoneError && (
-                        <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
-                          <AlertCircle size={14} />
-                          {phoneError}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                      disabled={loading}
-                      className="w-full py-4 bg-[#0F766E] hover:bg-[#0D6460] disabled:bg-teal-300 disabled:cursor-not-allowed text-white rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-900/25 transition-all"
-                    >
-                      {loading ? (
-                        <span className="animate-pulse">Booking your slot…</span>
-                      ) : (
-                        <> Get Free Expert Call <ArrowRight size={18} /> </>
-                      )}
-                    </button>
-                  </form>
-
-                  <p className="text-center text-xs text-slate-400 mt-4">
-                    🔒 100% private · Your details are never shared
-                  </p>
-                </div>
-              )}
+              <FormCard
+                form={form}
+                setForm={setForm}
+                loading={loading}
+                submitted={submitted}
+                setSubmitted={setSubmitted}
+                onSubmit={handleSubmit}
+                phoneError={phoneError}
+                setPhoneError={setPhoneError}
+                phoneTouched={phoneTouched}
+                setPhoneTouched={setPhoneTouched}
+              />
             </motion.div>
           </div>
         </section>
@@ -458,12 +550,16 @@ export default function PilesPage() {
                   whileHover={{ y: -6 }}
                   className={`relative p-8 bg-gradient-to-br ${t.bg} rounded-3xl border ${t.border} cursor-pointer group transition-all duration-300 hover:shadow-xl`}
                 >
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
-                    style={{ background: t.accent + "15" }}>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+                    style={{ background: t.accent + "15" }}
+                  >
                     <Icon size={24} style={{ color: t.accent }} />
                   </div>
-                  <div className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-4"
-                    style={{ background: t.accent + "18", color: t.accent }}>
+                  <div
+                    className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-4"
+                    style={{ background: t.accent + "18", color: t.accent }}
+                  >
                     {t.tag}
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-3">{t.title}</h3>
@@ -488,7 +584,8 @@ export default function PilesPage() {
                 <Image
                   src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800"
                   alt="Laser Proctology Care"
-                  fill className="object-cover opacity-70 mix-blend-luminosity hover:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover opacity-70 mix-blend-luminosity hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute bottom-8 left-6 right-6 bg-white/10 backdrop-blur-md border border-white/15 rounded-3xl p-6">
                   <div className="flex items-center gap-3 mb-4">
@@ -615,8 +712,8 @@ export default function PilesPage() {
                   <button
                     className="w-full mt-5 py-3 rounded-2xl border text-sm font-bold transition-all"
                     style={{ borderColor: d.color + "40", color: d.color }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = d.color + "15" }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = d.color + "15"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
                   >
                     Book with {d.name.split(" ")[1]}
                   </button>
@@ -658,7 +755,7 @@ export default function PilesPage() {
                   <p className="text-slate-700 text-sm leading-relaxed italic flex-1 mb-6">"{t.text}"</p>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-200">
                     <div className="w-11 h-11 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-black text-sm">
-                      {t.name.split(" ").map(n => n[0]).join("")}
+                      {t.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div>
                       <div className="font-bold text-slate-900 text-sm">{t.name}, {t.age}</div>
@@ -689,13 +786,12 @@ export default function PilesPage() {
                   </div>
                 ))}
               </div>
-              <a
-                href="#"
+              <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="flex items-center gap-2 bg-[#0F766E] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#0D6460] transition-colors shadow-lg shadow-teal-900/20"
               >
                 Book Your Consultation <ArrowRight size={16} />
-              </a>
+              </button>
             </div>
           </div>
         </section>
@@ -716,10 +812,20 @@ export default function PilesPage() {
 
             <div className="space-y-0 divide-y divide-slate-200 border-t border-slate-200">
               {faqs.map((faq, i) => (
-                <div key={i} className="py-6 cursor-pointer group" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <div
+                  key={i}
+                  className="py-6 cursor-pointer group"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
                   <div className="flex justify-between items-start gap-4">
-                    <h4 className="font-bold text-slate-900 text-base leading-snug group-hover:text-[#0F766E] transition-colors">{faq.q}</h4>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${openFaq === i ? "bg-[#0F766E] text-white" : "bg-slate-100 text-slate-500"}`}>
+                    <h4 className="font-bold text-slate-900 text-base leading-snug group-hover:text-[#0F766E] transition-colors">
+                      {faq.q}
+                    </h4>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
+                        openFaq === i ? "bg-[#0F766E] text-white" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
                       <ChevronDown size={16} className={`transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`} />
                     </div>
                   </div>
@@ -758,18 +864,28 @@ export default function PilesPage() {
               Book a free, private consultation today. No waiting room. No embarrassment. Just expert care delivered with dignity.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <a
-                href="#"
+              <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5"
               >
                 Get Free Expert Call <ArrowRight size={18} />
-              </a>
+              </button>
               <a
-                href="tel:+911800000000"
+                href="tel:8882804301"
                 className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all"
               >
-                <Phone size={18} /> 1800-000-0000
+                <Phone size={18} /> Call: 8882804301
+              </a>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#25D366] text-white px-8 py-4 rounded-2xl font-bold text-base hover:opacity-90 transition-all shadow-lg"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-white">
+                  <path d="M16 0C7.163 0 0 7.163 0 16c0 2.822.737 5.469 2.027 7.773L0 32l8.479-2.003A15.937 15.937 0 0016 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm7.27 19.455c-.398-.199-2.354-1.162-2.719-1.294-.365-.133-.631-.199-.897.199-.266.398-1.03 1.294-1.263 1.56-.232.266-.465.299-.863.1-.398-.199-1.681-.62-3.202-1.977-1.183-1.056-1.982-2.361-2.214-2.759-.232-.398-.025-.613.174-.811.179-.178.398-.465.597-.698.199-.232.266-.398.398-.664.133-.266.066-.498-.033-.697-.1-.199-.897-2.162-1.229-2.96-.324-.778-.653-.672-.897-.685l-.764-.013c-.266 0-.697.1-1.063.498-.365.398-1.395 1.362-1.395 3.322s1.428 3.853 1.627 4.119c.199.266 2.81 4.291 6.811 6.022.952.411 1.695.657 2.274.841.955.304 1.825.261 2.513.158.766-.114 2.354-.962 2.686-1.891.332-.929.332-1.726.232-1.891-.1-.166-.365-.266-.763-.465z" />
+                </svg>
+                WhatsApp Us
               </a>
             </div>
             <p className="text-teal-200/70 text-xs mt-6">Mon – Sat, 8 AM – 8 PM · Delhi · Mumbai · Pune · Bangalore · Hyderabad</p>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -28,189 +27,194 @@ import {
   Thermometer,
 } from "lucide-react";
 
-export default function VascularSurgeryPage() {
-  const [form, setForm] = useState({ name: "", phone: "", service: "Vascular Surgery" });
-  const [phoneError, setPhoneError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+// ─── PHONE VALIDATION ────────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
 
-  const treatments = [
-    {
-      title: "Varicose Veins Laser (EVLT)",
-      badge: "Most Popular",
-      badgeColor: "text-red-700 bg-red-100 border-red-200",
-      desc: "Endovenous Laser Treatment (EVLT) uses laser energy delivered inside the faulty vein to seal it permanently. No incisions, no stitches, walk in and walk out the same day.",
-      details: ["No cuts or stitches", "60-minute procedure", "Same-day discharge", "Permanent results"],
-      icon: <Zap className="text-red-500" size={30} />,
-      iconBg: "bg-red-50",
-      border: "border-red-100 hover:border-red-300",
-      accent: "bg-red-500",
-    },
-    {
-      title: "DVT Management",
-      badge: "Emergency Care",
-      badgeColor: "text-rose-700 bg-rose-100 border-rose-200",
-      desc: "Comprehensive Deep Vein Thrombosis care including anticoagulation therapy, catheter-directed thrombolysis (CDT), and inferior vena cava (IVC) filter placement for high-risk clots.",
-      details: ["Anticoagulation therapy", "Catheter thrombolysis", "IVC filter if needed", "Pulmonary embolism prevention"],
-      icon: <Activity className="text-rose-500" size={30} />,
-      iconBg: "bg-rose-50",
-      border: "border-rose-100 hover:border-rose-300",
-      accent: "bg-rose-500",
-    },
-    {
-      title: "Sclerotherapy",
-      badge: "Spider Veins",
-      badgeColor: "text-blue-700 bg-blue-100 border-blue-200",
-      desc: "Micro-injection of a specialised sclerosing agent directly into spider veins and small reticular veins. They fade and disappear over 4–6 weeks. No anaesthesia required.",
-      details: ["No anaesthesia needed", "15–30 min session", "Multiple veins per visit", "Results in 4–6 weeks"],
-      icon: <Waves className="text-blue-500" size={30} />,
-      iconBg: "bg-blue-50",
-      border: "border-blue-100 hover:border-blue-300",
-      accent: "bg-blue-500",
-    },
-    {
-      title: "Diabetic Foot Care",
-      badge: "Vascular Intervention",
-      badgeColor: "text-teal-700 bg-teal-100 border-teal-200",
-      desc: "Specialised angioplasty and bypass procedures to restore blood flow to the feet in diabetic patients, preventing ulcers, gangrene, and limb amputation.",
-      details: ["Angioplasty / bypass", "Non-healing wound care", "Peripheral artery disease", "Prevents amputation"],
-      icon: <Stethoscope className="text-teal-500" size={30} />,
-      iconBg: "bg-teal-50",
-      border: "border-teal-100 hover:border-teal-300",
-      accent: "bg-teal-500",
-    },
-  ];
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
 
-  const stats = [
-    { value: "12,000+", label: "Procedures Done", icon: <Users size={20} /> },
-    { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
-    { value: "60 Min", label: "Procedure Time", icon: <Clock size={20} /> },
-    { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
-  ];
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
 
-  const conditions = [
-    "Varicose Veins (Grade I–IV)",
-    "Spider Veins / Thread Veins",
-    "Deep Vein Thrombosis (DVT)",
-    "Chronic Venous Insufficiency",
-    "Peripheral Artery Disease (PAD)",
-    "Diabetic Foot Ulcers",
-    "Leg Swelling & Oedema",
-    "Venous Leg Ulcers",
-    "Pulmonary Embolism (PE)",
-    "Carotid Artery Disease",
-    "Aortic Aneurysm",
-    "Raynaud's Phenomenon",
-  ];
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
 
-  const symptoms = [
-    { s: "Twisted, rope-like bulging veins visible under skin" },
-    { s: "Aching, heavy, or tired legs — especially after standing" },
-    { s: "Leg swelling, particularly around ankles by evening" },
-    { s: "Burning, throbbing, or cramping in legs" },
-    { s: "Itchy skin over a vein, or skin discoloration" },
-    { s: "Non-healing sores or ulcers near the ankle" },
-  ];
+  return null;
+}
 
-  const processSteps = [
-    {
-      step: "01",
-      title: "Free Consultation",
-      desc: "Our vascular surgeon reviews your symptoms and history. A Duplex Doppler Ultrasound is arranged to map the faulty veins and assess blood flow.",
-      icon: <HeartPulse size={22} className="text-red-400" />,
-    },
-    {
-      step: "02",
-      title: "Doppler Ultrasound",
-      desc: "A non-invasive colour Doppler ultrasound scan maps every refluxing vein, identifies clots, and gives the surgeon a precise treatment roadmap.",
-      icon: <Microscope size={22} className="text-red-400" />,
-    },
-    {
-      step: "03",
-      title: "Laser Procedure",
-      desc: "EVLT or sclerotherapy — performed under local anaesthesia in a day-care setting. The entire procedure takes 45–60 minutes. Zero stitches.",
-      icon: <Zap size={22} className="text-red-400" />,
-    },
-    {
-      step: "04",
-      title: "Walk Out Same Day",
-      desc: "You walk out within 2 hours. Wear compression stockings for 2 weeks. Most patients return to normal activity in 24–48 hours.",
-      icon: <CheckCircle2 size={22} className="text-red-400" />,
-    },
-  ];
+// ─── DATA ───────────────────────────────────────────────────────────────────
 
-  const faqs = [
-    {
-      q: "Are varicose veins dangerous if left untreated?",
-      a: "Yes. Untreated varicose veins progressively worsen over time. They can lead to chronic venous insufficiency, skin discoloration, painful leg ulcers, and deep vein thrombosis (DVT). A clot in a varicose vein can travel to the lungs (pulmonary embolism) — a life-threatening emergency. Early treatment is simpler and prevents complications.",
-    },
-    {
-      q: "Is EVLT laser treatment painful?",
-      a: "No. EVLT is performed under tumescent local anaesthesia — the area is numbed completely before the laser is inserted. Most patients feel mild pressure but no pain during the procedure. Post-procedure discomfort is minimal and managed with simple painkillers for 2–3 days.",
-    },
-    {
-      q: "Will the varicose veins come back after laser treatment?",
-      a: "The treated veins are permanently closed and absorbed by the body — they will not return. However, new varicose veins can form in adjacent veins over time, especially if underlying risk factors (obesity, prolonged standing, pregnancy) persist. Our surgeons treat the root cause (saphenous reflux) to minimise recurrence.",
-    },
-    {
-      q: "What is DVT and how serious is it?",
-      a: "Deep Vein Thrombosis is a blood clot forming in a deep vein, usually in the leg. Symptoms include one-sided leg swelling, warmth, redness, and pain. DVT is serious because the clot can break off and travel to the lungs (pulmonary embolism), which can be fatal. If you suspect DVT, seek medical care immediately.",
-    },
-    {
-      q: "Is vascular surgery covered by insurance?",
-      a: "Yes. EVLT for varicose veins, DVT treatment, angioplasty, and diabetic foot interventions are covered by most health insurance policies and government schemes (CGHS, ESI, ECHS). Our team handles all TPA documentation and cashless approvals — typically processed in under 30 minutes.",
-    },
-    {
-      q: "How long is the recovery after varicose vein laser treatment?",
-      a: "Most patients walk out within 2 hours of the procedure. You'll need to wear compression stockings for 2 weeks and avoid strenuous exercise for 1 week. Most people return to desk work within 24 hours and full activity within 1–2 weeks. There are no stitches or wounds to care for.",
-    },
-  ];
+const treatments = [
+  {
+    title: "Varicose Veins Laser (EVLT)",
+    badge: "Most Popular",
+    badgeColor: "text-red-700 bg-red-100 border-red-200",
+    desc: "Endovenous Laser Treatment (EVLT) uses laser energy delivered inside the faulty vein to seal it permanently. No incisions, no stitches, walk in and walk out the same day.",
+    details: ["No cuts or stitches", "60-minute procedure", "Same-day discharge", "Permanent results"],
+    icon: <Zap className="text-red-500" size={30} />,
+    iconBg: "bg-red-50",
+    border: "border-red-100 hover:border-red-300",
+    accent: "bg-red-500",
+  },
+  {
+    title: "DVT Management",
+    badge: "Emergency Care",
+    badgeColor: "text-rose-700 bg-rose-100 border-rose-200",
+    desc: "Comprehensive Deep Vein Thrombosis care including anticoagulation therapy, catheter-directed thrombolysis (CDT), and inferior vena cava (IVC) filter placement for high-risk clots.",
+    details: ["Anticoagulation therapy", "Catheter thrombolysis", "IVC filter if needed", "Pulmonary embolism prevention"],
+    icon: <Activity className="text-rose-500" size={30} />,
+    iconBg: "bg-rose-50",
+    border: "border-rose-100 hover:border-rose-300",
+    accent: "bg-rose-500",
+  },
+  {
+    title: "Sclerotherapy",
+    badge: "Spider Veins",
+    badgeColor: "text-blue-700 bg-blue-100 border-blue-200",
+    desc: "Micro-injection of a specialised sclerosing agent directly into spider veins and small reticular veins. They fade and disappear over 4–6 weeks. No anaesthesia required.",
+    details: ["No anaesthesia needed", "15–30 min session", "Multiple veins per visit", "Results in 4–6 weeks"],
+    icon: <Waves className="text-blue-500" size={30} />,
+    iconBg: "bg-blue-50",
+    border: "border-blue-100 hover:border-blue-300",
+    accent: "bg-blue-500",
+  },
+  {
+    title: "Diabetic Foot Care",
+    badge: "Vascular Intervention",
+    badgeColor: "text-teal-700 bg-teal-100 border-teal-200",
+    desc: "Specialised angioplasty and bypass procedures to restore blood flow to the feet in diabetic patients, preventing ulcers, gangrene, and limb amputation.",
+    details: ["Angioplasty / bypass", "Non-healing wound care", "Peripheral artery disease", "Prevents amputation"],
+    icon: <Stethoscope className="text-teal-500" size={30} />,
+    iconBg: "bg-teal-50",
+    border: "border-teal-100 hover:border-teal-300",
+    accent: "bg-teal-500",
+  },
+];
 
-  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a vascular surgeon for varicose veins / DVT treatment.")}`;
+const stats = [
+  { value: "12,000+", label: "Procedures Done", icon: <Users size={20} /> },
+  { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
+  { value: "60 Min", label: "Procedure Time", icon: <Clock size={20} /> },
+  { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
+];
 
-  const validatePhone = (value: string) => {
-    const cleaned = value.trim();
-    if (!cleaned) return "Mobile number is required";
-    if (!/^\d+$/.test(cleaned)) return "Mobile number must contain only digits";
-    if (!/^[6-9]\d{9}$/.test(cleaned)) return "Enter a valid 10-digit mobile number";
-    return "";
-  };
+const conditions = [
+  "Varicose Veins (Grade I–IV)",
+  "Spider Veins / Thread Veins",
+  "Deep Vein Thrombosis (DVT)",
+  "Chronic Venous Insufficiency",
+  "Peripheral Artery Disease (PAD)",
+  "Diabetic Foot Ulcers",
+  "Leg Swelling & Oedema",
+  "Venous Leg Ulcers",
+  "Pulmonary Embolism (PE)",
+  "Carotid Artery Disease",
+  "Aortic Aneurysm",
+  "Raynaud's Phenomenon",
+];
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow digits, max 10 characters
-    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setForm({ ...form, phone: digitsOnly });
-    if (phoneError) {
-      setPhoneError(validatePhone(digitsOnly));
-    }
-  };
+const symptoms = [
+  { s: "Twisted, rope-like bulging veins visible under skin" },
+  { s: "Aching, heavy, or tired legs — especially after standing" },
+  { s: "Leg swelling, particularly around ankles by evening" },
+  { s: "Burning, throbbing, or cramping in legs" },
+  { s: "Itchy skin over a vein, or skin discoloration" },
+  { s: "Non-healing sores or ulcers near the ankle" },
+];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const processSteps = [
+  {
+    step: "01",
+    title: "Free Consultation",
+    desc: "Our vascular surgeon reviews your symptoms and history. A Duplex Doppler Ultrasound is arranged to map the faulty veins and assess blood flow.",
+    icon: <HeartPulse size={22} className="text-red-400" />,
+  },
+  {
+    step: "02",
+    title: "Doppler Ultrasound",
+    desc: "A non-invasive colour Doppler ultrasound scan maps every refluxing vein, identifies clots, and gives the surgeon a precise treatment roadmap.",
+    icon: <Microscope size={22} className="text-red-400" />,
+  },
+  {
+    step: "03",
+    title: "Laser Procedure",
+    desc: "EVLT or sclerotherapy — performed under local anaesthesia in a day-care setting. The entire procedure takes 45–60 minutes. Zero stitches.",
+    icon: <Zap size={22} className="text-red-400" />,
+  },
+  {
+    step: "04",
+    title: "Walk Out Same Day",
+    desc: "You walk out within 2 hours. Wear compression stockings for 2 weeks. Most patients return to normal activity in 24–48 hours.",
+    icon: <CheckCircle2 size={22} className="text-red-400" />,
+  },
+];
 
-    const error = validatePhone(form.phone);
-    if (error) {
-      setPhoneError(error);
-      return;
-    }
+const faqs = [
+  {
+    q: "Are varicose veins dangerous if left untreated?",
+    a: "Yes. Untreated varicose veins progressively worsen over time. They can lead to chronic venous insufficiency, skin discoloration, painful leg ulcers, and deep vein thrombosis (DVT). A clot in a varicose vein can travel to the lungs (pulmonary embolism) — a life-threatening emergency. Early treatment is simpler and prevents complications.",
+  },
+  {
+    q: "Is EVLT laser treatment painful?",
+    a: "No. EVLT is performed under tumescent local anaesthesia — the area is numbed completely before the laser is inserted. Most patients feel mild pressure but no pain during the procedure. Post-procedure discomfort is minimal and managed with simple painkillers for 2–3 days.",
+  },
+  {
+    q: "Will the varicose veins come back after laser treatment?",
+    a: "The treated veins are permanently closed and absorbed by the body — they will not return. However, new varicose veins can form in adjacent veins over time, especially if underlying risk factors (obesity, prolonged standing, pregnancy) persist. Our surgeons treat the root cause (saphenous reflux) to minimise recurrence.",
+  },
+  {
+    q: "What is DVT and how serious is it?",
+    a: "Deep Vein Thrombosis is a blood clot forming in a deep vein, usually in the leg. Symptoms include one-sided leg swelling, warmth, redness, and pain. DVT is serious because the clot can break off and travel to the lungs (pulmonary embolism), which can be fatal. If you suspect DVT, seek medical care immediately.",
+  },
+  {
+    q: "Is vascular surgery covered by insurance?",
+    a: "Yes. EVLT for varicose veins, DVT treatment, angioplasty, and diabetic foot interventions are covered by most health insurance policies and government schemes (CGHS, ESI, ECHS). Our team handles all TPA documentation and cashless approvals — typically processed in under 30 minutes.",
+  },
+  {
+    q: "How long is the recovery after varicose vein laser treatment?",
+    a: "Most patients walk out within 2 hours of the procedure. You'll need to wear compression stockings for 2 weeks and avoid strenuous exercise for 1 week. Most people return to desk work within 24 hours and full activity within 1–2 weeks. There are no stitches or wounds to care for.",
+  },
+];
 
-    setLoading(true);
-    try {
-      const { error: dbError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (dbError) throw dbError;
-      setSubmitted(true);
-      setForm({ name: "", phone: "", service: "Vascular Surgery" });
-      setPhoneError("");
-    } catch (error: any) {
-      alert("Error: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a vascular surgeon for varicose veins / DVT treatment.")}`;
 
-  const FormCard = () =>
-    submitted ? (
+// ─── FormCard lifted OUTSIDE VascularSurgeryPage to prevent remount on every keystroke ──
+interface FormCardProps {
+  form: { name: string; phone: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string }>>;
+  loading: boolean;
+  submitted: boolean;
+  setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (e: React.FormEvent) => void;
+  phoneError: string | null;
+  setPhoneError: React.Dispatch<React.SetStateAction<string | null>>;
+  phoneTouched: boolean;
+  setPhoneTouched: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function FormCard({
+  form,
+  setForm,
+  loading,
+  submitted,
+  setSubmitted,
+  onSubmit,
+  phoneError,
+  setPhoneError,
+  phoneTouched,
+  setPhoneTouched,
+}: FormCardProps) {
+  if (submitted) {
+    return (
       <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-red-50 text-center">
         <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 size={40} />
@@ -219,52 +223,173 @@ export default function VascularSurgeryPage() {
         <p className="text-slate-500 mb-8 text-sm leading-relaxed">
           Our vascular specialist will call you within 10 minutes.
         </p>
-        <button onClick={() => setSubmitted(false)} className="text-red-600 font-bold text-sm hover:underline">
+        <button
+          onClick={() => {
+            setSubmitted(false);
+            setForm({ name: "", phone: "" });
+            setPhoneTouched(false);
+            setPhoneError(null);
+          }}
+          className="text-red-600 font-bold text-sm hover:underline"
+        >
           Book for someone else?
         </button>
       </div>
-    ) : (
-      <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
-        <div className="flex items-center gap-2 mb-1">
-          <BadgeCheck size={18} className="text-red-600" />
-          <span className="text-xs font-black text-red-600 uppercase tracking-widest">100% Free</span>
-        </div>
-        <h2 className="text-2xl font-black mb-1 text-slate-900">Laser Consultation</h2>
-        <p className="text-slate-500 text-sm mb-6 font-medium">Book a free screening for Varicose Veins or DVT.</p>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <input
-            type="text" placeholder="Patient Name" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-red-500 transition-all"
-            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <div>
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="Mobile Number"
-              required
-              maxLength={10}
-              className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
-                phoneError ? "border-red-500 focus:ring-red-500" : "border-slate-200 focus:ring-red-500"
-              }`}
-              value={form.phone}
-              onChange={handlePhoneChange}
-              onBlur={() => setPhoneError(validatePhone(form.phone))}
-            />
-            {phoneError && (
-              <p className="text-red-600 text-xs font-semibold mt-2 ml-1">{phoneError}</p>
-            )}
-          </div>
-          <button
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <>Talk to a Vascular Surgeon <ArrowRight size={16} /></>}
-          </button>
-        </form>
-        <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
-      </div>
     );
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
+      <div className="flex items-center gap-2 mb-1">
+        <BadgeCheck size={18} className="text-red-600" />
+        <span className="text-xs font-black text-red-600 uppercase tracking-widest">100% Free</span>
+      </div>
+      <h2 className="text-2xl font-black mb-1 text-slate-900">Laser Consultation</h2>
+      <p className="text-slate-500 text-sm mb-6 font-medium">Book a free screening for Varicose Veins or DVT.</p>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <input
+          type="text"
+          placeholder="Patient Name"
+          required
+          className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-red-500 transition-all"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+        <div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Mobile Number"
+            required
+            maxLength={10}
+            className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+              showPhoneError
+                ? "border-red-400 focus:ring-red-400"
+                : "border-slate-200 focus:ring-red-500"
+            }`}
+            value={form.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+          />
+          {showPhoneError && (
+            <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+              <AlertCircle size={14} />
+              {phoneError}
+            </div>
+          )}
+        </div>
+        <button
+          disabled={loading}
+          className="w-full py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-red-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <>Talk to a Vascular Surgeon <ArrowRight size={16} /></>}
+        </button>
+      </form>
+      <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
+    </div>
+  );
+}
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
+export default function VascularSurgeryPage() {
+  const [form, setForm] = useState({ name: "", phone: "" });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Vascular Surgery",
+          source: "vascular-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
+      // Success
+      setSubmitted(true);
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -311,7 +436,18 @@ export default function VascularSurgeryPage() {
             </div>
 
             <div className="lg:w-5/12 w-full">
-              <FormCard />
+              <FormCard
+                form={form}
+                setForm={setForm}
+                loading={loading}
+                submitted={submitted}
+                setSubmitted={setSubmitted}
+                onSubmit={handleSubmit}
+                phoneError={phoneError}
+                setPhoneError={setPhoneError}
+                phoneTouched={phoneTouched}
+                setPhoneTouched={setPhoneTouched}
+              />
             </div>
           </div>
         </section>

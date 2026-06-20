@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -26,13 +25,34 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+// ─── PHONE VALIDATION ────────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
+
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
+
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
+
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
+
+  return null;
+}
+
 export default function InternalMedicinePage() {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    service: "Internal Medicine",
-  });
-  const [phoneError, setPhoneError] = useState("");
+  const [form, setForm] = useState({ name: "", phone: "" });
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -118,40 +138,92 @@ export default function InternalMedicinePage() {
     },
   ];
 
-  const validatePhone = (value: string) => {
-    const cleaned = value.trim();
-    if (!cleaned) return "Mobile number is required";
-    if (!/^\d+$/.test(cleaned)) return "Mobile number must contain only digits";
-    if (!/^[6-9]\d{9}$/.test(cleaned)) return "Enter a valid 10-digit mobile number";
-    return "";
-  };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
     setForm({ ...form, phone: digitsOnly });
-    if (phoneError) {
-      setPhoneError(validatePhone(digitsOnly));
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
     }
   };
 
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const error = validatePhone(form.phone);
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
     if (error) {
+      setPhoneTouched(true);
       setPhoneError(error);
       return;
     }
 
     setLoading(true);
     try {
-      const { error: dbError } = await supabase.from("leads").insert([form]);
-      if (dbError) throw dbError;
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Internal Medicine",
+          source: "internal-medicine-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
+      // Success
       setSubmitted(true);
-      setForm({ name: "", phone: "", service: "Internal Medicine" });
-      setPhoneError("");
-    } catch (error: unknown) {
-      alert("Something went wrong. Please check your connection.");
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -412,10 +484,17 @@ export default function InternalMedicinePage() {
                   <p style={{ color: '#64748b', marginBottom: '24px', fontSize: '15px' }}>
                     A medical specialist will contact you shortly.
                   </p>
-                  <button onClick={() => setSubmitted(false)} style={{
-                    color: '#2563eb', fontWeight: 600, background: 'none',
-                    border: 'none', cursor: 'pointer', fontSize: '14px'
-                  }}>
+                  <button
+                    onClick={() => {
+                      setSubmitted(false);
+                      setForm({ name: "", phone: "" });
+                      setPhoneTouched(false);
+                      setPhoneError(null);
+                    }}
+                    style={{
+                      color: '#2563eb', fontWeight: 600, background: 'none',
+                      border: 'none', cursor: 'pointer', fontSize: '14px'
+                    }}>
                     Submit another request
                   </button>
                 </div>
@@ -443,12 +522,12 @@ export default function InternalMedicinePage() {
                         placeholder="Mobile Number"
                         required
                         maxLength={10}
-                        className={`im-input ${phoneError ? "error" : ""}`}
+                        className={`im-input ${showPhoneError ? "error" : ""}`}
                         value={form.phone}
                         onChange={handlePhoneChange}
-                        onBlur={() => setPhoneError(validatePhone(form.phone))}
+                        onBlur={handlePhoneBlur}
                       />
-                      {phoneError && (
+                      {showPhoneError && (
                         <p style={{ color: '#dc2626', fontSize: '12.5px', fontWeight: 600, marginTop: '6px', marginBottom: 0, marginLeft: '2px' }}>
                           {phoneError}
                         </p>

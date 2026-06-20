@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -27,9 +26,6 @@ import {
 } from "lucide-react";
 
 // ── Phone validation helpers ──
-// Rejects: wrong length, non-numeric, invalid starting digit, all-same-digit
-// "fake" numbers (e.g. 9999999999, 0000000000), and simple sequential runs
-// (e.g. 1234567890, 0123456789).
 function getPhoneError(rawValue: string): string | null {
   const digits = rawValue.trim();
 
@@ -38,10 +34,8 @@ function getPhoneError(rawValue: string): string | null {
   if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
   if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
 
-  // All digits identical (e.g. 9999999999, 8888888888)
   if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
 
-  // Simple ascending/descending sequential numbers (e.g. 1234567890, 9876543210)
   const isAscendingSeq = digits
     .split("")
     .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
@@ -53,7 +47,7 @@ function getPhoneError(rawValue: string): string | null {
   return null;
 }
 
-// ── FormCard lifted OUTSIDE the page component to prevent remount/focus-loss on every keystroke ──
+// ── FormCard lifted OUTSIDE the page component ──
 interface FormCardProps {
   form: { name: string; phone: string; city: string; service: string };
   setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string; city: string; service: string }>>;
@@ -97,7 +91,6 @@ function FormCard({
   }
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Strip non-digits as the user types, cap at 10 digits
     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
     setForm({ ...form, phone: digitsOnly });
     if (phoneTouched) {
@@ -279,6 +272,7 @@ export default function CataractSurgeryPage() {
 
   const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free cataract vision screening.")}`;
 
+  // ── FIXED: replaced direct Supabase call with /api/leads fetch (same as LASIK page) ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -292,14 +286,57 @@ export default function CataractSurgeryPage() {
 
     setLoading(true);
     try {
-      const { error: supabaseError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (supabaseError) throw supabaseError;
+      // Abort controller for 10s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Cataract Surgery",
+          source: "cataract-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
       setSubmitted(true);
       setForm({ name: "", phone: "", city: "", service: "Cataract Surgery" });
       setPhoneTouched(false);
       setPhoneError(null);
     } catch (error: any) {
-      alert("Connectivity issue. Please try again later.");
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      console.error("Form submission error:", error);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }

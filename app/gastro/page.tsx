@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -28,168 +27,173 @@ import {
   Pill,
 } from "lucide-react";
 
-export default function GastroPage() {
-  const [form, setForm] = useState({ name: "", phone: "", service: "Gastroenterology" });
-  const [phoneError, setPhoneError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+// ─── PHONE VALIDATION ────────────────────────────────────────────────────────
+function getPhoneError(rawValue: string): string | null {
+  const digits = rawValue.trim();
 
-  const treatments = [
-    {
-      title: "Laparoscopic Surgery",
-      badge: "Keyhole Precision",
-      badgeColor: "bg-blue-500",
-      desc: "Advanced keyhole surgery for Gallbladder stones, Hernia, Appendix removal, and Bowel resections. Minimal blood loss, tiny incisions, and discharge within 24–48 hours.",
-      details: ["Gallbladder / Hernia", "3–5 tiny incisions", "24–48 hr discharge", "Near-zero blood loss"],
-      icon: <Microscope className="text-blue-400" size={28} />,
-    },
-    {
-      title: "Laser Piles Treatment",
-      badge: "US-FDA Approved",
-      badgeColor: "bg-orange-500",
-      desc: "US-FDA approved laser procedure for Piles (Haemorrhoids), Anal Fissure, and Fistula. No cuts, no stitches, no recurrence — walk in and walk out the same day.",
-      details: ["Grade I–IV Piles", "No cuts or stitches", "Same-day discharge", "No recurrence risk"],
-      icon: <Zap className="text-orange-400" size={28} />,
-    },
-    {
-      title: "Endoscopy & Colonoscopy",
-      badge: "HD Diagnostic",
-      badgeColor: "bg-teal-500",
-      desc: "High-definition flexible endoscopy and colonoscopy for complete diagnosis of stomach ulcers, polyps, Crohn's disease, colon cancer screening, and bleeding disorders.",
-      details: ["HD imaging cameras", "Biopsy if needed", "Polyp removal (polypectomy)", "ERCP for bile duct"],
-      icon: <Stethoscope className="text-teal-400" size={28} />,
-    },
-    {
-      title: "Liver & Digestive Care",
-      badge: "Medical Management",
-      badgeColor: "bg-green-500",
-      desc: "Comprehensive non-surgical and surgical management for Fatty Liver, Hepatitis, Cirrhosis, GERD, Acid Reflux, IBS, and Chronic Gastritis.",
-      details: ["Fatty Liver / Hepatitis", "GERD & Acid Reflux", "IBS management", "Liver function workup"],
-      icon: <Leaf className="text-green-400" size={28} />,
-    },
-  ];
+  if (!digits) return "Mobile number is required";
+  if (!/^\d+$/.test(digits)) return "Only digits are allowed";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8, or 9";
 
-  const stats = [
-    { value: "15,000+", label: "Procedures Done", icon: <Users size={20} /> },
-    { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
-    { value: "24 Hrs", label: "Avg. Discharge", icon: <Clock size={20} /> },
-    { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
-  ];
+  // All digits identical (e.g. 9999999999)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a valid mobile number";
 
-  const conditions = [
-    { name: "Gallbladder Stones", icon: <Activity size={16} /> },
-    { name: "Hernia (Inguinal / Umbilical)", icon: <Activity size={16} /> },
-    { name: "Piles & Fistula", icon: <Activity size={16} /> },
-    { name: "Appendicitis", icon: <Activity size={16} /> },
-    { name: "GERD & Acid Reflux", icon: <Activity size={16} /> },
-    { name: "Fatty Liver Disease", icon: <Activity size={16} /> },
-    { name: "Hepatitis B & C", icon: <Activity size={16} /> },
-    { name: "Colon Cancer Screening", icon: <Activity size={16} /> },
-    { name: "Irritable Bowel Syndrome", icon: <Activity size={16} /> },
-    { name: "Stomach Ulcers (PUD)", icon: <Activity size={16} /> },
-    { name: "Crohn's Disease / Colitis", icon: <Activity size={16} /> },
-    { name: "Pancreatitis", icon: <Activity size={16} /> },
-  ];
+  // Simple ascending/descending sequential numbers
+  const isAscendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) + 1);
+  const isDescendingSeq = digits
+    .split("")
+    .every((d, i, arr) => i === 0 || Number(d) === Number(arr[i - 1]) - 1);
+  if (isAscendingSeq || isDescendingSeq) return "Please enter a valid mobile number";
 
-  const processSteps = [
-    {
-      step: "01",
-      title: "Free Consultation",
-      desc: "Our gastroenterologist reviews your symptoms, history, and prior reports to understand your condition and recommend the right diagnostic or surgical path.",
-      icon: <Stethoscope size={22} className="text-orange-400" />,
-    },
-    {
-      step: "02",
-      title: "Diagnosis & Imaging",
-      desc: "Endoscopy, colonoscopy, ultrasound, or blood tests as needed — all done at a NABH hospital near you. HD imaging for precise findings.",
-      icon: <Microscope size={22} className="text-orange-400" />,
-    },
-    {
-      step: "03",
-      title: "Surgery or Treatment",
-      desc: "Laparoscopic or laser procedure performed by a senior consultant. Most surgeries completed in 30–90 minutes under general or local anaesthesia.",
-      icon: <Zap size={22} className="text-orange-400" />,
-    },
-    {
-      step: "04",
-      title: "Recovery & Follow-Up",
-      desc: "Most patients discharge in 24–48 hours. Your dedicated care manager schedules follow-ups, diet guidance, and medication support until full recovery.",
-      icon: <HeartPulse size={22} className="text-orange-400" />,
-    },
-  ];
+  return null;
+}
 
-  const faqs = [
-    {
-      q: "How do I know if I need laparoscopic surgery for gallstones?",
-      a: "If you experience recurring upper-right abdominal pain (especially after fatty meals), nausea, bloating, or jaundice, gallstones may be the cause. An ultrasound can confirm. Laparoscopic cholecystectomy (gallbladder removal) is the gold standard treatment — done in under an hour with same-day or next-day discharge.",
-    },
-    {
-      q: "Is laser piles treatment permanent?",
-      a: "Yes. Laser haemorrhoidoplasty (LHP) has a very low recurrence rate compared to conventional surgery. The laser precisely seals the haemorrhoidal tissue with zero cuts, zero stitches, and minimal pain. Most patients resume work within 24–48 hours.",
-    },
-    {
-      q: "Is endoscopy painful? Do I need anaesthesia?",
-      a: "Upper endoscopy (gastroscopy) is done under mild sedation — you are asleep and feel nothing. Colonoscopy is done under monitored anaesthesia. The procedures typically take 15–30 minutes. You'll feel completely comfortable throughout.",
-    },
-    {
-      q: "Can fatty liver be treated without surgery?",
-      a: "In most cases, yes. Fatty liver (NAFLD/NASH) is managed through lifestyle changes, a structured diet plan, medication, and regular monitoring. Surgery is only considered in advanced cirrhosis cases. Our hepatologist will create a personalised care plan for you.",
-    },
-    {
-      q: "Is the surgery covered by insurance?",
-      a: "Yes. Laparoscopic surgeries (gallbladder, hernia, appendix), endoscopy, and most gastrointestinal procedures are covered under standard health insurance and government schemes (CGHS, ESI, ECHS). Our team handles all cashless TPA approvals — usually within 30 minutes.",
-    },
-    {
-      q: "How quickly can surgery be scheduled?",
-      a: "Once your diagnosis and eligibility are confirmed, we typically schedule surgery within 24–48 hours at a premium NABH hospital near you. For emergency cases like appendicitis or acute obstruction, same-day surgery can be arranged.",
-    },
-  ];
+// ─── DATA ───────────────────────────────────────────────────────────────────
 
-  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a gastroenterologist and know more about my treatment options.")}`;
+const treatments = [
+  {
+    title: "Laparoscopic Surgery",
+    badge: "Keyhole Precision",
+    badgeColor: "bg-blue-500",
+    desc: "Advanced keyhole surgery for Gallbladder stones, Hernia, Appendix removal, and Bowel resections. Minimal blood loss, tiny incisions, and discharge within 24–48 hours.",
+    details: ["Gallbladder / Hernia", "3–5 tiny incisions", "24–48 hr discharge", "Near-zero blood loss"],
+    icon: <Microscope className="text-blue-400" size={28} />,
+  },
+  {
+    title: "Laser Piles Treatment",
+    badge: "US-FDA Approved",
+    badgeColor: "bg-orange-500",
+    desc: "US-FDA approved laser procedure for Piles (Haemorrhoids), Anal Fissure, and Fistula. No cuts, no stitches, no recurrence — walk in and walk out the same day.",
+    details: ["Grade I–IV Piles", "No cuts or stitches", "Same-day discharge", "No recurrence risk"],
+    icon: <Zap className="text-orange-400" size={28} />,
+  },
+  {
+    title: "Endoscopy & Colonoscopy",
+    badge: "HD Diagnostic",
+    badgeColor: "bg-teal-500",
+    desc: "High-definition flexible endoscopy and colonoscopy for complete diagnosis of stomach ulcers, polyps, Crohn's disease, colon cancer screening, and bleeding disorders.",
+    details: ["HD imaging cameras", "Biopsy if needed", "Polyp removal (polypectomy)", "ERCP for bile duct"],
+    icon: <Stethoscope className="text-teal-400" size={28} />,
+  },
+  {
+    title: "Liver & Digestive Care",
+    badge: "Medical Management",
+    badgeColor: "bg-green-500",
+    desc: "Comprehensive non-surgical and surgical management for Fatty Liver, Hepatitis, Cirrhosis, GERD, Acid Reflux, IBS, and Chronic Gastritis.",
+    details: ["Fatty Liver / Hepatitis", "GERD & Acid Reflux", "IBS management", "Liver function workup"],
+    icon: <Leaf className="text-green-400" size={28} />,
+  },
+];
 
-  const validatePhone = (value: string) => {
-    const cleaned = value.trim();
-    if (!cleaned) return "Mobile number is required";
-    if (!/^\d+$/.test(cleaned)) return "Mobile number must contain only digits";
-    if (!/^[6-9]\d{9}$/.test(cleaned)) return "Enter a valid 10-digit mobile number";
-    return "";
-  };
+const stats = [
+  { value: "15,000+", label: "Procedures Done", icon: <Users size={20} /> },
+  { value: "4.9 / 5", label: "Patient Rating", icon: <Star size={20} /> },
+  { value: "24 Hrs", label: "Avg. Discharge", icon: <Clock size={20} /> },
+  { value: "NABH", label: "Accredited Hospitals", icon: <Award size={20} /> },
+];
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow digits, max 10 characters
-    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setForm({ ...form, phone: digitsOnly });
-    if (phoneError) {
-      setPhoneError(validatePhone(digitsOnly));
-    }
-  };
+const conditions = [
+  { name: "Gallbladder Stones", icon: <Activity size={16} /> },
+  { name: "Hernia (Inguinal / Umbilical)", icon: <Activity size={16} /> },
+  { name: "Piles & Fistula", icon: <Activity size={16} /> },
+  { name: "Appendicitis", icon: <Activity size={16} /> },
+  { name: "GERD & Acid Reflux", icon: <Activity size={16} /> },
+  { name: "Fatty Liver Disease", icon: <Activity size={16} /> },
+  { name: "Hepatitis B & C", icon: <Activity size={16} /> },
+  { name: "Colon Cancer Screening", icon: <Activity size={16} /> },
+  { name: "Irritable Bowel Syndrome", icon: <Activity size={16} /> },
+  { name: "Stomach Ulcers (PUD)", icon: <Activity size={16} /> },
+  { name: "Crohn's Disease / Colitis", icon: <Activity size={16} /> },
+  { name: "Pancreatitis", icon: <Activity size={16} /> },
+];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const processSteps = [
+  {
+    step: "01",
+    title: "Free Consultation",
+    desc: "Our gastroenterologist reviews your symptoms, history, and prior reports to understand your condition and recommend the right diagnostic or surgical path.",
+    icon: <Stethoscope size={22} className="text-orange-400" />,
+  },
+  {
+    step: "02",
+    title: "Diagnosis & Imaging",
+    desc: "Endoscopy, colonoscopy, ultrasound, or blood tests as needed — all done at a NABH hospital near you. HD imaging for precise findings.",
+    icon: <Microscope size={22} className="text-orange-400" />,
+  },
+  {
+    step: "03",
+    title: "Surgery or Treatment",
+    desc: "Laparoscopic or laser procedure performed by a senior consultant. Most surgeries completed in 30–90 minutes under general or local anaesthesia.",
+    icon: <Zap size={22} className="text-orange-400" />,
+  },
+  {
+    step: "04",
+    title: "Recovery & Follow-Up",
+    desc: "Most patients discharge in 24–48 hours. Your dedicated care manager schedules follow-ups, diet guidance, and medication support until full recovery.",
+    icon: <HeartPulse size={22} className="text-orange-400" />,
+  },
+];
 
-    const error = validatePhone(form.phone);
-    if (error) {
-      setPhoneError(error);
-      return;
-    }
+const faqs = [
+  {
+    q: "How do I know if I need laparoscopic surgery for gallstones?",
+    a: "If you experience recurring upper-right abdominal pain (especially after fatty meals), nausea, bloating, or jaundice, gallstones may be the cause. An ultrasound can confirm. Laparoscopic cholecystectomy (gallbladder removal) is the gold standard treatment — done in under an hour with same-day or next-day discharge.",
+  },
+  {
+    q: "Is laser piles treatment permanent?",
+    a: "Yes. Laser haemorrhoidoplasty (LHP) has a very low recurrence rate compared to conventional surgery. The laser precisely seals the haemorrhoidal tissue with zero cuts, zero stitches, and minimal pain. Most patients resume work within 24–48 hours.",
+  },
+  {
+    q: "Is endoscopy painful? Do I need anaesthesia?",
+    a: "Upper endoscopy (gastroscopy) is done under mild sedation — you are asleep and feel nothing. Colonoscopy is done under monitored anaesthesia. The procedures typically take 15–30 minutes. You'll feel completely comfortable throughout.",
+  },
+  {
+    q: "Can fatty liver be treated without surgery?",
+    a: "In most cases, yes. Fatty liver (NAFLD/NASH) is managed through lifestyle changes, a structured diet plan, medication, and regular monitoring. Surgery is only considered in advanced cirrhosis cases. Our hepatologist will create a personalised care plan for you.",
+  },
+  {
+    q: "Is the surgery covered by insurance?",
+    a: "Yes. Laparoscopic surgeries (gallbladder, hernia, appendix), endoscopy, and most gastrointestinal procedures are covered under standard health insurance and government schemes (CGHS, ESI, ECHS). Our team handles all cashless TPA approvals — usually within 30 minutes.",
+  },
+  {
+    q: "How quickly can surgery be scheduled?",
+    a: "Once your diagnosis and eligibility are confirmed, we typically schedule surgery within 24–48 hours at a premium NABH hospital near you. For emergency cases like appendicitis or acute obstruction, same-day surgery can be arranged.",
+  },
+];
 
-    setLoading(true);
-    try {
-      const { error: dbError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (dbError) throw dbError;
-      setSubmitted(true);
-      setForm({ name: "", phone: "", service: "Gastroenterology" });
-      setPhoneError("");
-    } catch (error: any) {
-      alert("Connectivity issue. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a gastroenterologist and know more about my treatment options.")}`;
 
-  const FormCard = () =>
-    submitted ? (
+// ─── FormCard lifted OUTSIDE GastroPage to prevent remount on every keystroke ──
+interface FormCardProps {
+  form: { name: string; phone: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string }>>;
+  loading: boolean;
+  submitted: boolean;
+  setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (e: React.FormEvent) => void;
+  phoneError: string | null;
+  setPhoneError: React.Dispatch<React.SetStateAction<string | null>>;
+  phoneTouched: boolean;
+  setPhoneTouched: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function FormCard({
+  form,
+  setForm,
+  loading,
+  submitted,
+  setSubmitted,
+  onSubmit,
+  phoneError,
+  setPhoneError,
+  phoneTouched,
+  setPhoneTouched,
+}: FormCardProps) {
+  if (submitted) {
+    return (
       <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-orange-50 text-center">
         <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 size={40} />
@@ -198,52 +202,173 @@ export default function GastroPage() {
         <p className="text-slate-500 mb-8 text-sm leading-relaxed">
           Our gastroenterology specialist will call you within 10 minutes.
         </p>
-        <button onClick={() => setSubmitted(false)} className="text-[#1D646B] font-bold text-sm hover:underline">
+        <button
+          onClick={() => {
+            setSubmitted(false);
+            setForm({ name: "", phone: "" });
+            setPhoneTouched(false);
+            setPhoneError(null);
+          }}
+          className="text-[#1D646B] font-bold text-sm hover:underline"
+        >
           Book for someone else?
         </button>
       </div>
-    ) : (
-      <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
-        <div className="flex items-center gap-2 mb-1">
-          <BadgeCheck size={18} className="text-orange-500" />
-          <span className="text-xs font-black text-orange-500 uppercase tracking-widest">100% Free</span>
-        </div>
-        <h2 className="text-2xl font-black mb-1 text-slate-900">Consult a Specialist</h2>
-        <p className="text-slate-500 text-sm mb-6 font-medium">Get a personalised gastro treatment plan today.</p>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <input
-            type="text" placeholder="Patient Name" required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-[#1D646B] transition-all"
-            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <div>
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="Mobile Number"
-              required
-              maxLength={10}
-              className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
-                phoneError ? "border-red-500 focus:ring-red-500" : "border-slate-200 focus:ring-[#1D646B]"
-              }`}
-              value={form.phone}
-              onChange={handlePhoneChange}
-              onBlur={() => setPhoneError(validatePhone(form.phone))}
-            />
-            {phoneError && (
-              <p className="text-red-600 text-xs font-semibold mt-2 ml-1">{phoneError}</p>
-            )}
-          </div>
-          <button
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Consultation <ArrowRight size={16} /></>}
-          </button>
-        </form>
-        <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
-      </div>
     );
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
+      <div className="flex items-center gap-2 mb-1">
+        <BadgeCheck size={18} className="text-orange-500" />
+        <span className="text-xs font-black text-orange-500 uppercase tracking-widest">100% Free</span>
+      </div>
+      <h2 className="text-2xl font-black mb-1 text-slate-900">Consult a Specialist</h2>
+      <p className="text-slate-500 text-sm mb-6 font-medium">Get a personalised gastro treatment plan today.</p>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <input
+          type="text"
+          placeholder="Patient Name"
+          required
+          className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-[#1D646B] transition-all"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+        <div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Mobile Number"
+            required
+            maxLength={10}
+            className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+              showPhoneError
+                ? "border-red-400 focus:ring-red-400"
+                : "border-slate-200 focus:ring-[#1D646B]"
+            }`}
+            value={form.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+          />
+          {showPhoneError && (
+            <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+              <AlertCircle size={14} />
+              {phoneError}
+            </div>
+          )}
+        </div>
+        <button
+          disabled={loading}
+          className="w-full py-4 bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Consultation <ArrowRight size={16} /></>}
+        </button>
+      </form>
+      <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
+    </div>
+  );
+}
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
+export default function GastroPage() {
+  const [form, setForm] = useState({ name: "", phone: "" });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Gastroenterology",
+          source: "gastro-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
+      // Success
+      setSubmitted(true);
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -291,7 +416,18 @@ export default function GastroPage() {
             </div>
 
             <div className="lg:w-5/12 w-full">
-              <FormCard />
+              <FormCard
+                form={form}
+                setForm={setForm}
+                loading={loading}
+                submitted={submitted}
+                setSubmitted={setSubmitted}
+                onSubmit={handleSubmit}
+                phoneError={phoneError}
+                setPhoneError={setPhoneError}
+                phoneTouched={phoneTouched}
+                setPhoneTouched={setPhoneTouched}
+              />
             </div>
           </div>
         </section>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -133,63 +132,34 @@ const faqs = [
 
 const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a urologist for kidney stone / prostate treatment.")}`;
 
-// ─── COMPONENT ───────────────────────────────────────────────────────────────
+// ─── FormCard lifted OUTSIDE UrologyPage to prevent remount on every keystroke ──
+interface FormCardProps {
+  form: { name: string; phone: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; phone: string }>>;
+  loading: boolean;
+  submitted: boolean;
+  setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (e: React.FormEvent) => void;
+  phoneError: string | null;
+  setPhoneError: React.Dispatch<React.SetStateAction<string | null>>;
+  phoneTouched: boolean;
+  setPhoneTouched: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-export default function UrologyPage() {
-  // Form only collects name + phone
-  const [form, setForm] = useState({ name: "", phone: "" });
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [phoneTouched, setPhoneTouched] = useState(false);
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setForm({ ...form, phone: digitsOnly });
-    if (phoneTouched) {
-      setPhoneError(getPhoneError(digitsOnly));
-    }
-  };
-
-  const handlePhoneBlur = () => {
-    setPhoneTouched(true);
-    setPhoneError(getPhoneError(form.phone));
-  };
-
-  const showPhoneError = phoneTouched && phoneError;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate name
-    if (!form.name.trim()) return;
-
-    // Final guard: block submission on invalid/fake numbers
-    const error = getPhoneError(form.phone);
-    if (error) {
-      setPhoneTouched(true);
-      setPhoneError(error);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error: supabaseError } = await supabase.from("leads").insert([{ ...form, status: "New" }]);
-      if (supabaseError) throw supabaseError;
-      setSubmitted(true);
-      setForm({ name: "", phone: "" });
-      setPhoneTouched(false);
-      setPhoneError(null);
-    } catch {
-      alert("Connectivity issue. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const FormCard = () =>
-    submitted ? (
+function FormCard({
+  form,
+  setForm,
+  loading,
+  submitted,
+  setSubmitted,
+  onSubmit,
+  phoneError,
+  setPhoneError,
+  phoneTouched,
+  setPhoneTouched,
+}: FormCardProps) {
+  if (submitted) {
+    return (
       <div className="bg-white p-12 rounded-[40px] shadow-2xl text-center border border-sky-100">
         <div className="w-20 h-20 bg-sky-50 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 size={40} className="text-sky-600" />
@@ -210,63 +180,170 @@ export default function UrologyPage() {
           Book for someone else?
         </button>
       </div>
-    ) : (
-      <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
-        <div className="flex items-center gap-2 mb-1">
-          <BadgeCheck size={18} className="text-sky-600" />
-          <span className="text-xs font-black text-sky-600 uppercase tracking-widest">100% Free</span>
-        </div>
-        <h2 className="text-2xl font-black mb-1 text-slate-900">Book Consultation</h2>
-        <p className="text-slate-500 text-sm mb-6 font-medium">Get a free call back from our senior urologist.</p>
-
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Name */}
-          <input
-            type="text"
-            placeholder="Patient Full Name"
-            required
-            className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-
-          {/* Phone */}
-          <div>
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="Mobile Number"
-              required
-              maxLength={10}
-              className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
-                showPhoneError
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-slate-200 focus:ring-sky-500"
-              }`}
-              value={form.phone}
-              onChange={handlePhoneChange}
-              onBlur={handlePhoneBlur}
-            />
-            {showPhoneError && (
-              <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
-                <AlertCircle size={14} />
-                {phoneError}
-              </div>
-            )}
-          </div>
-
-          {/* Submit */}
-          <button
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-sky-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Call Back <ArrowRight size={16} /></>}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
-      </div>
     );
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm({ ...form, phone: digitsOnly });
+    if (phoneTouched) {
+      setPhoneError(getPhoneError(digitsOnly));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    setPhoneError(getPhoneError(form.phone));
+  };
+
+  const showPhoneError = phoneTouched && phoneError;
+
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100">
+      <div className="flex items-center gap-2 mb-1">
+        <BadgeCheck size={18} className="text-sky-600" />
+        <span className="text-xs font-black text-sky-600 uppercase tracking-widest">100% Free</span>
+      </div>
+      <h2 className="text-2xl font-black mb-1 text-slate-900">Book Consultation</h2>
+      <p className="text-slate-500 text-sm mb-6 font-medium">Get a free call back from our senior urologist.</p>
+
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        {/* Name */}
+        <input
+          type="text"
+          placeholder="Patient Full Name"
+          required
+          className="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+
+        {/* Phone */}
+        <div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Mobile Number"
+            required
+            maxLength={10}
+            className={`w-full p-4 rounded-2xl bg-slate-100 border text-slate-900 placeholder-slate-400 font-medium outline-none focus:ring-2 transition-all ${
+              showPhoneError
+                ? "border-red-400 focus:ring-red-400"
+                : "border-slate-200 focus:ring-sky-500"
+            }`}
+            value={form.phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+          />
+          {showPhoneError && (
+            <div className="flex items-center gap-1.5 mt-2 text-red-500 text-xs font-semibold">
+              <AlertCircle size={14} />
+              {phoneError}
+            </div>
+          )}
+        </div>
+
+        {/* Submit */}
+        <button
+          disabled={loading}
+          className="w-full py-4 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl font-black text-base hover:shadow-xl hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-sky-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <>Book Free Call Back <ArrowRight size={16} /></>}
+        </button>
+      </form>
+
+      <p className="text-center text-xs text-slate-400 mt-4">🔒 Your details are 100% confidential</p>
+    </div>
+  );
+}
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
+export default function UrologyPage() {
+  // Form only collects name + phone
+  const [form, setForm] = useState({ name: "", phone: "" });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate name
+    if (!form.name.trim()) return;
+
+    // Final guard: block submission on invalid/fake numbers
+    const error = getPhoneError(form.phone);
+    if (error) {
+      setPhoneTouched(true);
+      setPhoneError(error);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Urology",
+          source: "urology-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
+      // Success
+      setSubmitted(true);
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -314,7 +391,18 @@ export default function UrologyPage() {
             </div>
 
             <div className="lg:w-5/12 w-full">
-              <FormCard />
+              <FormCard
+                form={form}
+                setForm={setForm}
+                loading={loading}
+                submitted={submitted}
+                setSubmitted={setSubmitted}
+                onSubmit={handleSubmit}
+                phoneError={phoneError}
+                setPhoneError={setPhoneError}
+                phoneTouched={phoneTouched}
+                setPhoneTouched={setPhoneTouched}
+              />
             </div>
           </div>
         </section>

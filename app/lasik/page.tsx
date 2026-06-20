@@ -29,9 +29,6 @@ import {
 } from "lucide-react";
 
 // ── Phone validation helpers ──
-// Rejects: wrong length, non-numeric, invalid starting digit, all-same-digit
-// "fake" numbers (e.g. 9999999999, 0000000000), and simple sequential runs
-// (e.g. 1234567890, 0123456789).
 function getPhoneError(rawValue: string): string | null {
   const digits = rawValue.trim();
 
@@ -106,7 +103,6 @@ function FormCard({
   }
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Strip non-digits as the user types, cap at 10 digits
     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
     setForm({ ...form, phone: digitsOnly });
     if (phoneTouched) {
@@ -288,6 +284,7 @@ export default function LasikPage() {
     },
   ];
 
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -301,24 +298,62 @@ export default function LasikPage() {
 
     setLoading(true);
     try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const res = await fetch("/api/leads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
         body: JSON.stringify({
-          name: form.name,
-          phone: form.phone,
+          name: form.name.trim(),
+          phone: form.phone.trim(),
           service: "LASIK",
           source: "lasik-landing-page",
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong");
+      
+      // Success
       setSubmitted(true);
       setForm({ name: "", phone: "" });
       setPhoneTouched(false);
       setPhoneError(null);
+      
     } catch (error: any) {
-      alert("Connectivity issue. Please try again later.");
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+      
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -228,11 +227,13 @@ export default function OrthopedicsPage() {
 
   const showPhoneError = phoneTouched && phoneError;
 
+  // ✅ IMPROVED: Better error handling, timeout, and CORS support
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.name.trim()) return;
 
+    // Final guard: block submission on invalid/fake numbers
     const error = getPhoneError(form.phone);
     if (error) {
       setPhoneTouched(true);
@@ -242,11 +243,61 @@ export default function OrthopedicsPage() {
 
     setLoading(true);
     try {
-      const { error: supabaseError } = await supabase.from("leads").insert([form]);
-      if (supabaseError) throw supabaseError;
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if using sessions
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          service: "Orthopedics",
+          source: "orthopedics-landing-page",
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        let errorMessage = "Something went wrong";
+        try {
+          const data = await res.json();
+          errorMessage = data.error || data.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
+
+      // Success
       setSubmitted(true);
-    } catch {
-      alert("Error saving lead. Please check your internet connection.");
+      setForm({ name: "", phone: "" });
+      setPhoneTouched(false);
+      setPhoneError(null);
+    } catch (error: any) {
+      // More specific error messages for better debugging
+      let errorMsg = "Connectivity issue. Please try again later.";
+
+      if (error.name === "AbortError") {
+        errorMsg = "Request timed out. Please check your connection and try again.";
+      } else if (error instanceof TypeError) {
+        errorMsg = "Network error. Please check your internet connection.";
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      // Log for debugging in browser console
+      console.error("Form submission error:", error);
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
