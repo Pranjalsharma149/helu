@@ -395,7 +395,7 @@ export default function Home() {
         .value-card.light { background: #F5F3FF; }
       `}</style>
 
-    <Header onBookClick={() => setIsBookingOpen(true)} />
+      <Header onBookClick={() => setIsBookingOpen(true)} />
 
       {/* ================ BOOKING POPUP ================ */}
       <BookingPopup isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
@@ -491,10 +491,46 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Trust note */}
-            <p className="text-white/40 text-xs mt-1">
-              🔒 100% Cashless &nbsp;·&nbsp; NABH Accredited &nbsp;·&nbsp; Free Consultation
-            </p>
+            {/* ================ MOBILE TRUST SECTION ================ */}
+            <div className="w-full lg:hidden mt-4 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                {/* NABH Accredited */}
+                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <span className="text-lg flex-shrink-0">🏥</span>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold leading-tight">NABH Accredited</p>
+                    <p className="text-white/70 text-xs leading-tight">Hospitals</p>
+                  </div>
+                </div>
+
+                {/* Successful Surgeries */}
+                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <span className="text-lg flex-shrink-0">✅</span>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold leading-tight">500+</p>
+                    <p className="text-white/70 text-xs leading-tight">Successful</p>
+                  </div>
+                </div>
+
+                {/* 0% Interest EMI */}
+                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <span className="text-lg flex-shrink-0">💳</span>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold leading-tight">0% Interest</p>
+                    <p className="text-white/70 text-xs leading-tight">EMI Plans</p>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <span className="text-lg flex-shrink-0">⭐</span>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold leading-tight">4.8/5</p>
+                    <p className="text-white/70 text-xs leading-tight">Patient Rating</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* ── Right: SVG visual ── */}
@@ -504,8 +540,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================ TRUST BAR ================ */}
-      <section className="bg-white border-b border-slate-100 py-4 px-6">
+      {/* ================ TRUST BAR (Desktop) ================ */}
+      <section className="hidden lg:block bg-white border-b border-slate-100 py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
           <div className="flex items-center gap-2">
             <span className="text-lg">🏥</span>
@@ -519,7 +555,7 @@ export default function Home() {
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
             <span className="text-lg">💳</span>
-            <span className="text-sm font-semibold text-slate-700">Zero Cost EMI Available</span>
+            <span className="text-sm font-semibold text-slate-700">0% Interest EMI</span>
           </div>
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
@@ -813,7 +849,7 @@ export default function Home() {
             </a>
           </div>
           <p className="text-white/70 text-xs md:text-sm tracking-wide">
-            Free consultation&nbsp;&nbsp;|&nbsp;&nbsp;Quick response&nbsp;&nbsp;|&nbsp;&nbsp;100% assistance
+            Free consultation&nbsp;&nbsp;|&nbsp;&nbsp;Quick response&nbsp;&nbsp;|&nbsp;&nbsp;Complete assistance
           </p>
         </div>
       </section>
