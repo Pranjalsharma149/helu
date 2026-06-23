@@ -403,17 +403,6 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         .why-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
         .why-card p { font-size: 13px; color: var(--slate); line-height: 1.7; }
 
-        /* ── AREAS ── */
-        .areas-section { background: var(--green); text-align: center; }
-        .areas-section .eyebrow { color: rgba(255,255,255,.65); }
-        .areas-section .section-title { color: var(--white); }
-        .areas-section .section-lead { color: rgba(255,255,255,.7); margin-inline: auto; }
-        .areas-list { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; max-width: 700px; margin: 0 auto; }
-        .area-chip {
-          background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22);
-          color: #fff; font-size: 13.5px; font-weight: 500; padding: 9px 18px; border-radius: 100px;
-        }
-
         /* ── FAQ ── */
         .faq-list { max-width: 680px; }
         .faq-item { border-bottom: 1px solid var(--line); }
@@ -607,32 +596,7 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-      {/* SURGEONS */}
-      <section className="section">
-        <p className="eyebrow">Your Surgical Team</p>
-        <h2 className="section-title">Senior surgeons, not residents-in-training</h2>
-        <p className="section-lead">Every procedure is performed by a fellowship-trained ophthalmologist — never delegated to a trainee.</p>
-        <div className="doctors-grid">
-          <div className="doc-card">
-            <div className="avatar av-g">AK</div>
-            <h4>Dr. Aditi Kulkarni</h4>
-            <p className="doc-role">Lead Refractive Surgeon</p>
-            <p className="doc-detail">15+ years in corneal &amp; refractive surgery, fellowship-trained in advanced LASIK techniques.</p>
-          </div>
-          <div className="doc-card">
-            <div className="avatar av-s">SJ</div>
-            <h4>Dr. Sameer Joshi</h4>
-            <p className="doc-role">Senior Ophthalmologist</p>
-            <p className="doc-detail">Specialises in Contoura Vision and complex prescription cases across multiple centres.</p>
-          </div>
-          <div className="doc-card">
-            <div className="avatar av-k">RD</div>
-            <h4>Dr. Rhea Deshpande</h4>
-            <p className="doc-role">Cataract &amp; Refractive Surgeon</p>
-            <p className="doc-detail">Focused on patient screening accuracy and long-term outcome tracking.</p>
-          </div>
-        </div>
-      </section>
+    
 
       {/* TESTIMONIALS — city-specific */}
       <section className="section bg-cream">
@@ -689,18 +653,6 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
               <div className="why-icon">{w.icon}</div>
               <div><h4>{w.title}</h4><p>{w.desc}</p></div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* AREAS — city-specific */}
-      <section className="section areas-section">
-        <p className="eyebrow">Where We See Patients</p>
-        <h2 className="section-title">{city.areasTitle}</h2>
-        <p className="section-lead">{city.areasLead}</p>
-        <div className="areas-list">
-          {city.areas.map((a) => (
-            <span key={a} className="area-chip">{a}</span>
           ))}
         </div>
       </section>
