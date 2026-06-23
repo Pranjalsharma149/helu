@@ -18,16 +18,11 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
           <h2 className="text-3xl font-bold text-[#1D646B] mb-3">
             HealviaCare
           </h2>
-
-          <p className="text-gray-600 mb-3">
-            Your Health, Our Priority
-          </p>
-
+          <p className="text-gray-600 mb-3">Your Health, Our Priority</p>
           <p className="text-gray-500 text-sm mb-6">
             Simplifying surgical care with trusted doctors, advanced treatments,
             and complete patient support across India.
           </p>
-
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
               <Phone size={16} />
@@ -48,7 +43,6 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
           <h3 className="text-lg font-semibold text-[#1D646B] mb-4">
             Quick Links
           </h3>
-
           <ul className="space-y-3 text-gray-600 text-sm">
             <li><Link href="/" className="hover:text-[#1D646B] transition-colors">Home</Link></li>
             <li><Link href="/#why-choose-us" className="hover:text-[#1D646B] transition-colors">About Us</Link></li>
@@ -61,6 +55,12 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
                 Book Consultation
               </button>
             </li>
+            {/* ✅ Privacy Policy link added here */}
+            <li>
+              <Link href="/privacy-policy" className="hover:text-[#1D646B] transition-colors">
+                Privacy Policy
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -69,7 +69,6 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
           <h3 className="text-lg font-semibold text-[#1D646B] mb-4">
             Our Treatments
           </h3>
-
           <ul className="space-y-3 text-gray-600 text-sm">
             <li><Link href="/lasik" className="hover:text-[#1D646B] transition-colors">LASIK Eye Surgery</Link></li>
             <li><Link href="/cataract" className="hover:text-[#1D646B] transition-colors">Cataract Surgery</Link></li>
@@ -84,18 +83,13 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
 
         {/* SUPPORT */}
         <div>
-          <h3 className="text-lg font-semibold text-[#1D646B] mb-4">
-            Need Help?
-          </h3>
-
+          <h3 className="text-lg font-semibold text-[#1D646B] mb-4">Need Help?</h3>
           <p className="text-gray-600 text-sm mb-2">
             Talk to our medical experts and get guidance for the right treatment.
           </p>
-
           <p className="text-[#1D646B] font-bold text-lg mb-5 flex items-center gap-2">
             <Phone size={18} /> 8882804301
           </p>
-
           <button
             onClick={onBookClick}
             className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-semibold shadow hover:scale-105 transition"
@@ -112,6 +106,14 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
       {/* BOTTOM */}
       <div className="relative z-10 text-center py-6 text-sm text-gray-600">
         © 2026 HealviaCare. All rights reserved.
+        {/* ✅ Privacy Policy link in bottom bar */}
+        <span className="mx-2 text-gray-400">·</span>
+        <Link
+          href="/privacy-policy"
+          className="hover:text-[#1D646B] underline underline-offset-2 transition-colors"
+        >
+          Privacy Policy
+        </Link>
         <div className="mt-2 text-xs text-gray-500">
           500+ Doctors | NABH Hospitals | 24/7 Patient Support
         </div>
