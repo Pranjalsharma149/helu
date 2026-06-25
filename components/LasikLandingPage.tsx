@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { CITY_DATA, SHARED_FAQS, CityKey } from "@/lib/lasik-city-data";
 
@@ -28,7 +29,7 @@ function useLeadForm(cityKey: CityKey, formId: string) {
 
   function validatePhone(v: string) {
     const c = v.replace(/\D/g, "");
-    if (!c)             return "Mobile number is required";
+    if (!c)              return "Mobile number is required";
     if (c.length !== 10) return "Enter a valid 10-digit number";
     if (!/^[6-9]/.test(c)) return "Enter a valid Indian mobile number";
     if (/^(\d)\1{9}$/.test(c) || c === "1234567890") return "Please enter a real number";
@@ -54,19 +55,22 @@ function useLeadForm(cityKey: CityKey, formId: string) {
       const res  = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), phone, service: "LASIK", city: cityKey, source: CITY_DATA[cityKey].formSource + "-" + formId }),
+        body: JSON.stringify({
+          name: name.trim(), phone, service: "LASIK", city: cityKey,
+          source: CITY_DATA[cityKey].formSource + "-" + formId,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok || data.duplicate) {
         setStatus("success");
-        setMessage(data.message || "Got it — our care team will call you shortly.");
+        setMessage(data.message || "Thank you. Our team will be in touch with you soon.");
       } else {
         setStatus("error");
         setMessage(data.error || "Something went wrong. Please try again.");
       }
     } catch {
       setStatus("error");
-      setMessage("Unable to connect. Please call us directly.");
+      setMessage("Unable to connect. Please try again later.");
     }
   }
 
@@ -80,7 +84,7 @@ function LeadCard({ cityKey }: { cityKey: CityKey }) {
     <div className="lc-card" id="lead-anchor">
       <span className="lc-tag">Free Eye Screening</span>
       <h3 className="lc-title">Check your LASIK eligibility</h3>
-      <p className="lc-sub">Share your number — a specialist calls back within minutes.</p>
+      <p className="lc-sub">Leave your details and a specialist will get in touch to discuss your options.</p>
 
       {f.status === "success" ? (
         <div className="lc-success">
@@ -101,9 +105,9 @@ function LeadCard({ cityKey }: { cityKey: CityKey }) {
             {f.phoneErr && <span className="ferr">{f.phoneErr}</span>}
           </div>
           <button type="submit" className="btn-primary" disabled={f.status === "loading"}>
-            {f.status === "loading" ? <span className="spin-wrap"><span className="spinner" />Booking…</span> : "Book free screening"}
+            {f.status === "loading" ? <span className="spin-wrap"><span className="spinner" />Sending…</span> : "Book free screening"}
           </button>
-          <p className="lc-note">No spam calls. Your number stays private.</p>
+          <p className="lc-note">Your information is kept private and never shared.</p>
         </form>
       )}
     </div>
@@ -132,7 +136,7 @@ function LeadStrip({ cityKey }: { cityKey: CityKey }) {
         {f.phoneErr && <span className="ferr ferr-light">{f.phoneErr}</span>}
       </div>
       <button type="submit" className="btn-strip" disabled={f.status === "loading"}>
-        {f.status === "loading" ? "Booking…" : "Get a callback"}
+        {f.status === "loading" ? "Sending…" : "Request a callback"}
       </button>
       {f.status === "error" && <p className="strip-api-err">{f.message}</p>}
     </form>
@@ -147,7 +151,7 @@ function FaqList() {
       {SHARED_FAQS.map((item, i) => (
         <div key={i} className="faq-item">
           <button className="faq-q" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
-            {item.q}
+            <span>{item.q}</span>
             <span className="faq-icon">{open === i ? "−" : "+"}</span>
           </button>
           {open === i && <p className="faq-a">{item.a}</p>}
@@ -172,17 +176,17 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@600&display=swap');
 
         :root {
-          --ink: #111827;
+          --ink: #1a2236;
           --white: #ffffff;
-          --cream: #F8F9FA;
+          --cream: #f4f7fd;
           --green: #1B6B3A;
-          --green-light: #E8F5EE;
+          --green-light: #e8f5ee;
           --green-mid: #2E7D52;
           --saffron: #F59E0B;
           --saffron-light: #FEF3C7;
           --sky: #0EA5E9;
-          --slate: #6B7280;
-          --line: #E5E7EB;
+          --slate: #5a6680;
+          --line: #e8ecf4;
           --danger: #DC2626;
           --r: 10px;
           --font-display: 'DM Serif Display', Georgia, serif;
@@ -199,20 +203,24 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
 
         /* ── NAV ── */
         .nav {
+          padding: 0 6vw; height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          background: var(--white); border-bottom: 1px solid var(--line);
           position: sticky; top: 0; z-index: 100;
-          background: rgba(255,255,255,0.96); backdrop-filter: blur(8px);
-          border-bottom: 1px solid var(--line);
-          padding: 14px 6vw; display: flex; align-items: center; justify-content: space-between; gap: 16px;
         }
-        .nav-logo { font-family: var(--font-display); font-size: 20px; color: var(--green); }
-        .nav-logo span { color: var(--saffron); }
-        .nav-city { font-family: var(--font-mono); font-size: 12px; color: var(--slate); letter-spacing: 1px; text-transform: uppercase; }
+        .nav-logo { display: flex; align-items: center; }
+        .nav-city {
+          font-size: 12px; font-weight: 600; color: var(--slate); letter-spacing: 0.4px;
+          background: var(--cream); padding: 5px 12px; border-radius: 100px; border: 1px solid var(--line);
+        }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-links { display: flex; gap: 22px; list-style: none; }
+        .nav-links a { font-size: 13.5px; font-weight: 500; color: var(--slate); text-decoration: none; transition: color 0.15s; }
+        .nav-links a:hover { color: var(--green); }
         .nav-cta {
-          padding: 9px 20px; background: var(--green); color: #fff;
-          border: none; border-radius: var(--r); font-size: 14px; font-weight: 600;
-          cursor: pointer; transition: opacity .18s; white-space: nowrap;
+          padding: 9px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px;
+          font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.18s; white-space: nowrap;
         }
-        .nav-cta:hover { opacity: .88; }
+        .nav-cta:hover { background: var(--green-mid); }
 
         /* ── HERO ── */
         .hero {
@@ -223,18 +231,21 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         .hero-eyebrow {
           display: inline-flex; align-items: center; gap: 8px;
           background: var(--green-light); border: 1px solid rgba(27,107,58,0.25);
-          color: var(--green); font-family: var(--font-mono); font-size: 11px;
-          letter-spacing: 1.4px; text-transform: uppercase;
-          padding: 6px 14px; border-radius: 100px; margin-bottom: 22px;
+          color: var(--green); font-size: 12px; font-weight: 600;
+          letter-spacing: 1px; text-transform: uppercase;
+          padding: 5px 14px; border-radius: 100px; margin-bottom: 22px;
         }
         .hero-dot {
-          width: 7px; height: 7px; border-radius: 50%; background: var(--saffron);
+          width: 6px; height: 6px; border-radius: 50%; background: var(--saffron);
           animation: pulse 1.8s ease-in-out infinite;
         }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
         .hero h1 { font-size: clamp(32px,4.8vw,54px); color: var(--ink); margin-bottom: 16px; }
         .hero h1 em { font-style: normal; color: var(--green); }
-        .hero-sub { font-size: 16px; color: var(--slate); max-width: 480px; margin-bottom: 28px; line-height: 1.8; }
+        .hero-sub { font-size: 15.5px; color: var(--slate); max-width: 480px; margin-bottom: 28px; line-height: 1.8; }
+        .hero-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+        .hero-bullets li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #3a4a66; }
+        .hero-bullets li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
         .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
         .btn-hero {
           padding: 14px 28px; background: var(--green); color: #fff; border: none;
@@ -255,22 +266,23 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
 
         /* ── LEAD CARD ── */
         .lc-card {
-          background: var(--white); border-radius: 16px; padding: 32px 28px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.12); border: 1px solid rgba(245,158,11,0.25);
+          background: var(--white); border-radius: 16px; padding: 36px 32px;
+          box-shadow: 0 8px 40px rgba(27,107,58,0.1), 0 1px 4px rgba(0,0,0,0.06);
+          border: 1px solid var(--line);
         }
         .lc-tag {
           display: inline-block; background: var(--saffron); color: var(--ink);
           font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
           padding: 4px 12px; border-radius: 100px; margin-bottom: 16px;
         }
-        .lc-title { font-size: 19px; margin-bottom: 6px; }
+        .lc-title { font-size: 20px; margin-bottom: 6px; }
         .lc-sub { font-size: 13.5px; color: var(--slate); margin-bottom: 22px; }
         .lc-field { margin-bottom: 14px; }
         .lc-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
         .lc-field input {
-          width: 100%; padding: 11px 14px; border: 1.5px solid #D1D5DB;
+          width: 100%; padding: 11px 14px; border: 1.5px solid #dde2ed;
           border-radius: var(--r); font-size: 14.5px; color: var(--ink);
-          background: #FAFAFA; outline: none; transition: border-color .2s;
+          background: #fafbfc; outline: none; transition: border-color .2s, background .2s;
         }
         .lc-field input:focus { border-color: var(--green); background: var(--white); }
         .lc-field input.input-err { border-color: var(--danger); }
@@ -281,13 +293,13 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           font-size: 12.5px; padding: 9px 13px; border-radius: var(--r); margin-bottom: 10px;
         }
         .btn-primary {
-          width: 100%; padding: 14px; background: var(--green); color: #fff; border: none;
+          width: 100%; padding: 13px; background: var(--green); color: #fff; border: none;
           border-radius: var(--r); font-size: 15px; font-weight: 700; cursor: pointer;
-          margin-top: 4px; transition: opacity .2s, transform .15s;
+          margin-top: 4px; transition: background .18s, transform .15s;
         }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); opacity: .92; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); background: var(--green-mid); }
         .btn-primary:disabled { opacity: .65; cursor: not-allowed; }
-        .lc-note { font-size: 11.5px; color: #9CA3AF; text-align: center; margin-top: 11px; }
+        .lc-note { font-size: 11.5px; color: #9aa3b8; text-align: center; margin-top: 11px; }
         .lc-success { text-align: center; padding: 16px 0; }
         .lc-check {
           width: 48px; height: 48px; border-radius: 50%; background: var(--green); color: #fff;
@@ -312,18 +324,19 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
 
         /* ── STATS ── */
         .stats {
-          background: var(--green); padding: 48px 6vw;
+          background: var(--cream); border-bottom: 1px solid var(--line);
+          padding: 48px 6vw;
           display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
         }
         .stat { text-align: center; }
-        .stat-val { display: block; font-family: var(--font-mono); font-size: 28px; color: #fff; }
-        .stat-lbl { display: block; font-size: 11.5px; color: rgba(255,255,255,.7); margin-top: 5px; text-transform: uppercase; letter-spacing: .5px; }
+        .stat-val { display: block; font-family: var(--font-display); font-size: 30px; color: var(--green); }
+        .stat-lbl { display: block; font-size: 11.5px; color: var(--slate); margin-top: 5px; text-transform: uppercase; letter-spacing: .5px; }
 
         /* ── SECTIONS ── */
         .section { padding: 80px 6vw; }
         .section.bg-cream { background: var(--cream); }
-        .eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--saffron); margin-bottom: 12px; }
-        .section-title { font-size: clamp(26px,3.2vw,38px); margin-bottom: 14px; }
+        .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+        .section-title { font-size: clamp(26px,3.2vw,38px); margin-bottom: 14px; color: var(--ink); }
         .section-lead { font-size: 15.5px; color: var(--slate); max-width: 580px; margin-bottom: 44px; line-height: 1.78; }
 
         /* ── BENEFITS ── */
@@ -332,18 +345,18 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           background: var(--white); border: 1px solid var(--line); border-radius: 14px;
           padding: 26px 22px; transition: transform .2s, box-shadow .2s;
         }
-        .benefit-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.07); }
+        .benefit-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.06); }
         .benefit-icon {
           width: 40px; height: 40px; border-radius: 10px; background: var(--green-light);
           color: var(--green); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
         }
         .benefit-icon svg { width: 20px; height: 20px; }
-        .benefit-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); }
+        .benefit-card h3 { font-size: 15.5px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); color: var(--ink); }
         .benefit-card p { font-size: 13.5px; color: var(--slate); line-height: 1.7; }
 
         /* ── TECHNOLOGY ── */
         .tech-section { background: var(--ink); }
-        .tech-section .eyebrow { color: var(--sky); }
+        .tech-section .eyebrow { color: #6fa3f5; }
         .tech-section .section-title { color: var(--white); }
         .tech-section .section-lead { color: rgba(255,255,255,.65); }
         .tech-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 20px; }
@@ -354,28 +367,13 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           padding: 3px 10px; border-radius: 100px; margin-bottom: 14px;
         }
         .tech-card h4 { font-size: 18px; color: var(--white); margin-bottom: 6px; font-family: var(--font-display); }
-        .tech-tagline { font-size: 13px; color: var(--sky); margin-bottom: 10px; }
+        .tech-tagline { font-size: 13px; color: #6fa3f5; margin-bottom: 10px; }
         .tech-desc { font-size: 13px; color: rgba(255,255,255,.62); line-height: 1.7; }
-
-        /* ── DOCTORS ── */
-        .doctors-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 18px; }
-        .doc-card { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 26px 22px; text-align: center; }
-        .avatar {
-          width: 54px; height: 54px; border-radius: 50%;
-          display: inline-flex; align-items: center; justify-content: center;
-          font-family: var(--font-mono); font-size: 14px; font-weight: 600; margin-bottom: 14px;
-        }
-        .av-g { background: var(--green); color: #fff; }
-        .av-s { background: var(--saffron); color: var(--ink); }
-        .av-k { background: var(--sky); color: #fff; }
-        .doc-card h4 { font-size: 16.5px; margin-bottom: 4px; }
-        .doc-role { font-size: 12px; color: var(--saffron); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .4px; }
-        .doc-detail { font-size: 13px; color: var(--slate); line-height: 1.65; }
 
         /* ── TESTIMONIALS ── */
         .testi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 18px; }
         .testi { background: var(--green-light); border: 1px solid rgba(27,107,58,.15); border-radius: 14px; padding: 24px 22px; }
-        .testi blockquote { font-size: 14.5px; line-height: 1.75; color: var(--ink); margin-bottom: 14px; }
+        .testi blockquote { font-size: 14.5px; line-height: 1.75; color: var(--ink); margin-bottom: 14px; font-style: italic; }
         .testi-name { font-weight: 700; font-size: 13px; color: var(--green); display: block; }
         .testi-role { font-size: 12.5px; color: var(--slate); }
         .testi-note { font-size: 12px; color: var(--slate); margin-top: 22px; }
@@ -386,10 +384,10 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         .process-step { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 26px 22px; }
         .process-num {
           width: 38px; height: 38px; border-radius: 50%; background: var(--green); color: #fff;
-          font-family: var(--font-mono); font-size: 12px;
+          font-size: 12px; font-weight: 700;
           display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
         }
-        .process-step h4 { font-size: 15.5px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); }
+        .process-step h4 { font-size: 15.5px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); color: var(--ink); }
         .process-step p { font-size: 13px; color: var(--slate); line-height: 1.7; }
 
         /* ── WHY ── */
@@ -400,7 +398,7 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center;
         }
         .why-icon svg { width: 20px; height: 20px; }
-        .why-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+        .why-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; color: var(--ink); }
         .why-card p { font-size: 13px; color: var(--slate); line-height: 1.7; }
 
         /* ── FAQ ── */
@@ -408,14 +406,15 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         .faq-item { border-bottom: 1px solid var(--line); }
         .faq-q {
           width: 100%; background: none; border: none; cursor: pointer; text-align: left;
-          display: flex; justify-content: space-between; align-items: center; gap: 14px;
+          display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
           padding: 18px 0; font-size: 15px; font-weight: 600; color: var(--ink);
         }
-        .faq-icon { color: var(--green); font-size: 18px; flex-shrink: 0; }
+        .faq-q span:first-child { flex: 1; }
+        .faq-icon { color: var(--green); font-size: 20px; flex-shrink: 0; line-height: 1; }
         .faq-a { font-size: 13.5px; color: var(--slate); padding-bottom: 18px; line-height: 1.75; max-width: 600px; }
 
         /* ── CLOSING ── */
-        .closing { background: linear-gradient(155deg, var(--green) 0%, var(--ink) 100%); padding: 80px 6vw; text-align: center; }
+        .closing { background: linear-gradient(135deg, #1a2236 0%, #1d3a6e 100%); padding: 80px 6vw; text-align: center; }
         .closing h2 { font-size: clamp(26px,3.6vw,40px); color: #fff; margin-bottom: 12px; }
         .closing > p { font-size: 16px; color: rgba(255,255,255,.75); margin-bottom: 36px; }
         .strip {
@@ -449,34 +448,44 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
 
         /* ── FOOTER ── */
         .footer {
-          background: var(--ink); padding: 28px 6vw;
+          background: #111827; padding: 28px 6vw;
           display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
         }
-        .footer-logo { font-family: var(--font-display); font-size: 18px; color: rgba(255,255,255,.8); }
-        .footer-logo span { color: var(--saffron); }
+        .footer-logo { display: flex; align-items: center; }
         .footer-note { font-size: 12.5px; color: rgba(255,255,255,.4); }
 
         /* ── RESPONSIVE ── */
         @media (max-width: 960px) {
           .hero { grid-template-columns: 1fr; text-align: center; padding: 72px 5vw 52px; }
           .hero-badges, .hero-actions { justify-content: center; }
-          .hero-sub { margin-inline: auto; }
-          .section-lead { margin-inline: auto; }
+          .hero-sub, .section-lead { margin-inline: auto; }
+          .hero-bullets { align-items: center; }
+          .nav-links { display: none; }
         }
         @media (max-width: 600px) {
           .lc-card { padding: 24px 18px; }
           .section { padding: 56px 5vw; }
           .strip { flex-direction: column; }
           .strip-f { width: 100%; }
-          .nav { padding: 12px 4vw; }
+          .nav { padding: 0 4vw; }
         }
       `}</style>
 
       {/* NAV */}
       <nav className="nav">
-        <div className="nav-logo">Healvia<span>.</span></div>
+        <div className="nav-logo">
+          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={42} priority style={{ height: "96px", width: "auto" }} />
+        </div>
         <span className="nav-city">LASIK · {city.name}</span>
-        <button className="nav-cta" onClick={scrollToForm}>Free Screening</button>
+        <div className="nav-right">
+          <ul className="nav-links">
+            <li><a href="#benefits">Why LASIK</a></li>
+            <li><a href="#technology">Technology</a></li>
+            <li><a href="#process">What to Expect</a></li>
+            <li><a href="#faq-anchor">FAQ</a></li>
+          </ul>
+          <button className="nav-cta" onClick={scrollToForm}>Free Screening</button>
+        </div>
       </nav>
 
       {/* HERO */}
@@ -491,13 +500,19 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
             <em>{city.headlineEm}</em>
           </h1>
           <p className="hero-sub">{city.sub}</p>
+          <ul className="hero-bullets">
+            <li>Bladeless, Contoura &amp; SMILE — matched to your eyes</li>
+            <li>Fellowship-trained ophthalmologists perform every procedure</li>
+            <li>Free pre-LASIK screening to confirm candidacy</li>
+            <li>Transparent pricing discussed after your screening</li>
+          </ul>
           <div className="hero-actions">
             <button className="btn-hero" onClick={scrollToForm}>Book Free Screening</button>
           </div>
           <div className="hero-badges">
             <span className="badge"><span className="badge-dot" />NABH-accredited</span>
             <span className="badge"><span className="badge-dot" />Bladeless &amp; Contoura LASIK</span>
-            <span className="badge"><span className="badge-dot" />15-min procedure</span>
+            <span className="badge"><span className="badge-dot" />Outpatient procedure</span>
           </div>
         </div>
 
@@ -514,7 +529,7 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
                 <stop offset="100%" stopColor="#1B6B3A" />
               </radialGradient>
             </defs>
-            <ellipse cx="180" cy="90" rx="140" ry="70" fill="url(#eyeG)" stroke="#D1D5DB" strokeWidth="1.2" />
+            <ellipse cx="180" cy="90" rx="140" ry="70" fill="url(#eyeG)" stroke="#e8ecf4" strokeWidth="1.2" />
             <circle cx="180" cy="90" r="42" fill="url(#irisG)" />
             <circle cx="180" cy="90" r="18" fill="#0F1F15" />
             <circle cx="193" cy="78" r="7" fill="rgba(255,255,255,0.55)" />
@@ -524,12 +539,12 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
             <line x1="300" y1="90" x2="222" y2="90" stroke="#F59E0B" strokeWidth="2" strokeDasharray="4 3" opacity="0.8">
               <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.3s" repeatCount="indefinite" />
             </line>
-            <path d="M68 62 Q75 48 84 58" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
-            <path d="M104 44 Q115 32 122 46" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
-            <path d="M148 33 Q160 20 167 36" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
-            <path d="M195 33 Q205 20 214 35" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
-            <path d="M238 44 Q247 32 255 46" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
-            <path d="M276 62 Q283 48 292 58" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
+            <path d="M68 62 Q75 48 84 58" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
+            <path d="M104 44 Q115 32 122 46" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
+            <path d="M148 33 Q160 20 167 36" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
+            <path d="M195 33 Q205 20 214 35" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
+            <path d="M238 44 Q247 32 255 46" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
+            <path d="M276 62 Q283 48 292 58" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
             <text x="180" y="156" textAnchor="middle" fontFamily="'Space Mono',monospace" fontSize="13" fontWeight="600" fill="#1B6B3A" letterSpacing="2">20/20</text>
           </svg>
           <LeadCard cityKey={cityKey} />
@@ -540,31 +555,31 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
       <div className="trust">
         <span className="trust-item">⭐ 4.9 avg patient rating</span>
         <span className="trust-item">Fellowship-trained surgeons</span>
-        <span className="trust-item">Transparent upfront pricing</span>
+        <span className="trust-item">Transparent pricing</span>
       </div>
 
       {/* STATS */}
       <div className="stats">
-        <div className="stat"><span className="stat-val">22,000+</span><span className="stat-lbl">Procedures</span></div>
+        <div className="stat"><span className="stat-val">22,000+</span><span className="stat-lbl">Procedures performed</span></div>
         <div className="stat"><span className="stat-val">14+</span><span className="stat-lbl">Years in practice</span></div>
-        <div className="stat"><span className="stat-val">98%</span><span className="stat-lbl">Satisfaction rate</span></div>
-        <div className="stat"><span className="stat-val">20 min</span><span className="stat-lbl">Procedure time</span></div>
+        <div className="stat"><span className="stat-val">98%</span><span className="stat-lbl">Patient satisfaction</span></div>
+        <div className="stat"><span className="stat-val">~20 min</span><span className="stat-lbl">Procedure time</span></div>
         <div className="stat"><span className="stat-val">7</span><span className="stat-lbl">Cities</span></div>
       </div>
 
       {/* BENEFITS */}
-      <section className="section bg-cream">
+      <section className="section bg-cream" id="benefits">
         <p className="eyebrow">Why LASIK</p>
-        <h2 className="section-title">A permanent fix, not another pair of lenses</h2>
-        <p className="section-lead">LASIK reshapes the cornea so light focuses correctly on the retina — permanently. Here's what that means for daily life.</p>
+        <h2 className="section-title">A permanent correction, not another pair of lenses</h2>
+        <p className="section-lead">LASIK reshapes the cornea so light focuses correctly on the retina. Here's what that can mean for daily life — though outcomes vary by individual and prescription.</p>
         <div className="benefits-grid">
           {[
-            { icon: <IconSun />,    title: "Clear vision by morning",       desc: "Most patients reach 6/6 vision or better within 24 hours of the procedure." },
-            { icon: <IconBolt />,   title: "Quick and painless",            desc: "The procedure takes about 15–20 minutes with numbing drops and no needles." },
-            { icon: <IconShield />, title: "Built to last",                 desc: "LASIK corrects your vision permanently — most patients never reach for glasses again." },
-            { icon: <IconUsers />,  title: "Back to normal fast",           desc: "Drive, work, and resume daily activities within a day or two of surgery." },
-            { icon: <IconLayers />, title: "A technology for every eye",    desc: "Bladeless, Contoura, or SMILE — we match the method to your prescription." },
-            { icon: <IconLoop />,   title: "Care beyond surgery",           desc: "Scheduled follow-ups and support through your full recovery and beyond." },
+            { icon: <IconSun />,    title: "Improved vision",               desc: "Many patients achieve significantly clearer vision after the procedure. Your surgeon will discuss what to expect based on your prescription." },
+            { icon: <IconBolt />,   title: "Short procedure time",          desc: "The laser portion of the procedure typically takes about 15–20 minutes per eye, performed under numbing drops." },
+            { icon: <IconShield />, title: "Long-lasting correction",       desc: "For most patients, the vision correction is long-lasting. Your surgeon will explain what to expect given your specific eye profile." },
+            { icon: <IconUsers />,  title: "Recovery for most is quick",   desc: "Most patients can return to desk work and daily activities within a few days, though this varies by individual." },
+            { icon: <IconLayers />, title: "Multiple technology options",   desc: "Bladeless, Contoura, or SMILE — we assess your eye and discuss which technology is suitable for your needs." },
+            { icon: <IconLoop />,   title: "Structured aftercare",         desc: "Scheduled follow-ups are part of the process, supporting your recovery through every stage." },
           ].map((b) => (
             <div key={b.title} className="benefit-card">
               <div className="benefit-icon">{b.icon}</div>
@@ -576,15 +591,15 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
       </section>
 
       {/* TECHNOLOGY */}
-      <section className="section tech-section">
+      <section className="section tech-section" id="technology">
         <p className="eyebrow">The Technology</p>
-        <h2 className="section-title">Three ways — we'll match you to the right one</h2>
-        <p className="section-lead">Not every eye suits the same method. Here's a plain-language look at your options.</p>
+        <h2 className="section-title">Three approaches — matched to your eye</h2>
+        <p className="section-lead">Not every eye suits the same method. Your pre-operative screening determines which technology is appropriate for you.</p>
         <div className="tech-grid">
           {[
-            { badge: "Most popular",       name: "Bladeless LASIK",  tagline: "All-laser, no blade, ever.",                    desc: "A femtosecond laser creates the corneal flap and an excimer laser reshapes it — precise, fast, and the standard choice for most prescriptions." },
-            { badge: "Topography-guided",  name: "Contoura Vision",  tagline: "Mapped to your eye's unique surface.",          desc: "Over 22,000 data points of your cornea guide the laser, correcting irregularities glasses never could." },
-            { badge: "Minimally invasive", name: "SMILE",            tagline: "No flap, smaller incision.",                   desc: "A keyhole-sized opening reshapes the cornea from within, suited to certain prescriptions and thinner corneas." },
+            { badge: "Commonly chosen",    name: "Bladeless LASIK",  tagline: "All-laser, no blade.",                               desc: "A femtosecond laser creates the corneal flap and an excimer laser reshapes it — a precise, well-established approach suited to most prescriptions." },
+            { badge: "Topography-guided",  name: "Contoura Vision",  tagline: "Guided by your cornea's unique surface map.",        desc: "Over 22,000 data points of your cornea shape the treatment, addressing irregularities that standard glasses cannot correct." },
+            { badge: "Minimally invasive", name: "SMILE",            tagline: "Flapless, smaller incision.",                       desc: "A keyhole-sized opening is used to reshape the cornea without creating a flap. Suitability depends on prescription and corneal thickness." },
           ].map((t) => (
             <div key={t.name} className="tech-card">
               <span className="tech-badge">{t.badge}</span>
@@ -596,12 +611,10 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-    
-
       {/* TESTIMONIALS — city-specific */}
       <section className="section bg-cream">
         <p className="eyebrow">Patient Stories</p>
-        <h2 className="section-title">What clear vision actually feels like</h2>
+        <h2 className="section-title">Experiences shared by our patients in {city.name}</h2>
         <div className="testi-grid">
           {city.testimonials.map((t) => (
             <figure key={t.name} className="testi">
@@ -617,16 +630,16 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
       </section>
 
       {/* PROCESS */}
-      <section className="section process-section">
+      <section className="section process-section" id="process">
         <p className="eyebrow">What To Expect</p>
-        <h2 className="section-title">Four steps from call to clear vision</h2>
-        <p className="section-lead">A simple, predictable path with no surprises.</p>
+        <h2 className="section-title">From first call to your follow-up</h2>
+        <p className="section-lead">A clear, step-by-step process with no surprises along the way.</p>
         <div className="process-grid">
           {[
-            { n: "01", title: "Free consultation call",  desc: "We call you back to understand your eyes, your lifestyle, and answer every question." },
-            { n: "02", title: "Detailed eye screening",  desc: "A thorough pre-LASIK workup confirms candidacy and the right technology for your eyes." },
-            { n: "03", title: "The LASIK procedure",     desc: "A precise 15–20 minute laser procedure by a senior surgeon with zero shortcuts." },
-            { n: "04", title: "Recovery & follow-up",   desc: "Scheduled check-ins ensure your eyes heal exactly as they should." },
+            { n: "01", title: "Initial consultation",    desc: "We get in touch to understand your eyes, your lifestyle, and to answer your questions before anything else." },
+            { n: "02", title: "Detailed eye screening",  desc: "A thorough pre-LASIK workup confirms whether you are a suitable candidate and which technology is appropriate for your eyes." },
+            { n: "03", title: "The LASIK procedure",     desc: "A precise laser procedure performed by a senior surgeon. Duration varies but typically takes around 15–20 minutes per eye." },
+            { n: "04", title: "Recovery and follow-up",  desc: "Scheduled check-ins at defined intervals ensure your eyes are healing as expected." },
           ].map((s) => (
             <div key={s.n} className="process-step">
               <div className="process-num">{s.n}</div>
@@ -640,14 +653,14 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
       {/* WHY */}
       <section className="section">
         <p className="eyebrow">Why This Clinic</p>
-        <h2 className="section-title">What sets the experience apart</h2>
-        <p className="section-lead">Plenty of clinics offer LASIK. Here's what we think actually matters once you're in the chair.</p>
+        <h2 className="section-title">What we focus on</h2>
+        <p className="section-lead">Here's what we believe matters most — and what shapes how we work with every patient.</p>
         <div className="why-grid">
           {[
-            { icon: <IconLayers />, title: "Three technologies, one decision", desc: "Bladeless, Contoura, and SMILE under one roof — matched to your eyes." },
-            { icon: <IconShield />, title: "Senior surgeons only",             desc: "Fellowship-trained ophthalmologists perform every procedure, no exceptions." },
-            { icon: <IconBolt />,   title: "Transparent, fair pricing",        desc: "One clear quote after your screening — no hidden add-ons once you're committed." },
-            { icon: <IconLoop />,   title: "Proactive aftercare",              desc: "We call to check on you through every stage of recovery." },
+            { icon: <IconLayers />, title: "Multiple technologies available",  desc: "Bladeless, Contoura, and SMILE under one roof — the right fit is decided after your screening." },
+            { icon: <IconShield />, title: "Senior surgeons perform every case", desc: "Fellowship-trained ophthalmologists are responsible for each procedure." },
+            { icon: <IconBolt />,   title: "Pricing discussed after screening", desc: "A clear quote is provided after your pre-operative assessment — no figures committed before we know your eyes." },
+            { icon: <IconLoop />,   title: "Structured recovery support",       desc: "Follow-up appointments are scheduled as part of your care, not an afterthought." },
           ].map((w) => (
             <div key={w.title} className="why-card">
               <div className="why-icon">{w.icon}</div>
@@ -658,9 +671,9 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
       </section>
 
       {/* FAQ */}
-      <section className="section" id="faq-anchor">
+      <section className="section bg-cream" id="faq-anchor">
         <p className="eyebrow">Common Questions</p>
-        <h2 className="section-title">Before you book — answers most people want</h2>
+        <h2 className="section-title">Answers to questions most patients ask</h2>
         <FaqList />
       </section>
 
@@ -673,8 +686,10 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
 
       {/* FOOTER */}
       <footer className="footer">
-        <div className="footer-logo">Healvia<span>.</span></div>
-        <p className="footer-note">© 2025 Healvia Eye Care. All rights reserved.</p>
+        <div className="footer-logo">
+        <Image src="/vv.png" alt="Healvia Eye Care" width={180} height={48} style={{ height: "38px", width: "auto" }} />
+        </div>
+        <p className="footer-note">© 2025 Healvia Eye Care · {city.name}. All rights reserved.</p>
       </footer>
     </>
   );
