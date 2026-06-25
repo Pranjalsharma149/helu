@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CITY_DATA, SHARED_FAQS, CityKey } from "@/lib/lasik-city-data";
 
 // ─── ICONS ───────────────────────────────────────────────────
@@ -161,6 +161,91 @@ function FaqList() {
   );
 }
 
+// ─── MOBILE NAV WITH HAMBURGER ────────────────────────────────
+function MobileNav({ cityName, scrollToForm }: { cityName: string; scrollToForm: () => void }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  const close = () => setOpen(false);
+
+  const navLinks = [
+    { href: "#benefits",   label: "Why LASIK" },
+    { href: "#technology", label: "Technology" },
+    { href: "#process",    label: "What to Expect" },
+    { href: "#faq-anchor", label: "FAQ" },
+  ];
+
+  return (
+    <>
+      {/* Backdrop overlay */}
+      {open && (
+        <div className="nav-overlay" onClick={close} aria-hidden="true" />
+      )}
+
+      {/* Slide-in drawer */}
+      <div className={`nav-drawer${open ? " nav-drawer--open" : ""}`} aria-hidden={!open}>
+        <div className="nav-drawer-header">
+          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={44} style={{ height: "44px", width: "auto" }} />
+          <button className="drawer-close" onClick={close} aria-label="Close menu">
+            <span /><span />
+          </button>
+        </div>
+        <p className="drawer-city">LASIK · {cityName}</p>
+        <nav>
+          <ul className="drawer-links">
+            {navLinks.map(l => (
+              <li key={l.href}>
+                <a href={l.href} onClick={close} className="drawer-link">{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="drawer-cta-wrap">
+          <button
+            className="btn-primary drawer-cta"
+            onClick={() => { close(); scrollToForm(); }}
+          >
+            Book Free Screening
+          </button>
+        </div>
+      </div>
+
+      {/* Top navbar */}
+      <nav className="nav">
+        <div className="nav-logo">
+          <Image src="/vv.png" alt="Healvia Eye Care" width={180} height={56} priority style={{ height: "96px", width: "auto" }} />
+        </div>
+        {/* City pill — hidden on very small screens, shown centre on mobile */}
+        <span className="nav-city">LASIK · {cityName}</span>
+        <div className="nav-right">
+          {/* Desktop-only links */}
+          <ul className="nav-links-desktop">
+            {navLinks.map(l => (
+              <li key={l.href}><a href={l.href}>{l.label}</a></li>
+            ))}
+          </ul>
+          <button className="nav-cta nav-cta-desktop" onClick={scrollToForm}>Free Screening</button>
+          {/* Hamburger — hidden on desktop */}
+          <button
+            className={`hamburger${open ? " hamburger--open" : ""}`}
+            onClick={() => setOpen(!open)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+          >
+            <span className="ham-bar" />
+            <span className="ham-bar" />
+            <span className="ham-bar" />
+          </button>
+        </div>
+      </nav>
+    </>
+  );
+}
+
 // ─── PAGE ─────────────────────────────────────────────────────
 export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
   const city = CITY_DATA[cityKey];
@@ -195,94 +280,281 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: var(--font-body); color: var(--ink); background: var(--white); line-height: 1.6; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        body {
+          font-family: var(--font-body); color: var(--ink); background: var(--white);
+          line-height: 1.6; overflow-x: hidden;
+          -webkit-font-smoothing: antialiased;
+          /* space for sticky bottom bar on mobile */
+          padding-bottom: 76px;
+        }
         h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; }
         button, input { font-family: inherit; }
+        img { max-width: 100%; }
         :focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
 
-        /* ── NAV ── */
+        /* ══════════════════════════════════════════════════════
+           NAV
+           ══════════════════════════════════════════════════════ */
         .nav {
-          padding: 0 6vw; height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          background: var(--white); border-bottom: 1px solid var(--line);
-          position: sticky; top: 0; z-index: 100;
+          padding: 0 16px;
+          height: 68px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: var(--white);
+          border-bottom: 1px solid var(--line);
+          position: sticky;
+          top: 0;
+          z-index: 200;
         }
-        .nav-logo { display: flex; align-items: center; }
+        .nav-logo { display: flex; align-items: center; flex-shrink: 0; }
         .nav-city {
-          font-size: 12px; font-weight: 600; color: var(--slate); letter-spacing: 0.4px;
-          background: var(--cream); padding: 5px 12px; border-radius: 100px; border: 1px solid var(--line);
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--slate);
+          letter-spacing: 0.3px;
+          background: var(--cream);
+          padding: 4px 10px;
+          border-radius: 100px;
+          border: 1px solid var(--line);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 160px;
+          flex: 1;
+          text-align: center;
         }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-links { display: flex; gap: 22px; list-style: none; }
-        .nav-links a { font-size: 13.5px; font-weight: 500; color: var(--slate); text-decoration: none; transition: color 0.15s; }
-        .nav-links a:hover { color: var(--green); }
-        .nav-cta {
-          padding: 9px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px;
-          font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.18s; white-space: nowrap;
-        }
-        .nav-cta:hover { background: var(--green-mid); }
+        .nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-        /* ── HERO ── */
+        /* Desktop nav links — hidden on mobile */
+        .nav-links-desktop {
+          display: none;
+          gap: 22px;
+          list-style: none;
+          align-items: center;
+        }
+        .nav-links-desktop a {
+          font-size: 13.5px; font-weight: 500; color: var(--slate);
+          text-decoration: none; transition: color 0.15s;
+        }
+        .nav-links-desktop a:hover { color: var(--green); }
+
+        /* Desktop CTA button — hidden on mobile */
+        .nav-cta-desktop {
+          display: none;
+          padding: 11px 20px;
+          min-height: 44px;
+          background: var(--green);
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.18s;
+          white-space: nowrap;
+        }
+        .nav-cta-desktop:hover { background: var(--green-mid); }
+
+        /* ── HAMBURGER ── */
+        .hamburger {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 5px;
+          width: 42px;
+          height: 42px;
+          background: var(--cream);
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          cursor: pointer;
+          padding: 0;
+          flex-shrink: 0;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+        .ham-bar {
+          display: block;
+          width: 18px;
+          height: 2px;
+          background: var(--ink);
+          border-radius: 2px;
+          transition: transform 0.25s ease, opacity 0.25s ease;
+          transform-origin: center;
+        }
+        .hamburger--open .ham-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger--open .ham-bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .hamburger--open .ham-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        /* ── BACKDROP OVERLAY ── */
+        .nav-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(26, 34, 54, 0.45);
+          z-index: 299;
+          backdrop-filter: blur(2px);
+          animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+        /* ── SLIDE-IN DRAWER ── */
+        .nav-drawer {
+          position: fixed;
+          top: 0; right: 0; bottom: 0;
+          width: min(300px, 85vw);
+          background: var(--white);
+          z-index: 300;
+          display: flex;
+          flex-direction: column;
+          box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+          transform: translateX(100%);
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-drawer--open { transform: translateX(0); }
+        .nav-drawer-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 18px 20px;
+          border-bottom: 1px solid var(--line);
+        }
+        .drawer-close {
+          width: 36px; height: 36px;
+          border: none;
+          background: var(--cream);
+          border-radius: 8px;
+          cursor: pointer;
+          position: relative;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .drawer-close span {
+          position: absolute;
+          width: 16px; height: 2px;
+          background: var(--ink);
+          border-radius: 2px;
+        }
+        .drawer-close span:nth-child(1) { transform: rotate(45deg); }
+        .drawer-close span:nth-child(2) { transform: rotate(-45deg); }
+        .drawer-city {
+          font-size: 11px; font-weight: 600; color: var(--slate);
+          letter-spacing: 0.5px; text-transform: uppercase;
+          padding: 14px 20px 10px;
+          border-bottom: 1px solid #f0f2f7;
+        }
+        .drawer-links { list-style: none; padding: 8px 0; flex: 1; }
+        .drawer-link {
+          display: block;
+          padding: 15px 20px;
+          font-size: 16px; font-weight: 500;
+          color: var(--ink); text-decoration: none;
+          border-bottom: 1px solid #f0f2f7;
+          transition: background 0.15s, color 0.15s;
+        }
+        .drawer-link:hover { background: var(--cream); color: var(--green); }
+        .drawer-cta-wrap { padding: 20px; border-top: 1px solid var(--line); }
+        .drawer-cta { width: 100%; padding: 15px; font-size: 16px; margin-top: 0; }
+
+        /* ── STICKY BOTTOM CTA (mobile only) ── */
+        .sticky-bottom-cta {
+          position: fixed;
+          bottom: 0; left: 0; right: 0;
+          background: var(--white);
+          border-top: 1px solid var(--line);
+          padding: 12px 20px;
+          z-index: 150;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        }
+        .sticky-bottom-cta .btn-primary { margin-top: 0; padding: 14px; font-size: 15px; }
+        .sticky-tel {
+          display: flex; align-items: center; justify-content: center;
+          width: 48px; height: 48px;
+          border-radius: 12px;
+          background: var(--cream);
+          border: 1px solid var(--line);
+          flex-shrink: 0;
+          text-decoration: none;
+          font-size: 20px;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           HERO
+           ══════════════════════════════════════════════════════ */
         .hero {
           background: linear-gradient(160deg, var(--green-light) 0%, #fff 60%);
-          padding: 80px 6vw 64px;
-          display: grid; grid-template-columns: 1fr 400px; gap: 56px; align-items: center;
+          padding: 36px 20px 40px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
         }
         .hero-eyebrow {
           display: inline-flex; align-items: center; gap: 8px;
           background: var(--green-light); border: 1px solid rgba(27,107,58,0.25);
           color: var(--green); font-size: 12px; font-weight: 600;
           letter-spacing: 1px; text-transform: uppercase;
-          padding: 5px 14px; border-radius: 100px; margin-bottom: 22px;
+          padding: 5px 14px; border-radius: 100px; margin-bottom: 18px;
+          align-self: flex-start;
         }
         .hero-dot {
           width: 6px; height: 6px; border-radius: 50%; background: var(--saffron);
           animation: pulse 1.8s ease-in-out infinite;
+          flex-shrink: 0;
         }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
-        .hero h1 { font-size: clamp(32px,4.8vw,54px); color: var(--ink); margin-bottom: 16px; }
+        .hero h1 { font-size: clamp(28px, 7.5vw, 54px); color: var(--ink); margin-bottom: 14px; }
         .hero h1 em { font-style: normal; color: var(--green); }
-        .hero-sub { font-size: 15.5px; color: var(--slate); max-width: 480px; margin-bottom: 28px; line-height: 1.8; }
-        .hero-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
-        .hero-bullets li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #3a4a66; }
+        .hero-sub { font-size: 15px; color: var(--slate); margin-bottom: 20px; line-height: 1.8; }
+        .hero-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+        .hero-bullets li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #3a4a66; line-height: 1.5; }
         .hero-bullets li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
         .btn-hero {
-          padding: 14px 28px; background: var(--green); color: #fff; border: none;
+          padding: 15px 28px; min-height: 50px;
+          background: var(--green); color: #fff; border: none;
           border-radius: var(--r); font-weight: 700; font-size: 15px; cursor: pointer;
-          transition: transform .15s, background .2s;
+          transition: background .2s;
+          width: 100%;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
-        .btn-hero:hover { transform: translateY(-2px); background: var(--green-mid); }
+        .btn-hero:hover { background: var(--green-mid); }
         .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
         .badge {
           display: flex; align-items: center; gap: 6px; background: var(--white);
-          border: 1px solid var(--line); font-size: 12.5px; font-weight: 500;
-          padding: 7px 13px; border-radius: var(--r); color: var(--ink);
+          border: 1px solid var(--line); font-size: 12px; font-weight: 500;
+          padding: 7px 12px; border-radius: var(--r); color: var(--ink);
         }
-        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
 
         /* ── EYE SVG ── */
-        .eye-svg { width: 100%; max-width: 360px; display: block; margin: 0 auto 24px; }
+        .eye-svg { width: 100%; max-width: 280px; display: block; margin: 0 auto 20px; }
 
         /* ── LEAD CARD ── */
         .lc-card {
-          background: var(--white); border-radius: 16px; padding: 36px 32px;
+          background: var(--white); border-radius: 16px; padding: 28px 22px;
           box-shadow: 0 8px 40px rgba(27,107,58,0.1), 0 1px 4px rgba(0,0,0,0.06);
           border: 1px solid var(--line);
         }
         .lc-tag {
           display: inline-block; background: var(--saffron); color: var(--ink);
           font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
-          padding: 4px 12px; border-radius: 100px; margin-bottom: 16px;
+          padding: 4px 12px; border-radius: 100px; margin-bottom: 14px;
         }
         .lc-title { font-size: 20px; margin-bottom: 6px; }
-        .lc-sub { font-size: 13.5px; color: var(--slate); margin-bottom: 22px; }
+        .lc-sub { font-size: 13.5px; color: var(--slate); margin-bottom: 20px; }
         .lc-field { margin-bottom: 14px; }
         .lc-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
         .lc-field input {
-          width: 100%; padding: 11px 14px; border: 1.5px solid #dde2ed;
-          border-radius: var(--r); font-size: 14.5px; color: var(--ink);
+          width: 100%; padding: 14px 16px; border: 1.5px solid #dde2ed;
+          border-radius: var(--r); font-size: 16px; color: var(--ink);
           background: #fafbfc; outline: none; transition: border-color .2s, background .2s;
+          -webkit-appearance: none;
         }
         .lc-field input:focus { border-color: var(--green); background: var(--white); }
         .lc-field input.input-err { border-color: var(--danger); }
@@ -293,16 +565,20 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           font-size: 12.5px; padding: 9px 13px; border-radius: var(--r); margin-bottom: 10px;
         }
         .btn-primary {
-          width: 100%; padding: 13px; background: var(--green); color: #fff; border: none;
-          border-radius: var(--r); font-size: 15px; font-weight: 700; cursor: pointer;
-          margin-top: 4px; transition: background .18s, transform .15s;
+          width: 100%; padding: 14px; min-height: 50px;
+          background: var(--green); color: #fff; border: none;
+          border-radius: var(--r); font-size: 16px; font-weight: 700; cursor: pointer;
+          margin-top: 4px; transition: background .18s;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); background: var(--green-mid); }
+        .btn-primary:hover:not(:disabled) { background: var(--green-mid); }
+        .btn-primary:active:not(:disabled) { background: #155c30; }
         .btn-primary:disabled { opacity: .65; cursor: not-allowed; }
         .lc-note { font-size: 11.5px; color: #9aa3b8; text-align: center; margin-top: 11px; }
         .lc-success { text-align: center; padding: 16px 0; }
         .lc-check {
-          width: 48px; height: 48px; border-radius: 50%; background: var(--green); color: #fff;
+          width: 52px; height: 52px; border-radius: 50%; background: var(--green); color: #fff;
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; margin: 0 auto 14px; animation: pop .35s ease;
         }
@@ -310,187 +586,279 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         .lc-success p { font-size: 15px; line-height: 1.65; }
         .spin-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; }
         .spinner {
-          width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.35);
-          border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block;
+          width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.35);
+          border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── TRUST ── */
+        /* ── TRUST BAR ── */
         .trust {
           background: var(--white); border-bottom: 1px solid var(--line);
-          padding: 14px 6vw; display: flex; justify-content: center; gap: 28px; flex-wrap: wrap;
+          padding: 12px 20px; display: flex; justify-content: center;
+          gap: 16px; flex-wrap: wrap;
         }
-        .trust-item { font-size: 13px; font-weight: 600; color: var(--green-mid); }
+        .trust-item { font-size: 12.5px; font-weight: 600; color: var(--green-mid); }
 
         /* ── STATS ── */
         .stats {
           background: var(--cream); border-bottom: 1px solid var(--line);
-          padding: 48px 6vw;
-          display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
+          padding: 36px 20px;
+          display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 12px;
         }
         .stat { text-align: center; }
-        .stat-val { display: block; font-family: var(--font-display); font-size: 30px; color: var(--green); }
-        .stat-lbl { display: block; font-size: 11.5px; color: var(--slate); margin-top: 5px; text-transform: uppercase; letter-spacing: .5px; }
+        .stat:last-child { grid-column: 1 / -1; }
+        .stat-val { display: block; font-family: var(--font-display); font-size: 26px; color: var(--green); }
+        .stat-lbl { display: block; font-size: 11px; color: var(--slate); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
 
-        /* ── SECTIONS ── */
-        .section { padding: 80px 6vw; }
+        /* ── GENERIC SECTIONS ── */
+        .section { padding: 52px 20px; }
         .section.bg-cream { background: var(--cream); }
-        .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
-        .section-title { font-size: clamp(26px,3.2vw,38px); margin-bottom: 14px; color: var(--ink); }
-        .section-lead { font-size: 15.5px; color: var(--slate); max-width: 580px; margin-bottom: 44px; line-height: 1.78; }
+        .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+        .section-title { font-size: clamp(24px, 6vw, 38px); margin-bottom: 12px; color: var(--ink); }
+        .section-lead { font-size: 14.5px; color: var(--slate); margin-bottom: 32px; line-height: 1.78; }
 
         /* ── BENEFITS ── */
-        .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 18px; }
+        .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .benefit-card {
-          background: var(--white); border: 1px solid var(--line); border-radius: 14px;
-          padding: 26px 22px; transition: transform .2s, box-shadow .2s;
+          background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 20px 16px;
         }
-        .benefit-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.06); }
         .benefit-icon {
-          width: 40px; height: 40px; border-radius: 10px; background: var(--green-light);
-          color: var(--green); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+          width: 38px; height: 38px; border-radius: 10px; background: var(--green-light);
+          color: var(--green); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
         }
         .benefit-icon svg { width: 20px; height: 20px; }
-        .benefit-card h3 { font-size: 15.5px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); color: var(--ink); }
-        .benefit-card p { font-size: 13.5px; color: var(--slate); line-height: 1.7; }
+        .benefit-card h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; font-family: var(--font-body); color: var(--ink); }
+        .benefit-card p { font-size: 12px; color: var(--slate); line-height: 1.7; }
 
         /* ── TECHNOLOGY ── */
-        .tech-section { background: var(--ink); }
+        .tech-section { background: var(--ink); padding: 52px 20px; }
         .tech-section .eyebrow { color: #6fa3f5; }
         .tech-section .section-title { color: var(--white); }
         .tech-section .section-lead { color: rgba(255,255,255,.65); }
-        .tech-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 20px; }
-        .tech-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 26px 22px; }
+        .tech-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .tech-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 22px 18px; }
         .tech-badge {
           display: inline-block; background: var(--saffron); color: var(--ink);
-          font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
-          padding: 3px 10px; border-radius: 100px; margin-bottom: 14px;
+          font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+          padding: 3px 10px; border-radius: 100px; margin-bottom: 12px;
         }
-        .tech-card h4 { font-size: 18px; color: var(--white); margin-bottom: 6px; font-family: var(--font-display); }
-        .tech-tagline { font-size: 13px; color: #6fa3f5; margin-bottom: 10px; }
+        .tech-card h4 { font-size: 18px; color: var(--white); margin-bottom: 5px; font-family: var(--font-display); }
+        .tech-tagline { font-size: 13px; color: #6fa3f5; margin-bottom: 8px; }
         .tech-desc { font-size: 13px; color: rgba(255,255,255,.62); line-height: 1.7; }
 
         /* ── TESTIMONIALS ── */
-        .testi-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 18px; }
-        .testi { background: var(--green-light); border: 1px solid rgba(27,107,58,.15); border-radius: 14px; padding: 24px 22px; }
-        .testi blockquote { font-size: 14.5px; line-height: 1.75; color: var(--ink); margin-bottom: 14px; font-style: italic; }
+        .testi-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 4px; }
+        .testi { background: var(--green-light); border: 1px solid rgba(27,107,58,.15); border-radius: 14px; padding: 22px 18px; }
+        .testi blockquote { font-size: 14px; line-height: 1.75; color: var(--ink); margin-bottom: 14px; font-style: italic; }
         .testi-name { font-weight: 700; font-size: 13px; color: var(--green); display: block; }
         .testi-role { font-size: 12.5px; color: var(--slate); }
-        .testi-note { font-size: 12px; color: var(--slate); margin-top: 22px; }
+        .testi-note { font-size: 12px; color: var(--slate); margin-top: 20px; }
 
         /* ── PROCESS ── */
         .process-section { background: var(--cream); }
-        .process-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 18px; }
-        .process-step { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 26px 22px; }
+        .process-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .process-step { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 22px 18px; }
         .process-num {
           width: 38px; height: 38px; border-radius: 50%; background: var(--green); color: #fff;
           font-size: 12px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+          display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
         }
-        .process-step h4 { font-size: 15.5px; font-weight: 600; margin-bottom: 7px; font-family: var(--font-body); color: var(--ink); }
+        .process-step h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; font-family: var(--font-body); color: var(--ink); }
         .process-step p { font-size: 13px; color: var(--slate); line-height: 1.7; }
 
         /* ── WHY ── */
-        .why-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(270px,1fr)); gap: 18px; }
-        .why-card { display: flex; gap: 14px; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+        .why-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .why-card { display: flex; gap: 14px; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px; }
         .why-icon {
           flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
           background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center;
         }
         .why-icon svg { width: 20px; height: 20px; }
-        .why-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; color: var(--ink); }
+        .why-card h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 4px; color: var(--ink); }
         .why-card p { font-size: 13px; color: var(--slate); line-height: 1.7; }
 
         /* ── FAQ ── */
-        .faq-list { max-width: 680px; }
+        .faq-list { margin-top: 28px; }
         .faq-item { border-bottom: 1px solid var(--line); }
         .faq-q {
           width: 100%; background: none; border: none; cursor: pointer; text-align: left;
           display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
-          padding: 18px 0; font-size: 15px; font-weight: 600; color: var(--ink);
+          padding: 18px 0; font-size: 14.5px; font-weight: 600; color: var(--ink);
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
         .faq-q span:first-child { flex: 1; }
-        .faq-icon { color: var(--green); font-size: 20px; flex-shrink: 0; line-height: 1; }
-        .faq-a { font-size: 13.5px; color: var(--slate); padding-bottom: 18px; line-height: 1.75; max-width: 600px; }
+        .faq-icon { color: var(--green); font-size: 22px; flex-shrink: 0; line-height: 1; }
+        .faq-a { font-size: 13.5px; color: var(--slate); padding-bottom: 18px; line-height: 1.75; }
 
         /* ── CLOSING ── */
-        .closing { background: linear-gradient(135deg, #1a2236 0%, #1d3a6e 100%); padding: 80px 6vw; text-align: center; }
-        .closing h2 { font-size: clamp(26px,3.6vw,40px); color: #fff; margin-bottom: 12px; }
-        .closing > p { font-size: 16px; color: rgba(255,255,255,.75); margin-bottom: 36px; }
+        .closing { background: linear-gradient(135deg, #1a2236 0%, #1d3a6e 100%); padding: 56px 20px; text-align: center; }
+        .closing h2 { font-size: clamp(24px, 6vw, 40px); color: #fff; margin-bottom: 12px; }
+        .closing > p { font-size: 15px; color: rgba(255,255,255,.75); margin-bottom: 28px; line-height: 1.7; }
         .strip {
-          display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
-          max-width: 640px; margin: 0 auto;
+          display: flex; flex-direction: column; gap: 12px;
+          max-width: 480px; margin: 0 auto;
           background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
           border-radius: 14px; padding: 18px;
         }
-        .strip-f { flex: 1; min-width: 170px; position: relative; }
+        .strip-f { position: relative; }
         .strip-f input {
-          width: 100%; padding: 12px 15px; border: 1.5px solid rgba(255,255,255,.22);
+          width: 100%; padding: 14px 15px; border: 1.5px solid rgba(255,255,255,.22);
           border-radius: var(--r); background: rgba(255,255,255,.07); color: #fff;
-          font-size: 14px; outline: none; transition: border-color .2s;
+          font-size: 16px; outline: none; transition: border-color .2s;
+          -webkit-appearance: none;
         }
         .strip-f input::placeholder { color: rgba(255,255,255,.5); }
         .strip-f input:focus { border-color: var(--saffron); }
         .strip-f input.input-err { border-color: #F87171; }
         .btn-strip {
           background: var(--saffron); color: var(--ink); border: none; cursor: pointer;
-          font-weight: 700; font-size: 14.5px; padding: 12px 26px; border-radius: var(--r);
-          white-space: nowrap; transition: transform .15s, background .18s;
+          font-weight: 700; font-size: 15px; padding: 14px 26px; min-height: 50px;
+          border-radius: var(--r); width: 100%;
+          transition: background .18s;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
-        .btn-strip:hover:not(:disabled) { background: #FBBF24; transform: translateY(-1px); }
+        .btn-strip:hover:not(:disabled) { background: #FBBF24; }
         .btn-strip:disabled { opacity: .65; cursor: not-allowed; }
         .strip-success {
           display: flex; align-items: center; gap: 12px; justify-content: center;
           background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
           border-radius: 14px; padding: 20px; font-size: 15px; color: #fff;
         }
-        .strip-api-err { flex-basis: 100%; font-size: 12.5px; color: #FCA5A5; text-align: left; margin-top: 4px; }
+        .strip-api-err { font-size: 12.5px; color: #FCA5A5; text-align: left; margin-top: 4px; }
 
         /* ── FOOTER ── */
         .footer {
-          background: #111827; padding: 28px 6vw;
-          display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+          background: #111827; padding: 22px 20px;
+          display: flex; flex-direction: column;
+          align-items: center; gap: 12px; text-align: center;
         }
         .footer-logo { display: flex; align-items: center; }
-        .footer-note { font-size: 12.5px; color: rgba(255,255,255,.4); }
+        .footer-note { font-size: 12px; color: rgba(255,255,255,.4); }
 
-        /* ── RESPONSIVE ── */
-        @media (max-width: 960px) {
-          .hero { grid-template-columns: 1fr; text-align: center; padding: 72px 5vw 52px; }
-          .hero-badges, .hero-actions { justify-content: center; }
-          .hero-sub, .section-lead { margin-inline: auto; }
-          .hero-bullets { align-items: center; }
-          .nav-links { display: none; }
+        /* ══════════════════════════════════════════════════════
+           TABLET ≥ 640px
+           ══════════════════════════════════════════════════════ */
+        @media (min-width: 640px) {
+          .benefits-grid { grid-template-columns: repeat(3, 1fr); }
+          .tech-grid { grid-template-columns: repeat(3, 1fr); }
+          .testi-grid { grid-template-columns: repeat(2, 1fr); }
+          .process-grid { grid-template-columns: repeat(2, 1fr); }
+          .why-grid { grid-template-columns: repeat(2, 1fr); }
+          .stats { grid-template-columns: repeat(3, 1fr); }
+          .stats .stat:last-child { grid-column: auto; }
+          .strip { flex-direction: row; }
+          .strip-f { flex: 1; }
+          .btn-strip { width: auto; }
         }
-        @media (max-width: 600px) {
-          .lc-card { padding: 24px 18px; }
-          .section { padding: 56px 5vw; }
-          .strip { flex-direction: column; }
-          .strip-f { width: 100%; }
-          .nav { padding: 0 4vw; }
+
+        /* ══════════════════════════════════════════════════════
+           DESKTOP ≥ 900px
+           ══════════════════════════════════════════════════════ */
+        @media (min-width: 900px) {
+          /* Remove body padding — no sticky bottom bar on desktop */
+          body { padding-bottom: 0; }
+
+          /* Hide sticky bottom CTA */
+          .sticky-bottom-cta { display: none; }
+
+          /* Nav */
+          .nav { padding: 0 6vw; height: 72px; }
+          .nav-city { flex: none; max-width: none; text-align: left; font-size: 12px; }
+          .nav-links-desktop { display: flex; }
+          .nav-cta-desktop { display: block; }
+          .hamburger { display: none; }
+
+          /* Hero — two-column */
+          .hero {
+            padding: 80px 6vw 64px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            column-gap: 56px;
+            grid-template-areas: "intro visual" "rest visual";
+            gap: 0;
+          }
+          .hero-intro { grid-area: intro; }
+          .hero-rest  { grid-area: rest; }
+          .hero-visual-card { grid-area: visual; }
+          .hero-eyebrow { align-self: auto; }
+          .btn-hero { width: auto; }
+          .eye-svg { max-width: 360px; margin-bottom: 24px; }
+          .lc-card { padding: 36px 32px; }
+
+          /* Stats */
+          .stats {
+            padding: 48px 6vw;
+            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
+          }
+          .stat-val { font-size: 30px; }
+          .stat-lbl { font-size: 11.5px; }
+
+          /* Sections */
+          .section { padding: 80px 6vw; }
+          .tech-section { padding: 80px 6vw; }
+          .section-lead { max-width: 580px; }
+
+          /* Benefits */
+          .benefits-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+          .benefit-card { padding: 26px 22px; }
+          .benefit-card h3 { font-size: 15.5px; }
+          .benefit-card p { font-size: 13.5px; }
+
+          /* Tech */
+          .tech-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+          .tech-card { padding: 26px 22px; }
+
+          /* Testimonials */
+          .testi-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+          /* Process */
+          .process-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; }
+
+          /* Why */
+          .why-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+
+          /* Closing */
+          .closing { padding: 80px 6vw; }
+          .strip { flex-direction: row; }
+          .strip-f { flex: 1; }
+          .btn-strip { width: auto; }
+
+          /* Footer */
+          .footer {
+            flex-direction: row; justify-content: space-between;
+            padding: 28px 6vw; text-align: left;
+          }
+        }
+
+        /* ══════════════════════════════════════════════════════
+           ACCESSIBILITY: reduced motion
+           ══════════════════════════════════════════════════════ */
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
         }
       `}</style>
 
-      {/* NAV */}
-      <nav className="nav">
-        <div className="nav-logo">
-          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={42} priority style={{ height: "96px", width: "auto" }} />
-        </div>
-        <span className="nav-city">LASIK · {city.name}</span>
-        <div className="nav-right">
-          <ul className="nav-links">
-            <li><a href="#benefits">Why LASIK</a></li>
-            <li><a href="#technology">Technology</a></li>
-            <li><a href="#process">What to Expect</a></li>
-            <li><a href="#faq-anchor">FAQ</a></li>
-          </ul>
-          <button className="nav-cta" onClick={scrollToForm}>Free Screening</button>
-        </div>
-      </nav>
+      {/* ── NAV (hamburger on mobile, full links on desktop) ── */}
+      <MobileNav cityName={city.name} scrollToForm={scrollToForm} />
 
-      {/* HERO */}
+      {/* ── STICKY BOTTOM CTA — mobile only ── */}
+      <div className="sticky-bottom-cta">
+        <a href="tel:+91XXXXXXXXXX" className="sticky-tel" aria-label="Call us">📞</a>
+        <button className="btn-primary" onClick={scrollToForm}>
+          Book Free Screening
+        </button>
+      </div>
+
+      {/* ── HERO ── */}
       <section className="hero">
-        <div>
+        <div className="hero-intro">
           <div className="hero-eyebrow">
             <span className="hero-dot" />
             {city.name} &nbsp;·&nbsp; Advanced LASIK Centre
@@ -500,23 +868,9 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
             <em>{city.headlineEm}</em>
           </h1>
           <p className="hero-sub">{city.sub}</p>
-          <ul className="hero-bullets">
-            <li>Bladeless, Contoura &amp; SMILE — matched to your eyes</li>
-            <li>Fellowship-trained ophthalmologists perform every procedure</li>
-            <li>Free pre-LASIK screening to confirm candidacy</li>
-            <li>Transparent pricing discussed after your screening</li>
-          </ul>
-          <div className="hero-actions">
-            <button className="btn-hero" onClick={scrollToForm}>Book Free Screening</button>
-          </div>
-          <div className="hero-badges">
-            <span className="badge"><span className="badge-dot" />NABH-accredited</span>
-            <span className="badge"><span className="badge-dot" />Bladeless &amp; Contoura LASIK</span>
-            <span className="badge"><span className="badge-dot" />Outpatient procedure</span>
-          </div>
         </div>
 
-        <div>
+        <div className="hero-visual-card">
           {/* Eye SVG illustration */}
           <svg className="eye-svg" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -549,16 +903,33 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
           </svg>
           <LeadCard cityKey={cityKey} />
         </div>
+
+        <div className="hero-rest">
+          <ul className="hero-bullets">
+            <li>Bladeless, Contoura &amp; SMILE — matched to your eyes</li>
+            <li>Fellowship-trained ophthalmologists perform every procedure</li>
+            <li>Free pre-LASIK screening to confirm candidacy</li>
+            <li>Transparent pricing discussed after your screening</li>
+          </ul>
+          <div className="hero-actions">
+            <button className="btn-hero" onClick={scrollToForm}>Book Free Screening</button>
+          </div>
+          <div className="hero-badges">
+            <span className="badge"><span className="badge-dot" />NABH-accredited</span>
+            <span className="badge"><span className="badge-dot" />Bladeless &amp; Contoura LASIK</span>
+            <span className="badge"><span className="badge-dot" />Outpatient procedure</span>
+          </div>
+        </div>
       </section>
 
-      {/* TRUST */}
+      {/* ── TRUST BAR ── */}
       <div className="trust">
         <span className="trust-item">⭐ 4.9 avg patient rating</span>
         <span className="trust-item">Fellowship-trained surgeons</span>
         <span className="trust-item">Transparent pricing</span>
       </div>
 
-      {/* STATS */}
+      {/* ── STATS ── */}
       <div className="stats">
         <div className="stat"><span className="stat-val">22,000+</span><span className="stat-lbl">Procedures performed</span></div>
         <div className="stat"><span className="stat-val">14+</span><span className="stat-lbl">Years in practice</span></div>
@@ -567,19 +938,19 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         <div className="stat"><span className="stat-val">7</span><span className="stat-lbl">Cities</span></div>
       </div>
 
-      {/* BENEFITS */}
+      {/* ── BENEFITS ── */}
       <section className="section bg-cream" id="benefits">
         <p className="eyebrow">Why LASIK</p>
         <h2 className="section-title">A permanent correction, not another pair of lenses</h2>
         <p className="section-lead">LASIK reshapes the cornea so light focuses correctly on the retina. Here's what that can mean for daily life — though outcomes vary by individual and prescription.</p>
         <div className="benefits-grid">
           {[
-            { icon: <IconSun />,    title: "Improved vision",               desc: "Many patients achieve significantly clearer vision after the procedure. Your surgeon will discuss what to expect based on your prescription." },
-            { icon: <IconBolt />,   title: "Short procedure time",          desc: "The laser portion of the procedure typically takes about 15–20 minutes per eye, performed under numbing drops." },
-            { icon: <IconShield />, title: "Long-lasting correction",       desc: "For most patients, the vision correction is long-lasting. Your surgeon will explain what to expect given your specific eye profile." },
-            { icon: <IconUsers />,  title: "Recovery for most is quick",   desc: "Most patients can return to desk work and daily activities within a few days, though this varies by individual." },
-            { icon: <IconLayers />, title: "Multiple technology options",   desc: "Bladeless, Contoura, or SMILE — we assess your eye and discuss which technology is suitable for your needs." },
-            { icon: <IconLoop />,   title: "Structured aftercare",         desc: "Scheduled follow-ups are part of the process, supporting your recovery through every stage." },
+            { icon: <IconSun />,    title: "Improved vision",              desc: "Many patients achieve significantly clearer vision after the procedure. Your surgeon will discuss what to expect based on your prescription." },
+            { icon: <IconBolt />,   title: "Short procedure time",         desc: "The laser portion of the procedure typically takes about 15–20 minutes per eye, performed under numbing drops." },
+            { icon: <IconShield />, title: "Long-lasting correction",      desc: "For most patients, the vision correction is long-lasting. Your surgeon will explain what to expect given your specific eye profile." },
+            { icon: <IconUsers />,  title: "Recovery for most is quick",  desc: "Most patients can return to desk work and daily activities within a few days, though this varies by individual." },
+            { icon: <IconLayers />, title: "Multiple technology options",  desc: "Bladeless, Contoura, or SMILE — we assess your eye and discuss which technology is suitable for your needs." },
+            { icon: <IconLoop />,   title: "Structured aftercare",        desc: "Scheduled follow-ups are part of the process, supporting your recovery through every stage." },
           ].map((b) => (
             <div key={b.title} className="benefit-card">
               <div className="benefit-icon">{b.icon}</div>
@@ -590,16 +961,16 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-      {/* TECHNOLOGY */}
+      {/* ── TECHNOLOGY ── */}
       <section className="section tech-section" id="technology">
         <p className="eyebrow">The Technology</p>
         <h2 className="section-title">Three approaches — matched to your eye</h2>
         <p className="section-lead">Not every eye suits the same method. Your pre-operative screening determines which technology is appropriate for you.</p>
         <div className="tech-grid">
           {[
-            { badge: "Commonly chosen",    name: "Bladeless LASIK",  tagline: "All-laser, no blade.",                               desc: "A femtosecond laser creates the corneal flap and an excimer laser reshapes it — a precise, well-established approach suited to most prescriptions." },
-            { badge: "Topography-guided",  name: "Contoura Vision",  tagline: "Guided by your cornea's unique surface map.",        desc: "Over 22,000 data points of your cornea shape the treatment, addressing irregularities that standard glasses cannot correct." },
-            { badge: "Minimally invasive", name: "SMILE",            tagline: "Flapless, smaller incision.",                       desc: "A keyhole-sized opening is used to reshape the cornea without creating a flap. Suitability depends on prescription and corneal thickness." },
+            { badge: "Commonly chosen",    name: "Bladeless LASIK", tagline: "All-laser, no blade.",                          desc: "A femtosecond laser creates the corneal flap and an excimer laser reshapes it — a precise, well-established approach suited to most prescriptions." },
+            { badge: "Topography-guided",  name: "Contoura Vision", tagline: "Guided by your cornea's unique surface map.",   desc: "Over 22,000 data points of your cornea shape the treatment, addressing irregularities that standard glasses cannot correct." },
+            { badge: "Minimally invasive", name: "SMILE",           tagline: "Flapless, smaller incision.",                  desc: "A keyhole-sized opening is used to reshape the cornea without creating a flap. Suitability depends on prescription and corneal thickness." },
           ].map((t) => (
             <div key={t.name} className="tech-card">
               <span className="tech-badge">{t.badge}</span>
@@ -611,7 +982,7 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-      {/* TESTIMONIALS — city-specific */}
+      {/* ── TESTIMONIALS ── */}
       <section className="section bg-cream">
         <p className="eyebrow">Patient Stories</p>
         <h2 className="section-title">Experiences shared by our patients in {city.name}</h2>
@@ -629,17 +1000,17 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         <p className="testi-note">Shared with patients' permission. Individual results vary by eye condition and candidacy.</p>
       </section>
 
-      {/* PROCESS */}
+      {/* ── PROCESS ── */}
       <section className="section process-section" id="process">
         <p className="eyebrow">What To Expect</p>
         <h2 className="section-title">From first call to your follow-up</h2>
         <p className="section-lead">A clear, step-by-step process with no surprises along the way.</p>
         <div className="process-grid">
           {[
-            { n: "01", title: "Initial consultation",    desc: "We get in touch to understand your eyes, your lifestyle, and to answer your questions before anything else." },
-            { n: "02", title: "Detailed eye screening",  desc: "A thorough pre-LASIK workup confirms whether you are a suitable candidate and which technology is appropriate for your eyes." },
-            { n: "03", title: "The LASIK procedure",     desc: "A precise laser procedure performed by a senior surgeon. Duration varies but typically takes around 15–20 minutes per eye." },
-            { n: "04", title: "Recovery and follow-up",  desc: "Scheduled check-ins at defined intervals ensure your eyes are healing as expected." },
+            { n: "01", title: "Initial consultation",   desc: "We get in touch to understand your eyes, your lifestyle, and to answer your questions before anything else." },
+            { n: "02", title: "Detailed eye screening", desc: "A thorough pre-LASIK workup confirms whether you are a suitable candidate and which technology is appropriate for your eyes." },
+            { n: "03", title: "The LASIK procedure",    desc: "A precise laser procedure performed by a senior surgeon. Duration varies but typically takes around 15–20 minutes per eye." },
+            { n: "04", title: "Recovery and follow-up", desc: "Scheduled check-ins at defined intervals ensure your eyes are healing as expected." },
           ].map((s) => (
             <div key={s.n} className="process-step">
               <div className="process-num">{s.n}</div>
@@ -650,17 +1021,17 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-      {/* WHY */}
+      {/* ── WHY ── */}
       <section className="section">
         <p className="eyebrow">Why This Clinic</p>
         <h2 className="section-title">What we focus on</h2>
         <p className="section-lead">Here's what we believe matters most — and what shapes how we work with every patient.</p>
         <div className="why-grid">
           {[
-            { icon: <IconLayers />, title: "Multiple technologies available",  desc: "Bladeless, Contoura, and SMILE under one roof — the right fit is decided after your screening." },
+            { icon: <IconLayers />, title: "Multiple technologies available",   desc: "Bladeless, Contoura, and SMILE under one roof — the right fit is decided after your screening." },
             { icon: <IconShield />, title: "Senior surgeons perform every case", desc: "Fellowship-trained ophthalmologists are responsible for each procedure." },
-            { icon: <IconBolt />,   title: "Pricing discussed after screening", desc: "A clear quote is provided after your pre-operative assessment — no figures committed before we know your eyes." },
-            { icon: <IconLoop />,   title: "Structured recovery support",       desc: "Follow-up appointments are scheduled as part of your care, not an afterthought." },
+            { icon: <IconBolt />,   title: "Pricing discussed after screening",  desc: "A clear quote is provided after your pre-operative assessment — no figures committed before we know your eyes." },
+            { icon: <IconLoop />,   title: "Structured recovery support",        desc: "Follow-up appointments are scheduled as part of your care, not an afterthought." },
           ].map((w) => (
             <div key={w.title} className="why-card">
               <div className="why-icon">{w.icon}</div>
@@ -670,24 +1041,24 @@ export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* ── FAQ ── */}
       <section className="section bg-cream" id="faq-anchor">
         <p className="eyebrow">Common Questions</p>
         <h2 className="section-title">Answers to questions most patients ask</h2>
         <FaqList />
       </section>
 
-      {/* CLOSING CTA */}
+      {/* ── CLOSING CTA ── */}
       <section className="closing">
         <h2>{city.closingHeadline}</h2>
         <p>{city.closingSub}</p>
         <LeadStrip cityKey={cityKey} />
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer className="footer">
         <div className="footer-logo">
-        <Image src="/vv.png" alt="Healvia Eye Care" width={180} height={48} style={{ height: "38px", width: "auto" }} />
+          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={42} style={{ height: "36px", width: "auto" }} />
         </div>
         <p className="footer-note">© 2025 Healvia Eye Care · {city.name}. All rights reserved.</p>
       </footer>
