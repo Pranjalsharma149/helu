@@ -1,1067 +1,1079 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import { CITY_DATA, SHARED_FAQS, CityKey } from "@/lib/lasik-city-data";
+import { useState, useRef } from 'react';
+import Image from 'next/image';
+import Script from 'next/script';
+import { CITY_DATA, SHARED_FAQS, type CityKey } from '@/lib/lasik-city-data';
 
-// ─── ICONS ───────────────────────────────────────────────────
-const ic = {
-  viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
-  strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const,
-};
-const IconSun    = () => <svg {...ic}><circle cx="12" cy="12" r="4.3"/><path d="M12 3v2.4M12 18.6V21M4.5 12h2.4M17.1 12h2.4M6.3 6.3l1.7 1.7M16 16l1.7 1.7M17.7 6.3 16 8M8 16l-1.7 1.7"/></svg>;
-const IconBolt   = () => <svg {...ic}><path d="M12 2 5 14h5l-1 8 8-12h-5l1-8Z"/></svg>;
-const IconShield = () => <svg {...ic}><path d="M12 3 5 6v6c0 4.2 3 7.4 7 9 4-1.6 7-4.8 7-9V6l-7-3Z"/><path d="M9 12l2 2 4-4.2"/></svg>;
-const IconLayers = () => <svg {...ic}><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 13l9 5 9-5M3 17.5l9 4.5 9-4.5"/></svg>;
-const IconLoop   = () => <svg {...ic}><path d="M7 9.5a3.5 3.5 0 1 0 0 5 13 13 0 0 0 5-5 13 13 0 0 0 5-5 3.5 3.5 0 1 1 0 5 13 13 0 0 1-5 5 13 13 0 0 1-5-5Z"/></svg>;
-const IconUsers  = () => <svg {...ic}><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 9a2.6 2.6 0 1 0 0-5"/><path d="M16.5 14c2.3.3 4 2 4 5"/></svg>;
+const LEADS_ENDPOINT = '/api/leads';
+const PHONE_TEL = '+919310984753';
+const PHONE_DISPLAY = '+91 93109 84753';
+const WA_NUMBER = '919310984753';
+const WA_MSG = encodeURIComponent("Hi, I'd like to book a free LASIK screening");
+const WA_URL = `https://wa.me/${WA_NUMBER}?text=${WA_MSG}`;
 
-// ─── FORM HOOK ────────────────────────────────────────────────
-type Status = "idle" | "loading" | "success" | "error";
+const IMG_EYE_MACRO = 'https://images.unsplash.com/photo-1483519173755-be893fab1f46?auto=format&fit=crop&w=1400&q=80';
+const IMG_EYE_TEST_MACHINE = 'https://images.unsplash.com/photo-1539036776273-021ec1d78bec?auto=format&fit=crop&w=900&q=80';
+const IMG_IRIS_CLOSEUP = 'https://images.unsplash.com/photo-1549872901-c350913bd5cb?auto=format&fit=crop&w=900&q=80';
+const IMG_GLASSES = 'https://images.unsplash.com/photo-1517948430535-1e2469d314fe?auto=format&fit=crop&w=900&q=80';
+const IMG_EYE_EXAM = 'https://images.unsplash.com/photo-1576210117723-cd06449a467d?auto=format&fit=crop&w=900&q=80';
+const IMG_DOCTOR_1 = 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=600&q=80';
+const IMG_DOCTOR_2 = 'https://images.unsplash.com/photo-1645066928295-2506defde470?auto=format&fit=crop&w=600&q=80';
+const IMG_DOCTOR_3 = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80';
 
-function useLeadForm(cityKey: CityKey, formId: string) {
-  const [name, setName]         = useState("");
-  const [phone, setPhone]       = useState("");
-  const [nameErr, setNameErr]   = useState("");
-  const [phoneErr, setPhoneErr] = useState("");
-  const [status, setStatus]     = useState<Status>("idle");
-  const [message, setMessage]   = useState("");
+interface FormData {
+  name: string;
+  phone: string;
+  email: string;
+  age: string;
+  city: CityKey;
+  eyeCondition: string;
+  wearGlasses: string;
+}
 
-  function validatePhone(v: string) {
-    const c = v.replace(/\D/g, "");
-    if (!c)              return "Mobile number is required";
-    if (c.length !== 10) return "Enter a valid 10-digit number";
-    if (!/^[6-9]/.test(c)) return "Enter a valid Indian mobile number";
-    if (/^(\d)\1{9}$/.test(c) || c === "1234567890") return "Please enter a real number";
-    return "";
-  }
+interface LasikLandingProps {
+  cityKey: CityKey;
+}
 
-  const onName  = (e: React.ChangeEvent<HTMLInputElement>) => { setName(e.target.value); if (nameErr) setNameErr(""); };
-  const onPhone = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value.replace(/[^\d\s\-+()]/g, "");
-    setPhone(v);
-    if (phoneErr) setPhoneErr(validatePhone(v));
+function validatePhone(digits: string): string {
+  if (digits.length !== 10) return 'Enter a valid 10-digit mobile number';
+  if (!/^[6-9]/.test(digits)) return 'Enter a valid Indian mobile number';
+  const fake = [/^(\d)\1{9}$/, /^1234567890$/, /^0987654321$/, /^1234554321$/];
+  if (fake.some(p => p.test(digits))) return 'Enter a real mobile number';
+  return '';
+}
+
+const WaIcon = ({ size = 17 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.553 4.118 1.527 5.846L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.375l-.36-.213-3.73.885.927-3.636-.233-.374A9.816 9.816 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
+  </svg>
+);
+
+const PhoneIcon = ({ size = 15 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>
+  </svg>
+);
+
+export default function LasikLandingPage({ cityKey }: LasikLandingProps) {
+  const cityData = CITY_DATA[cityKey];
+
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    phone: '',
+    email: '',
+    age: '',
+    city: cityKey,
+    eyeCondition: '',
+    wearGlasses: '',
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [expandedFAQ, setExpandedFAQ] = useState(0);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  if (!cityData) return <div style={{ padding: 40 }}>City not found: &quot;{cityKey}&quot;</div>;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  async function submit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nE = name.trim().length < 2 ? "Name must be at least 2 characters" : "";
-    const pE = validatePhone(phone);
-    setNameErr(nE); setPhoneErr(pE);
-    if (nE || pE) return;
+    setError('');
 
-    setStatus("loading");
+    const trimName = formData.name.trim();
+    if (trimName.length < 2) {
+      setError('Enter your full name');
+      return;
+    }
+
+    const digits = formData.phone.replace(/\D/g, '');
+    const phoneErr = validatePhone(digits);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res  = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch(LEADS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(), phone, service: "LASIK", city: cityKey,
-          source: CITY_DATA[cityKey].formSource + "-" + formId,
+          name: trimName,
+          phone: digits,
+          city: cityData.name,
+          source: cityData.formSource,
+          service: 'lasik',
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok || data.duplicate) {
-        setStatus("success");
-        setMessage(data.message || "Thank you. Our team will be in touch with you soon.");
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
       } else {
-        setStatus("error");
-        setMessage(data.error || "Something went wrong. Please try again.");
+        window.location.href = '/thank-you';
       }
     } catch {
-      setStatus("error");
-      setMessage("Unable to connect. Please try again later.");
+      setError('Could not reach our server. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  return { name, phone, nameErr, phoneErr, status, message, onName, onPhone, submit };
-}
-
-// ─── HERO LEAD CARD ──────────────────────────────────────────
-function LeadCard({ cityKey }: { cityKey: CityKey }) {
-  const f = useLeadForm(cityKey, "hero");
-  return (
-    <div className="lc-card" id="lead-anchor">
-      <span className="lc-tag">Free Eye Screening</span>
-      <h3 className="lc-title">Check your LASIK eligibility</h3>
-      <p className="lc-sub">Leave your details and a specialist will get in touch to discuss your options.</p>
-
-      {f.status === "success" ? (
-        <div className="lc-success">
-          <div className="lc-check">✓</div>
-          <p>{f.message}</p>
-        </div>
-      ) : (
-        <form onSubmit={f.submit} noValidate>
-          {f.status === "error" && <p className="lc-api-err">{f.message}</p>}
-          <div className="lc-field">
-            <label htmlFor="lc-name">Name</label>
-            <input id="lc-name" type="text" placeholder="Your name" value={f.name} onChange={f.onName} className={f.nameErr ? "input-err" : ""} />
-            {f.nameErr && <span className="ferr">{f.nameErr}</span>}
-          </div>
-          <div className="lc-field">
-            <label htmlFor="lc-phone">Mobile number</label>
-            <input id="lc-phone" type="tel" placeholder="98765 43210" value={f.phone} onChange={f.onPhone} maxLength={14} className={f.phoneErr ? "input-err" : ""} />
-            {f.phoneErr && <span className="ferr">{f.phoneErr}</span>}
-          </div>
-          <button type="submit" className="btn-primary" disabled={f.status === "loading"}>
-            {f.status === "loading" ? <span className="spin-wrap"><span className="spinner" />Sending…</span> : "Book free screening"}
-          </button>
-          <p className="lc-note">Your information is kept private and never shared.</p>
-        </form>
-      )}
-    </div>
-  );
-}
-
-// ─── CLOSING STRIP ───────────────────────────────────────────
-function LeadStrip({ cityKey }: { cityKey: CityKey }) {
-  const f = useLeadForm(cityKey, "closing");
-  if (f.status === "success") {
-    return (
-      <div className="strip-success">
-        <span className="lc-check">✓</span>
-        <p>{f.message}</p>
-      </div>
-    );
-  }
-  return (
-    <form className="strip" onSubmit={f.submit} noValidate>
-      <div className="strip-f">
-        <input type="text" placeholder="Your name" value={f.name} onChange={f.onName} className={f.nameErr ? "input-err" : ""} aria-label="Name" />
-        {f.nameErr && <span className="ferr ferr-light">{f.nameErr}</span>}
-      </div>
-      <div className="strip-f">
-        <input type="tel" placeholder="Mobile number" value={f.phone} onChange={f.onPhone} maxLength={14} className={f.phoneErr ? "input-err" : ""} aria-label="Mobile number" />
-        {f.phoneErr && <span className="ferr ferr-light">{f.phoneErr}</span>}
-      </div>
-      <button type="submit" className="btn-strip" disabled={f.status === "loading"}>
-        {f.status === "loading" ? "Sending…" : "Request a callback"}
-      </button>
-      {f.status === "error" && <p className="strip-api-err">{f.message}</p>}
-    </form>
-  );
-}
-
-// ─── FAQ ─────────────────────────────────────────────────────
-function FaqList() {
-  const [open, setOpen] = useState<number | null>(0);
-  return (
-    <div className="faq-list">
-      {SHARED_FAQS.map((item, i) => (
-        <div key={i} className="faq-item">
-          <button className="faq-q" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
-            <span>{item.q}</span>
-            <span className="faq-icon">{open === i ? "−" : "+"}</span>
-          </button>
-          {open === i && <p className="faq-a">{item.a}</p>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── MOBILE NAV WITH HAMBURGER ────────────────────────────────
-function MobileNav({ cityName, scrollToForm }: { cityName: string; scrollToForm: () => void }) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
-
-  const close = () => setOpen(false);
-
-  const navLinks = [
-    { href: "#benefits",   label: "Why LASIK" },
-    { href: "#technology", label: "Technology" },
-    { href: "#process",    label: "What to Expect" },
-    { href: "#faq-anchor", label: "FAQ" },
-  ];
+  const scrollToForm = () => {
+    document.getElementById('lead-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => nameRef.current?.focus(), 400);
+  };
 
   return (
-    <>
-      {/* Backdrop overlay */}
-      {open && (
-        <div className="nav-overlay" onClick={close} aria-hidden="true" />
-      )}
-
-      {/* Slide-in drawer */}
-      <div className={`nav-drawer${open ? " nav-drawer--open" : ""}`} aria-hidden={!open}>
-        <div className="nav-drawer-header">
-          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={44} style={{ height: "44px", width: "auto" }} />
-          <button className="drawer-close" onClick={close} aria-label="Close menu">
-            <span /><span />
-          </button>
-        </div>
-        <p className="drawer-city">LASIK · {cityName}</p>
-        <nav>
-          <ul className="drawer-links">
-            {navLinks.map(l => (
-              <li key={l.href}>
-                <a href={l.href} onClick={close} className="drawer-link">{l.label}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="drawer-cta-wrap">
-          <button
-            className="btn-primary drawer-cta"
-            onClick={() => { close(); scrollToForm(); }}
-          >
-            Book Free Screening
-          </button>
-        </div>
-      </div>
-
-      {/* Top navbar */}
-      <nav className="nav">
-        <div className="nav-logo">
-          <Image src="/vv.png" alt="Healvia Eye Care" width={180} height={56} priority style={{ height: "96px", width: "auto" }} />
-        </div>
-        {/* City pill — hidden on very small screens, shown centre on mobile */}
-        <span className="nav-city">LASIK · {cityName}</span>
-        <div className="nav-right">
-          {/* Desktop-only links */}
-          <ul className="nav-links-desktop">
-            {navLinks.map(l => (
-              <li key={l.href}><a href={l.href}>{l.label}</a></li>
-            ))}
-          </ul>
-          <button className="nav-cta nav-cta-desktop" onClick={scrollToForm}>Free Screening</button>
-          {/* Hamburger — hidden on desktop */}
-          <button
-            className={`hamburger${open ? " hamburger--open" : ""}`}
-            onClick={() => setOpen(!open)}
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-          >
-            <span className="ham-bar" />
-            <span className="ham-bar" />
-            <span className="ham-bar" />
-          </button>
-        </div>
-      </nav>
-    </>
-  );
-}
-
-// ─── PAGE ─────────────────────────────────────────────────────
-export default function LasikLandingPage({ cityKey }: { cityKey: CityKey }) {
-  const city = CITY_DATA[cityKey];
-
-  function scrollToForm() {
-    document.getElementById("lead-anchor")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => document.getElementById("lc-name")?.focus(), 500);
-  }
-
-  return (
-    <>
+    <div className="llp">
+      {/* ── GOOGLE TAG MANAGER ── */}
+      <Script
+        id="gtm-script"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5PJZFM59');`,
+        }}
+      />
+      <noscript>
+        <iframe
+          src="https://www.googletagmanager.com/ns.html?id=GTM-5PJZFM59"
+          height="0"
+          width="0"
+          style={{ display: 'none', visibility: 'hidden' }}
+        />
+      </noscript>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@600&display=swap');
-
-        :root {
-          --ink: #1a2236;
-          --white: #ffffff;
-          --cream: #f4f7fd;
-          --green: #1B6B3A;
-          --green-light: #e8f5ee;
-          --green-mid: #2E7D52;
-          --saffron: #F59E0B;
-          --saffron-light: #FEF3C7;
-          --sky: #0EA5E9;
-          --slate: #5a6680;
-          --line: #e8ecf4;
-          --danger: #DC2626;
-          --r: 10px;
-          --font-display: 'DM Serif Display', Georgia, serif;
-          --font-body: 'DM Sans', system-ui, sans-serif;
-          --font-mono: 'Space Mono', monospace;
+        /* ── GLOBAL RESET ── */
+        .llp *, .llp *::before, .llp *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        .llp {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+          color: #1a1a1a;
+          background: #ffffff;
+          line-height: 1.6;
+          --accent: #4CAF50;
         }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-        body {
-          font-family: var(--font-body); color: var(--ink); background: var(--white);
-          line-height: 1.6; overflow-x: hidden;
-          -webkit-font-smoothing: antialiased;
-          /* space for sticky bottom bar on mobile */
-          padding-bottom: 76px;
-        }
-        h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; }
-        button, input { font-family: inherit; }
-        img { max-width: 100%; }
-        :focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
-
-        /* ══════════════════════════════════════════════════════
-           NAV
-           ══════════════════════════════════════════════════════ */
-        .nav {
-          padding: 0 16px;
-          height: 68px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          background: var(--white);
-          border-bottom: 1px solid var(--line);
+        /* ── HEADER ── */
+        .llp-header {
           position: sticky;
           top: 0;
           z-index: 200;
+          background: #ffffff;
+          border-bottom: 1.5px solid #e5e7eb;
+          box-shadow: 0 1px 8px rgba(0,0,0,0.04);
         }
-        .nav-logo { display: flex; align-items: center; flex-shrink: 0; }
-        .nav-city {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--slate);
-          letter-spacing: 0.3px;
-          background: var(--cream);
-          padding: 4px 10px;
-          border-radius: 100px;
-          border: 1px solid var(--line);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 160px;
-          flex: 1;
-          text-align: center;
-        }
-        .nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-
-        /* Desktop nav links — hidden on mobile */
-        .nav-links-desktop {
-          display: none;
-          gap: 22px;
-          list-style: none;
-          align-items: center;
-        }
-        .nav-links-desktop a {
-          font-size: 13.5px; font-weight: 500; color: var(--slate);
-          text-decoration: none; transition: color 0.15s;
-        }
-        .nav-links-desktop a:hover { color: var(--green); }
-
-        /* Desktop CTA button — hidden on mobile */
-        .nav-cta-desktop {
-          display: none;
-          padding: 11px 20px;
-          min-height: 44px;
-          background: var(--green);
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.18s;
-          white-space: nowrap;
-        }
-        .nav-cta-desktop:hover { background: var(--green-mid); }
-
-        /* ── HAMBURGER ── */
-        .hamburger {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          gap: 5px;
-          width: 42px;
-          height: 42px;
-          background: var(--cream);
-          border: 1px solid var(--line);
-          border-radius: 10px;
-          cursor: pointer;
-          padding: 0;
-          flex-shrink: 0;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
-        }
-        .ham-bar {
-          display: block;
-          width: 18px;
-          height: 2px;
-          background: var(--ink);
-          border-radius: 2px;
-          transition: transform 0.25s ease, opacity 0.25s ease;
-          transform-origin: center;
-        }
-        .hamburger--open .ham-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-        .hamburger--open .ham-bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
-        .hamburger--open .ham-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-        /* ── BACKDROP OVERLAY ── */
-        .nav-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(26, 34, 54, 0.45);
-          z-index: 299;
-          backdrop-filter: blur(2px);
-          animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-
-        /* ── SLIDE-IN DRAWER ── */
-        .nav-drawer {
-          position: fixed;
-          top: 0; right: 0; bottom: 0;
-          width: min(300px, 85vw);
-          background: var(--white);
-          z-index: 300;
-          display: flex;
-          flex-direction: column;
-          box-shadow: -8px 0 40px rgba(0,0,0,0.15);
-          transform: translateX(100%);
-          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .nav-drawer--open { transform: translateX(0); }
-        .nav-drawer-header {
+        .llp-header-inner {
+          max-width: 1400px;
+          margin: 0 auto;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 18px 20px;
-          border-bottom: 1px solid var(--line);
+          padding: 2px 24px;
+          gap: 16px;
+          min-height: 52px;
         }
-        .drawer-close {
-          width: 36px; height: 36px;
-          border: none;
-          background: var(--cream);
-          border-radius: 8px;
-          cursor: pointer;
-          position: relative;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .drawer-close span {
-          position: absolute;
-          width: 16px; height: 2px;
-          background: var(--ink);
-          border-radius: 2px;
-        }
-        .drawer-close span:nth-child(1) { transform: rotate(45deg); }
-        .drawer-close span:nth-child(2) { transform: rotate(-45deg); }
-        .drawer-city {
-          font-size: 11px; font-weight: 600; color: var(--slate);
-          letter-spacing: 0.5px; text-transform: uppercase;
-          padding: 14px 20px 10px;
-          border-bottom: 1px solid #f0f2f7;
-        }
-        .drawer-links { list-style: none; padding: 8px 0; flex: 1; }
-        .drawer-link {
-          display: block;
-          padding: 15px 20px;
-          font-size: 16px; font-weight: 500;
-          color: var(--ink); text-decoration: none;
-          border-bottom: 1px solid #f0f2f7;
-          transition: background 0.15s, color 0.15s;
-        }
-        .drawer-link:hover { background: var(--cream); color: var(--green); }
-        .drawer-cta-wrap { padding: 20px; border-top: 1px solid var(--line); }
-        .drawer-cta { width: 100%; padding: 15px; font-size: 16px; margin-top: 0; }
-
-        /* ── STICKY BOTTOM CTA (mobile only) ── */
-        .sticky-bottom-cta {
-          position: fixed;
-          bottom: 0; left: 0; right: 0;
-          background: var(--white);
-          border-top: 1px solid var(--line);
-          padding: 12px 20px;
-          z-index: 150;
+        .llp-logo {
           display: flex;
-          gap: 12px;
           align-items: center;
-          box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-        }
-        .sticky-bottom-cta .btn-primary { margin-top: 0; padding: 14px; font-size: 15px; }
-        .sticky-tel {
-          display: flex; align-items: center; justify-content: center;
-          width: 48px; height: 48px;
-          border-radius: 12px;
-          background: var(--cream);
-          border: 1px solid var(--line);
-          flex-shrink: 0;
           text-decoration: none;
-          font-size: 20px;
-        }
-
-        /* ══════════════════════════════════════════════════════
-           HERO
-           ══════════════════════════════════════════════════════ */
-        .hero {
-          background: linear-gradient(160deg, var(--green-light) 0%, #fff 60%);
-          padding: 36px 20px 40px;
-          display: flex;
-          flex-direction: column;
-          gap: 28px;
-        }
-        .hero-eyebrow {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: var(--green-light); border: 1px solid rgba(27,107,58,0.25);
-          color: var(--green); font-size: 12px; font-weight: 600;
-          letter-spacing: 1px; text-transform: uppercase;
-          padding: 5px 14px; border-radius: 100px; margin-bottom: 18px;
-          align-self: flex-start;
-        }
-        .hero-dot {
-          width: 6px; height: 6px; border-radius: 50%; background: var(--saffron);
-          animation: pulse 1.8s ease-in-out infinite;
           flex-shrink: 0;
+          transition: transform 0.3s ease;
         }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
-        .hero h1 { font-size: clamp(28px, 7.5vw, 54px); color: var(--ink); margin-bottom: 14px; }
-        .hero h1 em { font-style: normal; color: var(--green); }
-        .hero-sub { font-size: 15px; color: var(--slate); margin-bottom: 20px; line-height: 1.8; }
-        .hero-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-        .hero-bullets li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #3a4a66; line-height: 1.5; }
-        .hero-bullets li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-        .btn-hero {
-          padding: 15px 28px; min-height: 50px;
-          background: var(--green); color: #fff; border: none;
-          border-radius: var(--r); font-weight: 700; font-size: 15px; cursor: pointer;
-          transition: background .2s;
-          width: 100%;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
+        .llp-logo:hover { transform: scale(1.04); }
+        .llp-logo img, .llp-logo-img {
+          height: auto;
+          width: auto;
+          max-height: 50px;
+          max-width: 240px;
+          display: block;
+          object-fit: contain;
         }
-        .btn-hero:hover { background: var(--green-mid); }
-        .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
-        .badge {
-          display: flex; align-items: center; gap: 6px; background: var(--white);
-          border: 1px solid var(--line); font-size: 12px; font-weight: 500;
-          padding: 7px 12px; border-radius: var(--r); color: var(--ink);
-        }
-        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+        .llp-nav { display: flex; align-items: center; gap: 10px; }
 
-        /* ── EYE SVG ── */
-        .eye-svg { width: 100%; max-width: 280px; display: block; margin: 0 auto 20px; }
+        /* ── NAV BUTTONS ── */
+        .llp-btn-wa {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          background: var(--accent);
+          color: #fff;
+          text-decoration: none;
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          transition: all 0.3s ease;
+        }
+        .llp-btn-wa:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(76, 175, 80, 0.3); }
+        .llp-btn-call {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          background: #fff;
+          color: #111827;
+          border: 1.5px solid #e5e7eb;
+          text-decoration: none;
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          transition: all 0.3s ease;
+        }
+        .llp-btn-call:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .llp-btn-screen {
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .llp-btn-screen:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
 
-        /* ── LEAD CARD ── */
-        .lc-card {
-          background: var(--white); border-radius: 16px; padding: 28px 22px;
-          box-shadow: 0 8px 40px rgba(27,107,58,0.1), 0 1px 4px rgba(0,0,0,0.06);
-          border: 1px solid var(--line);
+        /* ── CITY BAR ── */
+        .llp-city-bar {
+          background: #ffffff;
+          border-bottom: 1.5px solid #e5e7eb;
+          padding: 10px 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
-        .lc-tag {
-          display: inline-block; background: var(--saffron); color: var(--ink);
-          font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
-          padding: 4px 12px; border-radius: 100px; margin-bottom: 14px;
+        .llp-city-bar-label { font-size: 11px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 0.08em; }
+        .llp-city-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .llp-city-tab {
+          padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+          border: 1.5px solid #e5e7eb; color: #374151; background: #fff; cursor: pointer;
+          transition: all 0.3s ease; text-decoration: none; display: inline-block;
         }
-        .lc-title { font-size: 20px; margin-bottom: 6px; }
-        .lc-sub { font-size: 13.5px; color: var(--slate); margin-bottom: 20px; }
-        .lc-field { margin-bottom: 14px; }
-        .lc-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
-        .lc-field input {
-          width: 100%; padding: 14px 16px; border: 1.5px solid #dde2ed;
-          border-radius: var(--r); font-size: 16px; color: var(--ink);
-          background: #fafbfc; outline: none; transition: border-color .2s, background .2s;
-          -webkit-appearance: none;
+        .llp-city-tab.active, .llp-city-tab:hover {
+          background: var(--accent); color: #fff; border-color: var(--accent);
         }
-        .lc-field input:focus { border-color: var(--green); background: var(--white); }
-        .lc-field input.input-err { border-color: var(--danger); }
-        .ferr { display: block; margin-top: 4px; font-size: 12px; color: var(--danger); }
-        .ferr-light { color: #FCA5A5; }
-        .lc-api-err {
-          background: #FEF2F2; border: 1px solid #FCA5A5; color: var(--danger);
-          font-size: 12.5px; padding: 9px 13px; border-radius: var(--r); margin-bottom: 10px;
-        }
-        .btn-primary {
-          width: 100%; padding: 14px; min-height: 50px;
-          background: var(--green); color: #fff; border: none;
-          border-radius: var(--r); font-size: 16px; font-weight: 700; cursor: pointer;
-          margin-top: 4px; transition: background .18s;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
-        }
-        .btn-primary:hover:not(:disabled) { background: var(--green-mid); }
-        .btn-primary:active:not(:disabled) { background: #155c30; }
-        .btn-primary:disabled { opacity: .65; cursor: not-allowed; }
-        .lc-note { font-size: 11.5px; color: #9aa3b8; text-align: center; margin-top: 11px; }
-        .lc-success { text-align: center; padding: 16px 0; }
-        .lc-check {
-          width: 52px; height: 52px; border-radius: 50%; background: var(--green); color: #fff;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 22px; margin: 0 auto 14px; animation: pop .35s ease;
-        }
-        @keyframes pop { from{transform:scale(0);} to{transform:scale(1);} }
-        .lc-success p { font-size: 15px; line-height: 1.65; }
-        .spin-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .spinner {
-          width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.35);
-          border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; flex-shrink: 0;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── TRUST BAR ── */
-        .trust {
-          background: var(--white); border-bottom: 1px solid var(--line);
-          padding: 12px 20px; display: flex; justify-content: center;
-          gap: 16px; flex-wrap: wrap;
+        /* ── PAGE LAYOUT ── */
+        .llp-page { max-width: 1400px; margin: 0 auto; padding: 28px 24px 0; background: #ffffff; }
+        .llp-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+        .llp-main { min-width: 0; }
+        .llp-side { position: sticky; top: 84px; }
+
+        /* ── HERO ── */
+        .llp-hero {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 18px;
+          padding: 44px 40px;
+          margin-bottom: 28px;
+          overflow: hidden;
+          position: relative;
         }
-        .trust-item { font-size: 12.5px; font-weight: 600; color: var(--green-mid); }
+        .llp-hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 36px; align-items: center; }
+        .llp-hero-badge {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #ffffff; color: #374151;
+          font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+          padding: 7px 14px; border-radius: 999px; margin-bottom: 18px;
+          border: 1px solid #e5e7eb;
+        }
+        .llp-hero h1 { font-size: 42px; line-height: 1.18; font-weight: 900; color: var(--accent); margin-bottom: 14px; }
+        .llp-hero h1 em { font-style: normal; color: #111827; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+        .llp-hero-sub { font-size: 15.5px; color: #374151; line-height: 1.75; margin-bottom: 24px; max-width: 520px; }
+        .llp-hero-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
+        .llp-hero-pill {
+          display: flex; align-items: center; gap: 8px;
+          background: #fff; border: 1px solid #e5e7eb;
+          padding: 9px 14px; border-radius: 999px; font-size: 13px; color: #374151; font-weight: 600;
+        }
+        .llp-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+        .llp-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+        .llp-hero-cta-primary {
+          background: var(--accent); color: #fff; border: none;
+          padding: 13px 22px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .llp-hero-cta-primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .llp-hero-cta-secondary {
+          background: #fff; color: #111827; border: 1.5px solid #e5e7eb;
+          padding: 13px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none;
+          display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+        }
+        .llp-hero-cta-secondary:hover { background: #ffffff; }
+        .llp-hero-visual { position: relative; }
+        .llp-hero-img-wrap {
+          border-radius: 16px; overflow: hidden; height: 320px;
+          border: 2px solid #e5e7eb;
+        }
+        .llp-hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-hero-floatcard {
+          position: absolute; background: #fff; color: #1a1a1a; border-radius: 12px;
+          padding: 12px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); display: flex; align-items: center; gap: 10px;
+          min-width: 168px; border: 1.5px solid #e5e7eb;
+        }
+        .llp-hero-floatcard .num { font-size: 18px; font-weight: 900; color: var(--accent); line-height: 1; }
+        .llp-hero-floatcard .lbl { font-size: 11px; color: #6b7280; font-weight: 600; }
+        .llp-hero-fc-1 { top: -16px; right: -8px; }
+        .llp-hero-fc-2 { bottom: -16px; left: -10px; }
 
         /* ── STATS ── */
-        .stats {
-          background: var(--cream); border-bottom: 1px solid var(--line);
-          padding: 36px 20px;
-          display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 12px;
+        .llp-stats {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+          margin-bottom: 28px;
         }
-        .stat { text-align: center; }
-        .stat:last-child { grid-column: 1 / -1; }
-        .stat-val { display: block; font-family: var(--font-display); font-size: 26px; color: var(--green); }
-        .stat-lbl { display: block; font-size: 11px; color: var(--slate); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
-
-        /* ── GENERIC SECTIONS ── */
-        .section { padding: 52px 20px; }
-        .section.bg-cream { background: var(--cream); }
-        .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
-        .section-title { font-size: clamp(24px, 6vw, 38px); margin-bottom: 12px; color: var(--ink); }
-        .section-lead { font-size: 14.5px; color: var(--slate); margin-bottom: 32px; line-height: 1.78; }
-
-        /* ── BENEFITS ── */
-        .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .benefit-card {
-          background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 20px 16px;
+        .llp-stat {
+          background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px;
+          padding: 22px 16px; text-align: center;
         }
-        .benefit-icon {
-          width: 38px; height: 38px; border-radius: 10px; background: var(--green-light);
-          color: var(--green); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
-        }
-        .benefit-icon svg { width: 20px; height: 20px; }
-        .benefit-card h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; font-family: var(--font-body); color: var(--ink); }
-        .benefit-card p { font-size: 12px; color: var(--slate); line-height: 1.7; }
+        .llp-stat-num { font-size: 30px; font-weight: 900; color: var(--accent); }
+        .llp-stat-label { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 600; }
 
-        /* ── TECHNOLOGY ── */
-        .tech-section { background: var(--ink); padding: 52px 20px; }
-        .tech-section .eyebrow { color: #6fa3f5; }
-        .tech-section .section-title { color: var(--white); }
-        .tech-section .section-lead { color: rgba(255,255,255,.65); }
-        .tech-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        .tech-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 22px 18px; }
-        .tech-badge {
-          display: inline-block; background: var(--saffron); color: var(--ink);
-          font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
-          padding: 3px 10px; border-radius: 100px; margin-bottom: 12px;
+        /* ── SECTIONS ── */
+        .llp-section {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 14px;
+          padding: 34px 32px;
+          margin-bottom: 22px;
         }
-        .tech-card h4 { font-size: 18px; color: var(--white); margin-bottom: 5px; font-family: var(--font-display); }
-        .tech-tagline { font-size: 13px; color: #6fa3f5; margin-bottom: 8px; }
-        .tech-desc { font-size: 13px; color: rgba(255,255,255,.62); line-height: 1.7; }
+        .llp-section-tint { background: #ffffff; border: 1.5px solid #e5e7eb; }
+        .llp-section h2 { font-size: 26px; font-weight: 900; color: var(--accent); margin-bottom: 8px; }
+        .llp-section-lead { font-size: 15px; color: #6b7280; margin-bottom: 22px; line-height: 1.7; }
 
-        /* ── TESTIMONIALS ── */
-        .testi-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 4px; }
-        .testi { background: var(--green-light); border: 1px solid rgba(27,107,58,.15); border-radius: 14px; padding: 22px 18px; }
-        .testi blockquote { font-size: 14px; line-height: 1.75; color: var(--ink); margin-bottom: 14px; font-style: italic; }
-        .testi-name { font-weight: 700; font-size: 13px; color: var(--green); display: block; }
-        .testi-role { font-size: 12.5px; color: var(--slate); }
-        .testi-note { font-size: 12px; color: var(--slate); margin-top: 20px; }
-
-        /* ── PROCESS ── */
-        .process-section { background: var(--cream); }
-        .process-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-        .process-step { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 22px 18px; }
-        .process-num {
-          width: 38px; height: 38px; border-radius: 50%; background: var(--green); color: #fff;
-          font-size: 12px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+        /* ── WHY GRID ── */
+        .llp-why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .llp-why-card {
+          display: flex; gap: 14px; align-items: flex-start; padding: 18px;
+          border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff; transition: all 0.3s ease;
         }
-        .process-step h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; font-family: var(--font-body); color: var(--ink); }
-        .process-step p { font-size: 13px; color: var(--slate); line-height: 1.7; }
+        .llp-why-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .llp-why-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+        .llp-why-text { font-size: 14px; color: #1a1a1a; font-weight: 500; line-height: 1.6; }
 
-        /* ── WHY ── */
-        .why-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-        .why-card { display: flex; gap: 14px; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px; }
-        .why-icon {
-          flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
-          background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center;
+        /* ── PROCESS GRID ── */
+        .llp-process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .llp-process-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 22px 18px; text-align: center; transition: all 0.3s ease; }
+        .llp-process-card:hover { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .llp-process-num {
+          display: inline-flex; width: 42px; height: 42px;
+          background: var(--accent); color: #fff;
+          border-radius: 50%; align-items: center; justify-content: center; font-size: 17px; font-weight: 900; margin-bottom: 12px;
         }
-        .why-icon svg { width: 20px; height: 20px; }
-        .why-card h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 4px; color: var(--ink); }
-        .why-card p { font-size: 13px; color: var(--slate); line-height: 1.7; }
+        .llp-process-card h3 { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+        .llp-process-card p { font-size: 13px; color: #6b7280; line-height: 1.6; }
+
+        /* ── PHOTO GRID ── */
+        .llp-img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+        .llp-img-grid-item { width: 100%; height: 190px; border-radius: 12px; overflow: hidden; border: 1.5px solid #e5e7eb; }
+        .llp-img-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-img-caption { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 8px; font-weight: 500; }
+
+        /* ── LISTS ── */
+        .llp-check { list-style: none; }
+        .llp-check li { display: flex; gap: 12px; margin-bottom: 13px; font-size: 14px; color: #1a1a1a; line-height: 1.6; }
+        .llp-check li::before { content: "✓"; color: var(--accent); font-weight: 900; flex-shrink: 0; font-size: 16px; }
+        .llp-cross { list-style: none; }
+        .llp-cross li { display: flex; gap: 12px; margin-bottom: 13px; font-size: 14px; color: #6b7280; line-height: 1.6; }
+        .llp-cross li::before { content: "✗"; color: #dc2626; font-weight: 900; flex-shrink: 0; font-size: 16px; }
+        .llp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        .llp-two h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+
+        /* ── COMPARE ── */
+        .llp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .llp-compare-col { border-radius: 12px; overflow: hidden; border: 1.5px solid #e5e7eb; }
+        .llp-compare-img { height: 170px; overflow: hidden; }
+        .llp-compare-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-compare-body { padding: 18px; }
+        .llp-compare-body h3 { font-size: 15px; font-weight: 800; margin-bottom: 12px; color: var(--accent); }
+        .llp-compare-col.bad .llp-compare-body h3 { color: #dc2626; }
+        .llp-compare-col.good .llp-compare-body h3 { color: var(--accent); }
+        .llp-compare-col.good { border-color: var(--accent); }
+
+        /* ── DOCTOR CARDS ── */
+        .llp-doctor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .llp-doctor-card { border: 1.5px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+        .llp-doctor-card:hover { border-color: var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .llp-doctor-photo { height: 190px; overflow: hidden; }
+        .llp-doctor-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-doctor-info { padding: 14px 16px; }
+        .llp-doctor-info h3 { font-size: 15px; font-weight: 800; margin-bottom: 2px; color: var(--accent); }
+        .llp-doctor-info .role { font-size: 12.5px; color: #374151; font-weight: 700; margin-bottom: 6px; }
+        .llp-doctor-info .exp { font-size: 12.5px; color: #9ca3af; }
+
+        /* ── EMI CARDS ── */
+        .llp-emi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+        .llp-emi-card { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 18px; text-align: center; }
+        .llp-emi-card .tenure { font-size: 22px; font-weight: 900; color: var(--accent); }
+        .llp-emi-card .note { font-size: 12.5px; color: #9ca3af; margin-top: 4px; }
+
+        /* ── TABLE ── */
+        .llp-tbl-wrap { overflow-x: auto; }
+        .llp-tbl { width: 100%; border-collapse: collapse; border: 1.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .llp-tbl thead { background: #ffffff; }
+        .llp-tbl th { padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 700; color: var(--accent); border-bottom: 2px solid #e5e7eb; }
+        .llp-tbl td { padding: 14px 16px; font-size: 13px; color: #6b7280; border-bottom: 1px solid #f3f4f6; }
+        .llp-tbl tr:last-child td { border-bottom: none; }
 
         /* ── FAQ ── */
-        .faq-list { margin-top: 28px; }
-        .faq-item { border-bottom: 1px solid var(--line); }
-        .faq-q {
-          width: 100%; background: none; border: none; cursor: pointer; text-align: left;
-          display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
-          padding: 18px 0; font-size: 14.5px; font-weight: 600; color: var(--ink);
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
+        .llp-faq { border: 1.5px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: all 0.3s ease; }
+        .llp-faq.active { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .llp-faq-q {
+          padding: 16px 18px; background: #ffffff; cursor: pointer; display: flex; justify-content: space-between;
+          align-items: center; font-size: 14px; font-weight: 700; color: var(--accent); gap: 12px; border: none; width: 100%;
+          text-align: left; transition: all 0.3s ease;
         }
-        .faq-q span:first-child { flex: 1; }
-        .faq-icon { color: var(--green); font-size: 22px; flex-shrink: 0; line-height: 1; }
-        .faq-a { font-size: 13.5px; color: var(--slate); padding-bottom: 18px; line-height: 1.75; }
+        .llp-faq.active .llp-faq-q { background: #ffffff; color: var(--accent); }
+        .llp-faq-icon { flex-shrink: 0; transition: transform 0.3s ease; font-size: 16px; }
+        .llp-faq.active .llp-faq-icon { transform: rotate(180deg); }
+        .llp-faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .llp-faq.active .llp-faq-a { max-height: 400px; }
+        .llp-faq-a-inner { padding: 16px 18px; font-size: 13px; color: #6b7280; line-height: 1.8; background: #fff; }
+
+        /* ── CHIPS ── */
+        .llp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .llp-chip {
+          padding: 8px 16px; border-radius: 999px; background: #ffffff; color: #374151;
+          font-size: 13px; font-weight: 700; border: 1px solid #e5e7eb; transition: all 0.3s ease;
+        }
+        .llp-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* ── TESTIMONIALS ── */
+        .llp-testi { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 20px 18px; margin-bottom: 14px; transition: all 0.3s ease; }
+        .llp-testi:hover { border-color: #111827; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .llp-testi-stars { color: #fbbf24; font-size: 14px; margin-bottom: 10px; }
+        .llp-testi-quote { font-size: 13px; color: #374151; line-height: 1.7; margin-bottom: 12px; font-style: italic; }
+        .llp-testi-name { font-size: 13px; font-weight: 700; color: var(--accent); }
+        .llp-testi-role { font-size: 12px; color: #9ca3af; }
 
         /* ── CLOSING ── */
-        .closing { background: linear-gradient(135deg, #1a2236 0%, #1d3a6e 100%); padding: 56px 20px; text-align: center; }
-        .closing h2 { font-size: clamp(24px, 6vw, 40px); color: #fff; margin-bottom: 12px; }
-        .closing > p { font-size: 15px; color: rgba(255,255,255,.75); margin-bottom: 28px; line-height: 1.7; }
-        .strip {
-          display: flex; flex-direction: column; gap: 12px;
-          max-width: 480px; margin: 0 auto;
-          background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
-          border-radius: 14px; padding: 18px;
+        .llp-closing {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 14px; padding: 38px 36px; text-align: center; margin-bottom: 0;
         }
-        .strip-f { position: relative; }
-        .strip-f input {
-          width: 100%; padding: 14px 15px; border: 1.5px solid rgba(255,255,255,.22);
-          border-radius: var(--r); background: rgba(255,255,255,.07); color: #fff;
-          font-size: 16px; outline: none; transition: border-color .2s;
-          -webkit-appearance: none;
+        .llp-closing h2 { font-size: 26px; font-weight: 900; margin-bottom: 10px; color: var(--accent); }
+        .llp-closing p { font-size: 15px; color: #374151; margin-bottom: 22px; line-height: 1.7; }
+        .llp-closing-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .llp-cb-wa {
+          display: flex; align-items: center; gap: 8px;
+          background: var(--accent); color: #fff; text-decoration: none;
+          padding: 13px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.3s ease;
         }
-        .strip-f input::placeholder { color: rgba(255,255,255,.5); }
-        .strip-f input:focus { border-color: var(--saffron); }
-        .strip-f input.input-err { border-color: #F87171; }
-        .btn-strip {
-          background: var(--saffron); color: var(--ink); border: none; cursor: pointer;
-          font-weight: 700; font-size: 15px; padding: 14px 26px; min-height: 50px;
-          border-radius: var(--r); width: 100%;
-          transition: background .18s;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
+        .llp-cb-wa:hover { transform: translateY(-2px); }
+        .llp-cb-screen {
+          background: var(--accent); color: #fff; border: none;
+          padding: 13px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;
         }
-        .btn-strip:hover:not(:disabled) { background: #FBBF24; }
-        .btn-strip:disabled { opacity: .65; cursor: not-allowed; }
-        .strip-success {
-          display: flex; align-items: center; gap: 12px; justify-content: center;
-          background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
-          border-radius: 14px; padding: 20px; font-size: 15px; color: #fff;
+        .llp-cb-screen:hover { filter: brightness(1.06); }
+
+        /* ── LEAD CARD ── */
+        .llp-lead {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          color: #1a1a1a; border-radius: 16px; padding: 22px 20px;
+          position: relative; overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         }
-        .strip-api-err { font-size: 12.5px; color: #FCA5A5; text-align: left; margin-top: 4px; }
+        .llp-lead-content { position: relative; z-index: 1; }
+        .llp-lead-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
+        .llp-lead h3 { font-size: 19px; font-weight: 900; color: var(--accent); margin-bottom: 4px; line-height: 1.2; }
+        .llp-lead-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; line-height: 1.5; }
+        .llp-lead-field { margin-bottom: 12px; }
+        .llp-lead-label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .llp-lead-input {
+          width: 100%; padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+          font-size: 13px; background: #fff; color: #111827; outline: none; transition: all 0.3s ease;
+        }
+        .llp-lead-input::placeholder { color: #9ca3af; }
+        .llp-lead-input:focus { border-color: var(--accent); }
+        .llp-phone-row { display: flex; align-items: center; border: 1.5px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+        .llp-phone-row:focus-within { border-color: var(--accent); }
+        .llp-phone-pre { padding: 10px 10px; font-size: 13px; color: #6b7280; border-right: 1px solid #e5e7eb; white-space: nowrap; background: #ffffff; font-weight: 600; }
+        .llp-phone-row input { border: none; padding: 10px 13px; font-size: 13px; background: transparent; color: #111827; outline: none; width: 100%; }
+        .llp-phone-row input::placeholder { color: #9ca3af; }
+        .llp-lead-submit {
+          width: 100%; padding: 12px; background: var(--accent); color: #fff;
+          border: none; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; transition: all 0.3s ease;
+        }
+        .llp-lead-submit:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+        .llp-lead-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .llp-lead-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+        .llp-lead-success { background: #ffffff; border: 1px solid var(--accent); color: var(--accent); padding: 13px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; }
+        .llp-lead-trust { display: flex; justify-content: space-around; margin-top: 12px; font-size: 11px; color: #9ca3af; font-weight: 700; }
+
+        /* ── FLOATING BUTTONS ── */
+        .llp-fab { position: fixed; right: 20px; bottom: 26px; z-index: 300; display: flex; flex-direction: column; gap: 14px; }
+        .llp-fab-btn {
+          width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; transition: transform 0.25s ease; text-decoration: none;
+        }
+        .llp-fab-btn:hover { transform: scale(1.08); }
+        .llp-fab-wa { background: var(--accent); }
+        .llp-fab-call { background: var(--accent); }
+        .llp-fab-ping { position: absolute; inset: 0; border-radius: 50%; background: var(--accent); opacity: 0.55; animation: fabping 2.2s ease-out infinite; }
+        @keyframes fabping { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.6); opacity: 0; } }
+
+        /* ── MOBILE STICKY CTA ── */
+        .llp-sticky-cta { display: none; }
+        .llp-sticky-cta button {
+          width: 100%; padding: 13px; border: none; border-radius: 10px;
+          background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;
+        }
 
         /* ── FOOTER ── */
-        .footer {
-          background: #111827; padding: 22px 20px;
-          display: flex; flex-direction: column;
-          align-items: center; gap: 12px; text-align: center;
+        .llp-footer { background: #ffffff; border-top: 1.5px solid #e5e7eb; color: #1a1a1a; padding: 52px 24px 24px; margin-top: 24px; }
+        .llp-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 32px; }
+        .llp-footer-brand-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .llp-footer-brand-logo img { width: 180px !important; height: auto !important; object-fit: contain; }
+        .llp-footer-brand p { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 18px; }
+        .llp-footer-wa-btn {
+          display: inline-flex; align-items: center; gap: 6px; background: var(--accent);
+          color: #fff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; transition: all 0.3s ease;
         }
-        .footer-logo { display: flex; align-items: center; }
-        .footer-note { font-size: 12px; color: rgba(255,255,255,.4); }
+        .llp-footer-wa-btn:hover { transform: translateY(-2px); }
+        .llp-footer-section h4 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px; }
+        .llp-footer-section ul { list-style: none; }
+        .llp-footer-section li { margin-bottom: 10px; font-size: 13px; }
+        .llp-footer-section a { color: #374151; text-decoration: none; transition: color 0.3s ease; }
+        .llp-footer-section a:hover { color: var(--accent); }
+        .llp-footer-bottom { border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; font-size: 12px; color: #9ca3af; max-width: 1400px; margin: 0 auto; }
+        .llp-footer-bottom a { color: #6b7280; text-decoration: none; transition: color 0.3s ease; }
+        .llp-footer-bottom a:hover { color: var(--accent); }
 
-        /* ══════════════════════════════════════════════════════
-           TABLET ≥ 640px
-           ══════════════════════════════════════════════════════ */
-        @media (min-width: 640px) {
-          .benefits-grid { grid-template-columns: repeat(3, 1fr); }
-          .tech-grid { grid-template-columns: repeat(3, 1fr); }
-          .testi-grid { grid-template-columns: repeat(2, 1fr); }
-          .process-grid { grid-template-columns: repeat(2, 1fr); }
-          .why-grid { grid-template-columns: repeat(2, 1fr); }
-          .stats { grid-template-columns: repeat(3, 1fr); }
-          .stats .stat:last-child { grid-column: auto; }
-          .strip { flex-direction: row; }
-          .strip-f { flex: 1; }
-          .btn-strip { width: auto; }
-        }
-
-        /* ══════════════════════════════════════════════════════
-           DESKTOP ≥ 900px
-           ══════════════════════════════════════════════════════ */
-        @media (min-width: 900px) {
-          /* Remove body padding — no sticky bottom bar on desktop */
-          body { padding-bottom: 0; }
-
-          /* Hide sticky bottom CTA */
-          .sticky-bottom-cta { display: none; }
-
-          /* Nav */
-          .nav { padding: 0 6vw; height: 72px; }
-          .nav-city { flex: none; max-width: none; text-align: left; font-size: 12px; }
-          .nav-links-desktop { display: flex; }
-          .nav-cta-desktop { display: block; }
-          .hamburger { display: none; }
-
-          /* Hero — two-column */
-          .hero {
-            padding: 80px 6vw 64px;
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            column-gap: 56px;
-            grid-template-areas: "intro visual" "rest visual";
-            gap: 0;
-          }
-          .hero-intro { grid-area: intro; }
-          .hero-rest  { grid-area: rest; }
-          .hero-visual-card { grid-area: visual; }
-          .hero-eyebrow { align-self: auto; }
-          .btn-hero { width: auto; }
-          .eye-svg { max-width: 360px; margin-bottom: 24px; }
-          .lc-card { padding: 36px 32px; }
-
-          /* Stats */
-          .stats {
-            padding: 48px 6vw;
-            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px;
-          }
-          .stat-val { font-size: 30px; }
-          .stat-lbl { font-size: 11.5px; }
-
-          /* Sections */
-          .section { padding: 80px 6vw; }
-          .tech-section { padding: 80px 6vw; }
-          .section-lead { max-width: 580px; }
-
-          /* Benefits */
-          .benefits-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
-          .benefit-card { padding: 26px 22px; }
-          .benefit-card h3 { font-size: 15.5px; }
-          .benefit-card p { font-size: 13.5px; }
-
-          /* Tech */
-          .tech-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-          .tech-card { padding: 26px 22px; }
-
-          /* Testimonials */
-          .testi-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
-
-          /* Process */
-          .process-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; }
-
-          /* Why */
-          .why-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
-
-          /* Closing */
-          .closing { padding: 80px 6vw; }
-          .strip { flex-direction: row; }
-          .strip-f { flex: 1; }
-          .btn-strip { width: auto; }
-
-          /* Footer */
-          .footer {
-            flex-direction: row; justify-content: space-between;
-            padding: 28px 6vw; text-align: left;
-          }
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+          .llp-grid { grid-template-columns: 1fr; }
+          .llp-side { position: static; order: -1; }
+          .llp { padding-bottom: 86px; }
+          .llp-nav .llp-btn-wa, .llp-nav .llp-btn-call { display: none; }
+          .llp-hero { padding: 30px 22px; }
+          .llp-hero-grid { grid-template-columns: 1fr; gap: 24px; }
+          .llp-hero h1 { font-size: 32px; }
+          .llp-hero-img-wrap { height: 220px; }
+          .llp-footer-inner { grid-template-columns: 1fr 1fr; }
+          .llp-fab { bottom: 92px; right: 16px; }
+          .llp-fab-btn { width: 50px; height: 50px; }
+          .llp-sticky-cta { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 290; background: #fff; border-top: 1.5px solid #e5e7eb; padding: 10px 16px 14px; box-shadow: 0 -4px 16px rgba(0,0,0,0.08); }
         }
 
-        /* ══════════════════════════════════════════════════════
-           ACCESSIBILITY: reduced motion
-           ══════════════════════════════════════════════════════ */
-        @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
+        @media (max-width: 640px) {
+          .llp-page { padding: 18px 16px; }
+          .llp-why-grid, .llp-process-grid, .llp-two, .llp-img-grid, .llp-compare, .llp-doctor-grid, .llp-emi-grid { grid-template-columns: 1fr; }
+          .llp-nav .llp-btn-screen { display: none; }
+          .llp-section { padding: 22px 18px; }
+          .llp-hero h1 { font-size: 27px; }
+          .llp-hero-floatcard { position: static; margin-top: 10px; width: fit-content; }
+          .llp-hero-fc-1, .llp-hero-fc-2 { position: static; }
+          .llp-lead { padding: 18px 14px; }
+          .llp-lead h3 { font-size: 18px; }
+          .llp-footer-inner { grid-template-columns: 1fr; gap: 24px; }
+          .llp-stats { grid-template-columns: 1fr; }
+          .llp-section h2 { font-size: 21px; }
+          .llp-logo img, .llp-logo-img { max-height: 40px; }
         }
       `}</style>
 
-      {/* ── NAV (hamburger on mobile, full links on desktop) ── */}
-      <MobileNav cityName={city.name} scrollToForm={scrollToForm} />
+      {/* ── HEADER ── */}
+      <header className="llp-header">
+        <div className="llp-header-inner">
+          <a href="/" className="llp-logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/vv.png" alt="HealviaCare" className="llp-logo-img" />
+          </a>
+          <nav className="llp-nav">
+            <a href={WA_URL} className="llp-btn-wa" target="_blank" rel="noopener noreferrer">
+              <WaIcon size={15} /> WhatsApp
+            </a>
+            <a href={`tel:${PHONE_TEL}`} className="llp-btn-call">
+              <PhoneIcon size={14} /> Call Us
+            </a>
+            <button className="llp-btn-screen" onClick={scrollToForm}>
+              Free Checkup
+            </button>
+          </nav>
+        </div>
+      </header>
 
-      {/* ── STICKY BOTTOM CTA — mobile only ── */}
-      <div className="sticky-bottom-cta">
-        <a href="tel:+91XXXXXXXXXX" className="sticky-tel" aria-label="Call us">📞</a>
-        <button className="btn-primary" onClick={scrollToForm}>
-          Book Free Screening
-        </button>
+      {/* ── FLOATING BUTTONS ── */}
+      <div className="llp-fab">
+        <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="llp-fab-btn llp-fab-wa" aria-label="Chat on WhatsApp">
+          <span className="llp-fab-ping" />
+          <WaIcon size={26} />
+        </a>
+        <a href={`tel:${PHONE_TEL}`} className="llp-fab-btn llp-fab-call" aria-label="Call us">
+          <PhoneIcon size={22} />
+        </a>
       </div>
 
-      {/* ── HERO ── */}
-      <section className="hero">
-        <div className="hero-intro">
-          <div className="hero-eyebrow">
-            <span className="hero-dot" />
-            {city.name} &nbsp;·&nbsp; Advanced LASIK Centre
-          </div>
-          <h1>
-            {city.headline}<br />
-            <em>{city.headlineEm}</em>
-          </h1>
-          <p className="hero-sub">{city.sub}</p>
+      {/* ── CITY BAR ── */}
+      <div className="llp-city-bar">
+        <span className="llp-city-bar-label">Select City:</span>
+        <div className="llp-city-tabs">
+          {(['delhi', 'mumbai', 'gurugram', 'noida', 'ghaziabad', 'faridabad', 'pune'] as CityKey[]).map((k) => (
+            <a key={k} href={`/lp/lasik/${k}`} className={`llp-city-tab${k === cityKey ? ' active' : ''}`}>
+              {CITY_DATA[k].name}
+            </a>
+          ))}
         </div>
-
-        <div className="hero-visual-card">
-          {/* Eye SVG illustration */}
-          <svg className="eye-svg" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="eyeG" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#E8F5EE" />
-                <stop offset="100%" stopColor="#fff" />
-              </radialGradient>
-              <radialGradient id="irisG" cx="50%" cy="45%" r="50%">
-                <stop offset="0%" stopColor="#2E7D52" />
-                <stop offset="100%" stopColor="#1B6B3A" />
-              </radialGradient>
-            </defs>
-            <ellipse cx="180" cy="90" rx="140" ry="70" fill="url(#eyeG)" stroke="#e8ecf4" strokeWidth="1.2" />
-            <circle cx="180" cy="90" r="42" fill="url(#irisG)" />
-            <circle cx="180" cy="90" r="18" fill="#0F1F15" />
-            <circle cx="193" cy="78" r="7" fill="rgba(255,255,255,0.55)" />
-            <line x1="60" y1="90" x2="138" y2="90" stroke="#F59E0B" strokeWidth="2" strokeDasharray="4 3" opacity="0.8">
-              <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
-            </line>
-            <line x1="300" y1="90" x2="222" y2="90" stroke="#F59E0B" strokeWidth="2" strokeDasharray="4 3" opacity="0.8">
-              <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.3s" repeatCount="indefinite" />
-            </line>
-            <path d="M68 62 Q75 48 84 58" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <path d="M104 44 Q115 32 122 46" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <path d="M148 33 Q160 20 167 36" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <path d="M195 33 Q205 20 214 35" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <path d="M238 44 Q247 32 255 46" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <path d="M276 62 Q283 48 292 58" stroke="#c8d0e0" strokeWidth="1.5" fill="none" />
-            <text x="180" y="156" textAnchor="middle" fontFamily="'Space Mono',monospace" fontSize="13" fontWeight="600" fill="#1B6B3A" letterSpacing="2">20/20</text>
-          </svg>
-          <LeadCard cityKey={cityKey} />
-        </div>
-
-        <div className="hero-rest">
-          <ul className="hero-bullets">
-            <li>Bladeless, Contoura &amp; SMILE — matched to your eyes</li>
-            <li>Fellowship-trained ophthalmologists perform every procedure</li>
-            <li>Free pre-LASIK screening to confirm candidacy</li>
-            <li>Transparent pricing discussed after your screening</li>
-          </ul>
-          <div className="hero-actions">
-            <button className="btn-hero" onClick={scrollToForm}>Book Free Screening</button>
-          </div>
-          <div className="hero-badges">
-            <span className="badge"><span className="badge-dot" />NABH-accredited</span>
-            <span className="badge"><span className="badge-dot" />Bladeless &amp; Contoura LASIK</span>
-            <span className="badge"><span className="badge-dot" />Outpatient procedure</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TRUST BAR ── */}
-      <div className="trust">
-        <span className="trust-item">⭐ 4.9 avg patient rating</span>
-        <span className="trust-item">Fellowship-trained surgeons</span>
-        <span className="trust-item">Transparent pricing</span>
       </div>
 
-      {/* ── STATS ── */}
-      <div className="stats">
-        <div className="stat"><span className="stat-val">22,000+</span><span className="stat-lbl">Procedures performed</span></div>
-        <div className="stat"><span className="stat-val">14+</span><span className="stat-lbl">Years in practice</span></div>
-        <div className="stat"><span className="stat-val">98%</span><span className="stat-lbl">Patient satisfaction</span></div>
-        <div className="stat"><span className="stat-val">~20 min</span><span className="stat-lbl">Procedure time</span></div>
-        <div className="stat"><span className="stat-val">7</span><span className="stat-lbl">Cities</span></div>
+      {/* ── PAGE BODY ── */}
+      <div className="llp-page">
+        <div className="llp-grid">
+
+          {/* ── MAIN CONTENT ── */}
+          <div className="llp-main">
+
+            {/* HERO */}
+            <section className="llp-hero">
+              <div className="llp-hero-grid">
+                <div>
+                  <div className="llp-hero-badge">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+                    </svg>
+                    Laser Eye Surgery, No Blade Used
+                  </div>
+                  <h1 dangerouslySetInnerHTML={{ __html: `${cityData.headline} <em>${cityData.headlineEm}</em>` }} />
+                  <p className="llp-hero-sub">{cityData.sub}</p>
+                  <div className="llp-hero-pills">
+                    {['Done In 15 Minutes', 'No Blade Used', 'No More Glasses', 'Free Eye Checkup'].map((t) => (
+                      <div className="llp-hero-pill" key={t}><span className="llp-dot" />{t}</div>
+                    ))}
+                  </div>
+                  <div className="llp-hero-cta">
+                    <button className="llp-hero-cta-primary" onClick={scrollToForm}>Book Free Checkup</button>
+                  </div>
+                </div>
+                <div className="llp-hero-visual">
+                  <div className="llp-hero-img-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_MACRO} alt="Close-up of a human eye" />
+                  </div>
+                  <div className="llp-hero-floatcard llp-hero-fc-1">
+                    <div><div className="num">10K+</div><div className="lbl">Surgeries Done</div></div>
+                  </div>
+                  <div className="llp-hero-floatcard llp-hero-fc-2">
+                    <div><div className="num">98%</div><div className="lbl">Happy Patients</div></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* STATS */}
+            <div className="llp-stats">
+              <div className="llp-stat"><div className="llp-stat-num">10K+</div><div className="llp-stat-label">Successful Surgeries</div></div>
+              <div className="llp-stat"><div className="llp-stat-num">7</div><div className="llp-stat-label">Cities Covered</div></div>
+              <div className="llp-stat"><div className="llp-stat-num">98%</div><div className="llp-stat-label">Patients Satisfied</div></div>
+            </div>
+
+            {/* WHY US */}
+            <section className="llp-section">
+              <h2>Why People Choose Us</h2>
+              <p className="llp-section-lead">We only suggest LASIK if it's actually right for your eyes — never to make a sale.</p>
+              <div className="llp-why-grid">
+                {[
+                  { icon: '🔬', text: 'Modern, blade-free laser — approved and widely used' },
+                  { icon: '🧑‍⚕️', text: 'Senior eye surgeons with years of hands-on experience' },
+                  { icon: '📋', text: "Honest checkup first — we say no if LASIK isn't right for you" },
+                  { icon: '📞', text: "We call and check on you after surgery, not just hand you a discharge slip" },
+                ].map((c, i) => (
+                  <div className="llp-why-card" key={i}>
+                    <span className="llp-why-icon">{c.icon}</span>
+                    <span className="llp-why-text">{c.text}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* AREAS */}
+            <section className="llp-section llp-section-tint">
+              <h2>{cityData.areasTitle}</h2>
+              <p className="llp-section-lead">{cityData.areasLead}</p>
+              <div className="llp-chips">
+                {cityData.areas.map((a) => <span className="llp-chip" key={a}>{a}</span>)}
+              </div>
+            </section>
+
+            {/* WHAT IS LASIK */}
+            <section className="llp-section">
+              <h2>What Is LASIK?</h2>
+              <p className="llp-section-lead">LASIK is a quick laser treatment for your eyes. It reshapes the clear front part of your eye (the cornea) so you can see clearly — often without needing glasses or contact lenses anymore.</p>
+              <div className="llp-img-grid">
+                <div>
+                  <div className="llp-img-grid-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_IRIS_CLOSEUP} alt="Close-up of an eye iris" />
+                  </div>
+                  <div className="llp-img-caption">Your Eye, Up Close</div>
+                </div>
+                <div>
+                  <div className="llp-img-grid-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_TEST_MACHINE} alt="Laser eye treatment equipment" />
+                  </div>
+                  <div className="llp-img-caption">The Laser Machine Used</div>
+                </div>
+              </div>
+              <ul className="llp-check">
+                <li>Fixes nearsightedness (trouble seeing things far away) — even strong numbers</li>
+                <li>Fixes farsightedness (trouble seeing things up close)</li>
+                <li>Fixes astigmatism (blurry or stretched-looking vision)</li>
+                <li>Day procedure — you go home the same day, no hospital stay</li>
+                <li>Most patients don't need glasses or contacts after this</li>
+              </ul>
+            </section>
+
+            {/* GLASSES VS LASIK */}
+            <section className="llp-section llp-section-tint">
+              <h2>Glasses & Contacts vs. LASIK</h2>
+              <p className="llp-section-lead">A simple way to compare your two options.</p>
+              <div className="llp-compare">
+                <div className="llp-compare-col bad">
+                  <div className="llp-compare-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_GLASSES} alt="A pair of eyeglasses" />
+                  </div>
+                  <div className="llp-compare-body">
+                    <h3>Glasses & Contacts</h3>
+                    <ul className="llp-cross">
+                      <li>Something to carry, clean and replace, every day</li>
+                      <li>Can fog up, slip, or break</li>
+                      <li>Ongoing cost — new pairs, new lenses, every year</li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="llp-compare-col good">
+                  <div className="llp-compare-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_EXAM} alt="Eye examination" />
+                  </div>
+                  <div className="llp-compare-body">
+                    <h3>LASIK (One-Time)</h3>
+                    <ul className="llp-check">
+                      <li>One 15-minute procedure, done once</li>
+                      <li>Wake up, work out, swim — without worrying about glasses</li>
+                      <li>One upfront cost — no recurring lens expenses</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* HOW IT WORKS */}
+            <section className="llp-section">
+              <h2>How It Works — 3 Simple Steps</h2>
+              <p className="llp-section-lead">The whole thing takes about 15 minutes. Numbing eye drops mean you won't feel pain.</p>
+              <div className="llp-process-grid">
+                {[
+                  { n: '1', title: 'A Thin Flap Is Opened', p: 'A laser gently lifts a thin flap on the surface of your eye. No blade is used.' },
+                  { n: '2', title: 'Your Eye Is Reshaped', p: 'A second laser reshapes the surface in under a minute, matching your exact prescription.' },
+                  { n: '3', title: 'The Flap Heals On Its Own', p: 'The flap is placed back down and heals naturally overnight — no stitches needed.' },
+                ].map((s) => (
+                  <div className="llp-process-card" key={s.n}>
+                    <div className="llp-process-num">{s.n}</div>
+                    <h3>{s.title}</h3>
+                    <p>{s.p}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* PROCEDURE TYPES */}
+            <section className="llp-section llp-section-tint">
+              <h2>Types of LASIK We Offer</h2>
+              <p className="llp-section-lead">After your free checkup, we'll tell you which one suits your eyes.</p>
+              <div className="llp-tbl-wrap">
+                <table className="llp-tbl">
+                  <thead><tr><th>Procedure</th><th>How It Works</th><th>Good For</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Femto LASIK</strong></td><td>Blade-free laser flap</td><td>Most people — our most common choice</td></tr>
+                    <tr><td><strong>Contoura Vision</strong></td><td>Maps your eye's shape before reshaping</td><td>Irregular corneas, sharper night vision</td></tr>
+                    <tr><td><strong>SMILE</strong></td><td>Smallest cut, fully laser-based</td><td>Faster, more comfortable healing</td></tr>
+                    <tr><td><strong>PRK / TransPRK</strong></td><td>Reshapes the surface, no flap</td><td>Thinner corneas, special cases</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* ELIGIBILITY */}
+            <section className="llp-section">
+              <h2>Is LASIK Right For You?</h2>
+              <p className="llp-section-lead">Every eye is different — the only way to really know is a free checkup with us.</p>
+              <div className="llp-two">
+                <div>
+                  <h3 style={{ color: 'var(--accent)' }}>✓ Usually a Good Fit</h3>
+                  <ul className="llp-check">
+                    <li>18 years or older</li>
+                    <li>Eye power hasn't changed much in the last 12 months</li>
+                    <li>Cornea (front of the eye) is a normal thickness</li>
+                    <li>No active eye infection right now</li>
+                    <li>Not pregnant or breastfeeding</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 style={{ color: '#dc2626' }}>✗ May Need a Different Plan</h3>
+                  <ul className="llp-cross">
+                    <li>Very dry eyes</li>
+                    <li>Thin or irregularly-shaped cornea</li>
+                    <li>Keratoconus (a cornea-thinning condition)</li>
+                    <li>Glaucoma that isn't under control</li>
+                    <li>Certain autoimmune conditions</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* COST & EMI */}
+            <section className="llp-section llp-section-tint">
+              <h2>Cost & Easy Payment Options</h2>
+              <p className="llp-section-lead">Your exact cost depends on which procedure your eyes need — we'll confirm this for free at your checkup.</p>
+              <div className="llp-emi-grid">
+                <div className="llp-emi-card"><div className="tenure">0%</div><div className="note">Interest On EMI</div></div>
+                <div className="llp-emi-card"><div className="tenure">3–12</div><div className="note">Month Plans Available</div></div>
+                <div className="llp-emi-card"><div className="tenure">Insurance</div><div className="note">Accepted At Most Centres</div></div>
+              </div>
+              <p className="llp-section-lead" style={{ marginBottom: 0 }}>Ask our team on WhatsApp for the exact price list for your city and procedure.</p>
+            </section>
+
+            {/* RISKS */}
+            <section className="llp-section">
+              <h2>Possible Side Effects</h2>
+              <p className="llp-section-lead">LASIK is considered safe when the right checkup is done first. Here's what to expect.</p>
+              <div className="llp-two">
+                <div>
+                  <h3>Common — Usually Goes Away</h3>
+                  <ul className="llp-check">
+                    <li>Dry eyes for a few months</li>
+                    <li>Glare or halos at night for 2–4 weeks</li>
+                    <li>Mild discomfort for the first 24–48 hours</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 style={{ color: '#dc2626' }}>Rare But Serious</h3>
+                  <ul className="llp-cross">
+                    <li>Cornea thinning over time (ectasia)</li>
+                    <li>Infection or strong inflammation</li>
+                    <li>Vision slightly over- or under-corrected, needing a touch-up</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* RECOVERY */}
+            <section className="llp-section llp-section-tint">
+              <h2>What Recovery Looks Like</h2>
+              <p className="llp-section-lead">Most people are back to normal life within a few days.</p>
+              <div className="llp-tbl-wrap">
+                <table className="llp-tbl">
+                  <thead><tr><th>Time After Surgery</th><th>What You'll Notice</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>First 24 hours</strong></td><td>Vision improves noticeably. Mild redness is normal. Rest your eyes and skip screens.</td></tr>
+                    <tr><td><strong>1 week</strong></td><td>Big improvement. Most daily activities are safe to resume.</td></tr>
+                    <tr><td><strong>1 month</strong></td><td>Vision settles for most people. Sports and intense work are usually fine.</td></tr>
+                    <tr><td><strong>3–6 months</strong></td><td>Full healing. Any dryness usually clears up. Final vision achieved.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* SPECIALISTS */}
+            <section className="llp-section">
+              <h2>Meet Our Eye Specialists</h2>
+              <p className="llp-section-lead">Experienced surgeons who'll walk you through every step.</p>
+              <div className="llp-doctor-grid">
+                {[
+                  { img: IMG_DOCTOR_1, name: 'Add Doctor Name', role: 'LASIK & Cornea Specialist', exp: '12+ years experience' },
+                  { img: IMG_DOCTOR_2, name: 'Add Doctor Name', role: 'Refractive Surgeon', exp: '15+ years experience' },
+                  { img: IMG_DOCTOR_3, name: 'Add Doctor Name', role: 'Cataract & LASIK Surgeon', exp: '10+ years experience' },
+                ].map((d, i) => (
+                  <div className="llp-doctor-card" key={i}>
+                    <div className="llp-doctor-photo">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={d.img} alt={d.role} />
+                    </div>
+                    <div className="llp-doctor-info">
+                      <h3>{d.name}</h3>
+                      <div className="role">{d.role}</div>
+                      <div className="exp">{d.exp}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="llp-img-caption" style={{ marginTop: 14 }}>
+                Placeholder photos — replace with your actual surgeons' real photos and names before this goes live.
+              </p>
+            </section>
+
+            {/* FAQ */}
+            <section className="llp-section llp-section-tint">
+              <h2>Common Questions</h2>
+              <br />
+              {SHARED_FAQS.map((item, i) => (
+                <div key={i} className={`llp-faq${expandedFAQ === i ? ' active' : ''}`}>
+                  <button className="llp-faq-q" onClick={() => setExpandedFAQ(expandedFAQ === i ? -1 : i)}>
+                    <span>{item.q}</span>
+                    <span className="llp-faq-icon">▾</span>
+                  </button>
+                  <div className="llp-faq-a">
+                    <div className="llp-faq-a-inner">{item.a}</div>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {/* TESTIMONIALS */}
+            <section className="llp-section">
+              <h2>What Patients in {cityData.name} Say</h2>
+              <p className="llp-section-lead">Real stories, real results. No sponsored reviews.</p>
+              {cityData.testimonials.map((t, i) => (
+                <div className="llp-testi" key={i}>
+                  <div className="llp-testi-stars">★★★★★</div>
+                  <p className="llp-testi-quote">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="llp-testi-name">{t.name}</div>
+                  <div className="llp-testi-role">{t.role}</div>
+                </div>
+              ))}
+            </section>
+
+            {/* CLOSING */}
+            <section className="llp-closing">
+              <h2>{cityData.closingHeadline}</h2>
+              <p>{cityData.closingSub}</p>
+              <div className="llp-closing-btns">
+                <a href={WA_URL} className="llp-cb-wa" target="_blank" rel="noopener noreferrer">
+                  <WaIcon size={17} /> WhatsApp Us Now
+                </a>
+                <button className="llp-cb-screen" onClick={scrollToForm}>
+                  Book Your Free Checkup
+                </button>
+              </div>
+            </section>
+          </div>
+
+          {/* ── LEAD CARD ── */}
+          <div className="llp-side">
+            <div className="llp-lead" id="lead-card">
+              <div className="llp-lead-content">
+                <div className="llp-lead-eyebrow">🏥 {cityData.name} · Free Checkup</div>
+                <h3>Book Your Free Checkup</h3>
+                <p className="llp-lead-sub">Drop your name & number — we'll call within 5 minutes.</p>
+
+                <form onSubmit={handleSubmit}>
+                  {error && <div className="llp-lead-error">{error}</div>}
+                  <div className="llp-lead-field">
+                    <label className="llp-lead-label" htmlFor="llp-name">Full Name</label>
+                    <input
+                      className="llp-lead-input"
+                      id="llp-name"
+                      ref={nameRef}
+                      type="text"
+                      name="name"
+                      placeholder="Your full name"
+                      autoComplete="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <div className="llp-lead-field">
+                    <label className="llp-lead-label" htmlFor="llp-phone">Mobile Number</label>
+                    <div className="llp-phone-row">
+                      <span className="llp-phone-pre">+91</span>
+                      <input
+                        id="llp-phone"
+                        type="tel"
+                        name="phone"
+                        placeholder="10-digit number"
+                        maxLength={10}
+                        value={formData.phone}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, '');
+                          if (v.length <= 10) setFormData((prev) => ({ ...prev, phone: v }));
+                        }}
+                        disabled={loading}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <button className="llp-lead-submit" type="submit" disabled={loading}>
+                    {loading ? 'Booking...' : '✓ Book Free Checkup'}
+                  </button>
+                </form>
+
+                <div className="llp-lead-trust">
+                  <span>✓ Free</span>
+                  <span>✓ No obligation</span>
+                  <span>✓ Confidential</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      {/* ── BENEFITS ── */}
-      <section className="section bg-cream" id="benefits">
-        <p className="eyebrow">Why LASIK</p>
-        <h2 className="section-title">A permanent correction, not another pair of lenses</h2>
-        <p className="section-lead">LASIK reshapes the cornea so light focuses correctly on the retina. Here's what that can mean for daily life — though outcomes vary by individual and prescription.</p>
-        <div className="benefits-grid">
-          {[
-            { icon: <IconSun />,    title: "Improved vision",              desc: "Many patients achieve significantly clearer vision after the procedure. Your surgeon will discuss what to expect based on your prescription." },
-            { icon: <IconBolt />,   title: "Short procedure time",         desc: "The laser portion of the procedure typically takes about 15–20 minutes per eye, performed under numbing drops." },
-            { icon: <IconShield />, title: "Long-lasting correction",      desc: "For most patients, the vision correction is long-lasting. Your surgeon will explain what to expect given your specific eye profile." },
-            { icon: <IconUsers />,  title: "Recovery for most is quick",  desc: "Most patients can return to desk work and daily activities within a few days, though this varies by individual." },
-            { icon: <IconLayers />, title: "Multiple technology options",  desc: "Bladeless, Contoura, or SMILE — we assess your eye and discuss which technology is suitable for your needs." },
-            { icon: <IconLoop />,   title: "Structured aftercare",        desc: "Scheduled follow-ups are part of the process, supporting your recovery through every stage." },
-          ].map((b) => (
-            <div key={b.title} className="benefit-card">
-              <div className="benefit-icon">{b.icon}</div>
-              <h3>{b.title}</h3>
-              <p>{b.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── TECHNOLOGY ── */}
-      <section className="section tech-section" id="technology">
-        <p className="eyebrow">The Technology</p>
-        <h2 className="section-title">Three approaches — matched to your eye</h2>
-        <p className="section-lead">Not every eye suits the same method. Your pre-operative screening determines which technology is appropriate for you.</p>
-        <div className="tech-grid">
-          {[
-            { badge: "Commonly chosen",    name: "Bladeless LASIK", tagline: "All-laser, no blade.",                          desc: "A femtosecond laser creates the corneal flap and an excimer laser reshapes it — a precise, well-established approach suited to most prescriptions." },
-            { badge: "Topography-guided",  name: "Contoura Vision", tagline: "Guided by your cornea's unique surface map.",   desc: "Over 22,000 data points of your cornea shape the treatment, addressing irregularities that standard glasses cannot correct." },
-            { badge: "Minimally invasive", name: "SMILE",           tagline: "Flapless, smaller incision.",                  desc: "A keyhole-sized opening is used to reshape the cornea without creating a flap. Suitability depends on prescription and corneal thickness." },
-          ].map((t) => (
-            <div key={t.name} className="tech-card">
-              <span className="tech-badge">{t.badge}</span>
-              <h4>{t.name}</h4>
-              <p className="tech-tagline">{t.tagline}</p>
-              <p className="tech-desc">{t.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section className="section bg-cream">
-        <p className="eyebrow">Patient Stories</p>
-        <h2 className="section-title">Experiences shared by our patients in {city.name}</h2>
-        <div className="testi-grid">
-          {city.testimonials.map((t) => (
-            <figure key={t.name} className="testi">
-              <blockquote>"{t.quote}"</blockquote>
-              <figcaption>
-                <span className="testi-name">{t.name}</span>
-                <span className="testi-role">{t.role}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-        <p className="testi-note">Shared with patients' permission. Individual results vary by eye condition and candidacy.</p>
-      </section>
-
-      {/* ── PROCESS ── */}
-      <section className="section process-section" id="process">
-        <p className="eyebrow">What To Expect</p>
-        <h2 className="section-title">From first call to your follow-up</h2>
-        <p className="section-lead">A clear, step-by-step process with no surprises along the way.</p>
-        <div className="process-grid">
-          {[
-            { n: "01", title: "Initial consultation",   desc: "We get in touch to understand your eyes, your lifestyle, and to answer your questions before anything else." },
-            { n: "02", title: "Detailed eye screening", desc: "A thorough pre-LASIK workup confirms whether you are a suitable candidate and which technology is appropriate for your eyes." },
-            { n: "03", title: "The LASIK procedure",    desc: "A precise laser procedure performed by a senior surgeon. Duration varies but typically takes around 15–20 minutes per eye." },
-            { n: "04", title: "Recovery and follow-up", desc: "Scheduled check-ins at defined intervals ensure your eyes are healing as expected." },
-          ].map((s) => (
-            <div key={s.n} className="process-step">
-              <div className="process-num">{s.n}</div>
-              <h4>{s.title}</h4>
-              <p>{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── WHY ── */}
-      <section className="section">
-        <p className="eyebrow">Why This Clinic</p>
-        <h2 className="section-title">What we focus on</h2>
-        <p className="section-lead">Here's what we believe matters most — and what shapes how we work with every patient.</p>
-        <div className="why-grid">
-          {[
-            { icon: <IconLayers />, title: "Multiple technologies available",   desc: "Bladeless, Contoura, and SMILE under one roof — the right fit is decided after your screening." },
-            { icon: <IconShield />, title: "Senior surgeons perform every case", desc: "Fellowship-trained ophthalmologists are responsible for each procedure." },
-            { icon: <IconBolt />,   title: "Pricing discussed after screening",  desc: "A clear quote is provided after your pre-operative assessment — no figures committed before we know your eyes." },
-            { icon: <IconLoop />,   title: "Structured recovery support",        desc: "Follow-up appointments are scheduled as part of your care, not an afterthought." },
-          ].map((w) => (
-            <div key={w.title} className="why-card">
-              <div className="why-icon">{w.icon}</div>
-              <div><h4>{w.title}</h4><p>{w.desc}</p></div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      <section className="section bg-cream" id="faq-anchor">
-        <p className="eyebrow">Common Questions</p>
-        <h2 className="section-title">Answers to questions most patients ask</h2>
-        <FaqList />
-      </section>
-
-      {/* ── CLOSING CTA ── */}
-      <section className="closing">
-        <h2>{city.closingHeadline}</h2>
-        <p>{city.closingSub}</p>
-        <LeadStrip cityKey={cityKey} />
-      </section>
+      {/* ── MOBILE STICKY CTA ── */}
+      <div className="llp-sticky-cta">
+        <button onClick={scrollToForm}>Book Free Checkup</button>
+      </div>
 
       {/* ── FOOTER ── */}
-      <footer className="footer">
-        <div className="footer-logo">
-          <Image src="/vv.png" alt="Healvia Eye Care" width={160} height={42} style={{ height: "36px", width: "auto" }} />
+      <footer className="llp-footer">
+        <div className="llp-footer-inner">
+          <div className="llp-footer-brand">
+            <div className="llp-footer-brand-logo">
+              <Image src="/vv.png" alt="Healvia" width={180} height={64} style={{ objectFit: 'contain', width: '180px', height: 'auto' }} />
+            </div>
+            <p>India's most trusted LASIK partner. Free checkups, honest advice, real follow-up calls. Serving 7 cities with world-class eye care.</p>
+            <a href={WA_URL} className="llp-footer-wa-btn" target="_blank" rel="noopener noreferrer">
+              <WaIcon size={15} /> Message on WhatsApp
+            </a>
+          </div>
+          <div className="llp-footer-section">
+            <h4>Services</h4>
+            <ul>
+              <li><a href="#">Femto LASIK</a></li>
+              <li><a href="#">SMILE Procedure</a></li>
+              <li><a href="#">Contoura Vision</a></li>
+              <li><a href="#">PRK/TransPRK</a></li>
+            </ul>
+          </div>
+          <div className="llp-footer-section">
+            <h4>Locations</h4>
+            <ul>
+              {(['delhi', 'mumbai', 'gurugram', 'noida', 'ghaziabad', 'faridabad', 'pune'] as CityKey[]).map((k) => (
+                <li key={k}><a href={`/lp/lasik/${k}`}>{CITY_DATA[k].name}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div className="llp-footer-section">
+            <h4>Contact</h4>
+            <ul>
+              <li><a href={`tel:${PHONE_TEL}`}>📞 {PHONE_DISPLAY}</a></li>
+              <li><a href={WA_URL} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></li>
+              <li><a href="mailto:info@healviacare.com">✉️ info@healviacare.com</a></li>
+            </ul>
+          </div>
         </div>
-        <p className="footer-note">© 2025 Healvia Eye Care · {city.name}. All rights reserved.</p>
+        <div className="llp-footer-bottom">
+          © {new Date().getFullYear()} HealviaCare. All rights reserved. &nbsp;|&nbsp;
+          <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms of Use</a>
+        </div>
       </footer>
-    </>
+    </div>
   );
 }

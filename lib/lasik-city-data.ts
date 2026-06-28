@@ -20,8 +20,8 @@ export interface CityData {
 export const CITY_DATA: Record<CityKey, CityData> = {
   delhi: {
     name: "Delhi",
-    headline: "See Delhi like it was always",
-    headlineEm: "meant to be seen",
+  headline: "Life in Delhi is Better",
+headlineEm: "Without Glasses.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Delhi wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Delhi without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Delhi centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -37,8 +37,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   mumbai: {
     name: "Mumbai",
-    headline: "See Mumbai from the",
-    headlineEm: "sea link to the skyline",
+   headline: "Mumbai Never Stops —",
+headlineEm: "Neither Should Your Vision.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Mumbai wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Mumbai without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Mumbai centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -54,8 +54,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   gurugram: {
     name: "Gurugram",
-    headline: "See Gurugram's skyline the way",
-    headlineEm: "it deserves to be seen",
+   headline: "Work Smarter in Gurugram.",
+headlineEm: "Start by Ditching Your Glasses.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Gurugram wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Gurugram without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Gurugram centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -71,8 +71,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   noida: {
     name: "Noida",
-    headline: "See Noida's new skyline the way",
-    headlineEm: "it was always meant to look",
+  headline: "See Every Detail in Noida.",
+headlineEm: "No Glasses. No Contacts.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Noida wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Noida without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Noida centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -88,8 +88,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   ghaziabad: {
     name: "Ghaziabad",
-    headline: "See Ghaziabad clearly —",
-    headlineEm: "every detail, every day",
+   headline: "Clear Vision in Ghaziabad.",
+headlineEm: "From Day One.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Ghaziabad wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Ghaziabad without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Ghaziabad centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -105,8 +105,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   faridabad: {
     name: "Faridabad",
-    headline: "See Faridabad with",
-    headlineEm: "complete clarity",
+   headline: "Faridabad Life is Easier",
+headlineEm: "Without Glasses.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Faridabad wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Faridabad without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Faridabad centre. No obligation — just clarity on whether LASIK is right for you.",
@@ -122,8 +122,8 @@ export const CITY_DATA: Record<CityKey, CityData> = {
   },
   pune: {
     name: "Pune",
-    headline: "See Pune like it's just",
-    headlineEm: "stopped raining",
+  headline: "Pune Looks Better",
+headlineEm: "Without Glasses in the Way.",
     sub: "Advanced LASIK from fellowship-trained ophthalmologists — no injections, no stitches. Most patients in Pune wake up to clear vision the very next morning.",
     closingHeadline: "Ready to see Pune without reaching for your glasses?",
     closingSub: "Book a free eye screening at our Pune centre. No obligation — just clarity on whether LASIK is right for you.",

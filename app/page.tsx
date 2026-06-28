@@ -154,7 +154,7 @@ const testimonials = [
     textColor: "text-[#1D646B]",
   },
   {
-    name: "Verified Patient",
+    name: "suman",
     city: "India",
     treatment: "LASIK Eye Surgery",
     rating: 5,

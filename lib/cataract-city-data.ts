@@ -5,6 +5,10 @@
 // per city is the city name itself, which gets substituted wherever
 // the {city} token appears. No city-specific areas/testimonials —
 // just the same content with the name swapped in.
+//
+// Language note: every line below has been simplified so it's easy to
+// understand for a general reader — short sentences, plain everyday
+// words, no medical jargon (no "IOL", "toric", "minimally invasive", etc).
 
 export type CityKey = "delhi" | "mumbai" | "gurugram" | "noida" | "ghaziabad" | "faridabad" | "pune";
 
@@ -26,33 +30,33 @@ export interface CityData {
 // Use {city} anywhere the city name should be inserted.
 
 const TEMPLATE = {
-  headline: "Clear vision again in {city} —",
-  headlineEm: "without the cloudy haze",
+  headline: "See Clearly Again In {city} —",
+  headlineEm: "no more cloudy vision",
   sub:
-    "Advanced cataract surgery from fellowship-trained ophthalmologists — minimally invasive, painless, and most patients see dramatic improvement within 24 hours. {city}'s trusted cataract care.",
-  closingHeadline: "Ready to see {city} clearly again?",
+    "Cataract surgery by experienced, trusted eye doctors. It's a quick, painless procedure, and most people see a big improvement within 24 hours. Trusted cataract care in {city}.",
+  closingHeadline: "Want To See {city} Clearly Again?",
   closingSub:
-    "Book a free eye screening at our {city} centre. No obligation — just a clear diagnosis of whether cataract surgery is right for you.",
-  areasTitle: "Serving patients across {city}",
+    "Book a free eye checkup at our {city} centre. No pressure to buy anything — we'll simply tell you clearly if surgery will help your eyes.",
+  areasTitle: "We Help Patients All Over {city}",
   areasLead:
-    "Screenings and post-operative follow-ups are scheduled around your commute, wherever in {city} you're coming from.",
+    "We plan your checkup and follow-up visits around your travel time — no matter which part of {city} you're coming from.",
   areas: ["City Centre", "North {city}", "South {city}", "East {city}", "West {city}", "Old Town", "New Town", "Suburbs"],
   testimonials: [
     {
       quote:
-        "I thought blurred vision and a yellow tint was just part of getting older. The surgery gave me my sight back — I can read without holding things at arm's length again.",
+        "I thought blurry, yellowish vision was just a normal part of growing old. After the surgery, I can see clearly again — I don't need to hold things far away to read anymore.",
       name: "Rajesh G.",
       role: "Retired Government Officer, {city}",
     },
     {
       quote:
-        "The screening was thorough and the surgeon explained exactly what was causing my vision loss. The procedure itself was painless and recovery was faster than expected.",
+        "The doctor checked my eyes carefully and explained, in simple words, why my vision was getting worse. The surgery itself did not hurt, and I recovered faster than I expected.",
       name: "Meera C.",
       role: "Homemaker, {city}",
     },
     {
       quote:
-        "Night driving had become dangerous because of the haze. Now I drive confidently again — the clarity is incredible.",
+        "Driving at night had become scary because everything looked hazy. Now I drive with confidence again — my vision is so clear.",
       name: "Suresh M.",
       role: "Business Owner, {city}",
     },
@@ -98,10 +102,28 @@ export const CITY_DATA: Record<CityKey, CityData> = Object.fromEntries(
 ) as Record<CityKey, CityData>;
 
 export const SHARED_FAQS = [
-  { q: "Is cataract surgery painful?", a: "No. Numbing drops are used throughout, so the 15-minute procedure is painless. You may feel mild pressure, but no pain. Some mild discomfort or light sensitivity for a day or two afterward is normal." },
-  { q: "Am I a good candidate for cataract surgery?", a: "If your cataract is affecting your daily activities (reading, driving, watching TV), you're likely a good candidate. Your free screening evaluates your eye health and confirms if surgery will help." },
-  { q: "How much does cataract surgery cost?", a: "It depends on the lens technology you choose (standard IOL, premium IOL for astigmatism correction, or multifocal). You'll get one clear, itemised quote after your screening — no hidden charges added later." },
-  { q: "Which lens is right for me — standard IOL, toric, or multifocal?", a: "It depends on your prescription, astigmatism, and lifestyle. The screening team explains which lens gives you the best vision for your daily activities — not the most expensive option." },
-  { q: "How soon can I go back to work?", a: "Most patients return to desk-based work within 3–5 days, and to normal activities (except water exposure and strenuous exercise) within 1–2 weeks. Your surgeon will give you a personalised timeline." },
-  { q: "Do you serve patients across the city?", a: "Yes — we see patients from across the city and surrounding areas. Screening appointments and post-surgery follow-ups can work around your commute." },
+  {
+    q: "Is cataract surgery painful?",
+    a: "No. We use numbing eye drops, so you won't feel pain during the 15-minute surgery. You may feel a little pressure, but not pain. Some mild discomfort or light sensitivity for a day or two afterward is normal.",
+  },
+  {
+    q: "Is this surgery right for me?",
+    a: "If blurry vision is making it hard for you to read, drive, or watch TV, this surgery can likely help. Your free checkup will tell you for sure — no guessing.",
+  },
+  {
+    q: "How much does cataract surgery cost?",
+    a: "It depends on the type of lens you choose. After your free checkup, we'll give you one clear price, with nothing hidden or added later.",
+  },
+  {
+    q: "Which lens should I choose?",
+    a: "This depends on your eyes and your daily routine. Our team will explain the lens options in simple words and suggest what suits you best — not the most expensive one.",
+  },
+  {
+    q: "How soon can I go back to work?",
+    a: "Most people go back to desk work in 3–5 days. Other normal activities — except swimming and heavy exercise — can usually start again in 1–2 weeks. Your doctor will give you a plan made for you.",
+  },
+  {
+    q: "Do you see patients from all areas?",
+    a: "Yes — we see patients from every part of the city and nearby areas. We can plan your checkup and follow-up visits to fit around your travel.",
+  },
 ];

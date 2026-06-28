@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name = "Landing Page Lead", phone, service = null, disease = null, insurance = null, source = "unknown" } = body;
+    const { name = "Landing Page Lead", phone, city = null, service = null, disease = null, insurance = null, source = "unknown" } = body;
 
     if (!name || typeof name !== "string" || name.trim().length < 2) {
       return NextResponse.json({ error: "Name must be at least 2 characters" }, { status: 400 });
@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
       .insert([{
         name: name.trim(),
         phone: cleanedPhone,
+        city: city?.trim() || null,
         service: service?.trim() || null,
         disease: disease?.trim() || null,
         insurance: insurance?.trim() || null,
