@@ -1,10 +1,57 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, NextRequest } from "next/server";
+import { sendWhatsAppConfirmation } from "@/lib/whatsapp";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// ── Retry helper for transient Supabase/Postgres capacity errors ──
+// Retries a Supabase call up to `maxAttempts` times with exponential backoff.
+// Only retries on likely-transient errors (network/connection/timeout), not on
+// validation errors like duplicate phone (23505) or missing fields (23502).
+async function withRetry<T>(
+  fn: () => PromiseLike<{ data: T | null; error: any }>,
+  maxAttempts = 3,
+  baseDelayMs = 500
+): Promise<{ data: T | null; error: any }> {
+  let lastResult: { data: T | null; error: any } = { data: null, error: null };
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const result = await fn();
+
+    if (!result.error) {
+      return result;
+    }
+
+    lastResult = result;
+
+    // Don't retry on errors that won't be fixed by retrying (e.g. duplicate key,
+    // not-null violation, permission errors). Only retry on transient-looking ones.
+    const code = result.error?.code;
+    const isNonRetryable =
+      code === "23505" || // unique violation (duplicate)
+      code === "23502" || // not-null violation
+      code === "PGRST301" || // JWT/auth error
+      code === "42501"; // insufficient privilege
+
+    if (isNonRetryable) {
+      return result;
+    }
+
+    if (attempt < maxAttempts) {
+      const delay = baseDelayMs * Math.pow(3, attempt - 1); // 500ms, 1500ms, ...
+      console.warn(
+        `⚠️ Supabase call failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms:`,
+        result.error?.message
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  return lastResult;
+}
 
 function validatePhone(phone: string): { valid: boolean; error?: string } {
   if (!phone) return { valid: false, error: "Phone number is required" };
@@ -16,7 +63,7 @@ function validatePhone(phone: string): { valid: boolean; error?: string } {
     return { valid: false, error: "Invalid Indian phone number" };
   }
   const fakePatterns = [
-    /^(\d)\1{9}$/, /^1234567890$/, /^0987654321$/, 
+    /^(\d)\1{9}$/, /^1234567890$/, /^0987654321$/,
     /^1234554321$/, /^0000000000$/, /^9876543210$/,
   ];
   if (fakePatterns.some((p) => p.test(cleaned))) {
@@ -63,12 +110,15 @@ export async function POST(request: NextRequest) {
 
     const cleanedPhone = phone.replace(/\D/g, "");
 
-    const { data: existingLead, error: queryError } = await supabase
-      .from("leads")
-      .select("id, created_at")
-      .eq("phone", cleanedPhone)
-      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      .maybeSingle();
+    // ── Duplicate check, now with retry ──
+    const { data: existingLead, error: queryError } = await withRetry(() =>
+      supabase
+        .from("leads")
+        .select("id, created_at")
+        .eq("phone", cleanedPhone)
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .maybeSingle()
+    );
 
     if (queryError && queryError.code !== "PGRST116") {
       throw new Error(`Database query error: ${queryError.message}`);
@@ -81,20 +131,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error: insertError } = await supabase
-      .from("leads")
-      .insert([{
-        name: name.trim(),
-        phone: cleanedPhone,
-        city: city?.trim() || null,
-        service: service?.trim() || null,
-        disease: disease?.trim() || null,
-        insurance: insurance?.trim() || null,
-        source: source?.trim() || "unknown",
-        ip_address: ip,
-        status: "new",
-      }])
-      .select("id, phone, created_at");
+    // ── Insert, now with retry ──
+    const { data, error: insertError } = await withRetry(() =>
+      supabase
+        .from("leads")
+        .insert([{
+          name: name.trim(),
+          phone: cleanedPhone,
+          city: city?.trim() || null,
+          service: service?.trim() || null,
+          disease: disease?.trim() || null,
+          insurance: insurance?.trim() || null,
+          source: source?.trim() || "unknown",
+          ip_address: ip,
+          status: "new",
+        }])
+        .select("id, phone, created_at")
+    );
 
     if (insertError) {
       console.error("Insert error:", insertError);
@@ -107,13 +160,26 @@ export async function POST(request: NextRequest) {
       throw insertError;
     }
 
-    console.log("✅ Lead created:", { id: data?.[0]?.id, phone: cleanedPhone, source, timestamp: new Date().toISOString() });
+    console.log("✅ Lead created:", { id: (data as any)?.[0]?.id, phone: cleanedPhone, source, timestamp: new Date().toISOString() });
+
+    // Send WhatsApp confirmation — fire and forget, never blocks the response
+    sendWhatsAppConfirmation({
+      phone: cleanedPhone,
+      name: name.trim(),
+      service: service,
+    }).then((result) => {
+      if (!result.success) {
+        console.error("⚠️ WhatsApp confirmation failed:", result.error);
+      } else {
+        console.log("✅ WhatsApp confirmation sent to", cleanedPhone);
+      }
+    });
 
     return NextResponse.json(
       {
         success: true,
         message: "Booking received. Our team will call you within 5 minutes.",
-        leadId: data?.[0]?.id,
+        leadId: (data as any)?.[0]?.id,
       },
       { status: 201 }
     );
