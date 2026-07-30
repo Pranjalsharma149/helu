@@ -4,6 +4,10 @@ import Script from "next/script";
 export const metadata = {
   title: "HealviaCare",
   description: "Healthcare Landing Page",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
