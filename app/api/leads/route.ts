@@ -1,56 +1,40 @@
-import { createClient } from "@supabase/supabase-js";
-import { NextResponse, NextRequest } from "next/server";
+﻿import { NextResponse, NextRequest } from "next/server";
+import { getDb } from "@/lib/mongodb";
 import { sendWhatsAppConfirmation } from "@/lib/whatsapp";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// ── Retry helper for transient Supabase/Postgres capacity errors ──
-// Retries a Supabase call up to `maxAttempts` times with exponential backoff.
-// Only retries on likely-transient errors (network/connection/timeout), not on
-// validation errors like duplicate phone (23505) or missing fields (23502).
+// -- Retry helper for transient MongoDB/network errors --
 async function withRetry<T>(
-  fn: () => PromiseLike<{ data: T | null; error: any }>,
+  fn: () => Promise<T>,
   maxAttempts = 3,
   baseDelayMs = 500
 ): Promise<{ data: T | null; error: any }> {
-  let lastResult: { data: T | null; error: any } = { data: null, error: null };
+  let lastError: any = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const result = await fn();
+    try {
+      const data = await fn();
+      return { data, error: null };
+    } catch (err: any) {
+      lastError = err;
 
-    if (!result.error) {
-      return result;
-    }
+      const isNonRetryable = err?.code === 11000;
 
-    lastResult = result;
+      if (isNonRetryable) {
+        return { data: null, error: err };
+      }
 
-    // Don't retry on errors that won't be fixed by retrying (e.g. duplicate key,
-    // not-null violation, permission errors). Only retry on transient-looking ones.
-    const code = result.error?.code;
-    const isNonRetryable =
-      code === "23505" || // unique violation (duplicate)
-      code === "23502" || // not-null violation
-      code === "PGRST301" || // JWT/auth error
-      code === "42501"; // insufficient privilege
-
-    if (isNonRetryable) {
-      return result;
-    }
-
-    if (attempt < maxAttempts) {
-      const delay = baseDelayMs * Math.pow(3, attempt - 1); // 500ms, 1500ms, ...
-      console.warn(
-        `⚠️ Supabase call failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms:`,
-        result.error?.message
-      );
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      if (attempt < maxAttempts) {
+        const delay = baseDelayMs * Math.pow(3, attempt - 1);
+        console.warn(
+          `Warning: MongoDB call failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms:`,
+          err?.message
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 
-  return lastResult;
+  return { data: null, error: lastError };
 }
 
 function validatePhone(phone: string): { valid: boolean; error?: string } {
@@ -109,18 +93,17 @@ export async function POST(request: NextRequest) {
     }
 
     const cleanedPhone = phone.replace(/\D/g, "");
+    const db = await getDb();
+    const leads = db.collection("leads");
 
-    // ── Duplicate check, now with retry ──
     const { data: existingLead, error: queryError } = await withRetry(() =>
-      supabase
-        .from("leads")
-        .select("id, created_at")
-        .eq("phone", cleanedPhone)
-        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .maybeSingle()
+      leads.findOne({
+        phone: cleanedPhone,
+        created_at: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      })
     );
 
-    if (queryError && queryError.code !== "PGRST116") {
+    if (queryError) {
       throw new Error(`Database query error: ${queryError.message}`);
     }
 
@@ -131,47 +114,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Insert, now with retry ──
-    const { data, error: insertError } = await withRetry(() =>
-      supabase
-        .from("leads")
-        .insert([{
-          name: name.trim(),
-          phone: cleanedPhone,
-          city: city?.trim() || null,
-          service: service?.trim() || null,
-          disease: disease?.trim() || null,
-          insurance: insurance?.trim() || null,
-          source: source?.trim() || "unknown",
-          ip_address: ip,
-          status: "new",
-        }])
-        .select("id, phone, created_at")
+    const { data: insertResult, error: insertError } = await withRetry(() =>
+      leads.insertOne({
+        name: name.trim(),
+        phone: cleanedPhone,
+        city: city?.trim() || null,
+        service: service?.trim() || null,
+        disease: disease?.trim() || null,
+        insurance: insurance?.trim() || null,
+        source: source?.trim() || "unknown",
+        ip_address: ip,
+        status: "new",
+        created_at: new Date(),
+      })
     );
 
     if (insertError) {
       console.error("Insert error:", insertError);
-      if (insertError.code === "23505") {
+      if (insertError.code === 11000) {
         return NextResponse.json({ error: "This phone number is already registered" }, { status: 409 });
-      }
-      if (insertError.code === "23502") {
-        return NextResponse.json({ error: "Missing required fields", details: insertError.message }, { status: 400 });
       }
       throw insertError;
     }
 
-    console.log("✅ Lead created:", { id: (data as any)?.[0]?.id, phone: cleanedPhone, source, timestamp: new Date().toISOString() });
+    const leadId = insertResult?.insertedId?.toString();
 
-    // Send WhatsApp confirmation — fire and forget, never blocks the response
+    console.log("Lead created:", { id: leadId, phone: cleanedPhone, source, timestamp: new Date().toISOString() });
+
     sendWhatsAppConfirmation({
       phone: cleanedPhone,
       name: name.trim(),
       service: service,
     }).then((result) => {
       if (!result.success) {
-        console.error("⚠️ WhatsApp confirmation failed:", result.error);
+        console.error("WhatsApp confirmation failed:", result.error);
       } else {
-        console.log("✅ WhatsApp confirmation sent to", cleanedPhone);
+        console.log("WhatsApp confirmation sent to", cleanedPhone);
       }
     });
 
@@ -179,12 +157,12 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Booking received. Our team will call you within 5 minutes.",
-        leadId: (data as any)?.[0]?.id,
+        leadId,
       },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("❌ API Error:", { message: error.message, code: error.code, details: error.details });
+    console.error("API Error:", { message: error.message, code: error.code });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
     }
@@ -197,7 +175,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    await supabase.from("leads").select("count", { count: "exact", head: true });
+    const db = await getDb();
+    await db.collection("leads").countDocuments();
     return NextResponse.json({
       status: "healthy",
       message: "API is working correctly",
