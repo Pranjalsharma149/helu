@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X, CheckCircle2, Loader2, Phone, Stethoscope, CalendarCheck } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 const steps = [
   { icon: Phone, text: "Care coordinator will contact you." },
@@ -43,15 +42,25 @@ export default function ConsultationPopup() {
     if (!form.name || !form.phone || !form.city) return;
     setLoading(true);
     try {
-      const { error } = await supabase.from("leads").insert([
-        {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: form.name,
           phone: form.phone,
           city: form.city,
-          status: "New",
-        },
-      ]);
-      if (error) throw error;
+          source: "consultation_popup",
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      // API returns 200 + { error, duplicate: true } for existing leads,
+      // so success must be checked explicitly rather than relying on res.ok alone.
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to submit. Please try again.");
+      }
+
       setSubmitted(true);
       setTimeout(() => setIsVisible(false), 3000);
     } catch (error: any) {

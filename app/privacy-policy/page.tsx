@@ -772,7 +772,7 @@ export default function PrivacyPage() {
 
               <h3>Technology platforms we rely on</h3>
               <div className="pp-chip-grid">
-                <div className="pp-chip"><div className="pp-chip-dot" />Supabase — secure database</div>
+                <div className="pp-chip"><div className="pp-chip-dot" />MongoDB Atlas — secure database</div>
                 <div className="pp-chip"><div className="pp-chip-dot" />Vercel — website hosting</div>
                 <div className="pp-chip"><div className="pp-chip-dot" />Meta Platforms — ad tracking</div>
                 <div className="pp-chip"><div className="pp-chip-dot" />Google LLC — analytics & ads</div>
@@ -901,7 +901,7 @@ export default function PrivacyPage() {
 
               <div className="pp-security-grid">
                 {[
-                  { icon: "🔒", title: "Encrypted Storage", desc: "Supabase with row-level security and encryption at rest" },
+                  { icon: "🔒", title: "Encrypted Storage", desc: "MongoDB Atlas with encryption at rest and role-based access controls" },
                   { icon: "🌐", title: "HTTPS Everywhere", desc: "All traffic is encrypted in transit via TLS" },
                   { icon: "🚦", title: "Rate Limiting", desc: "Form submissions are rate-limited to block abuse" },
                   { icon: "👤", title: "Access Controls", desc: "Only authorised staff can access lead data" },
