@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { Mail, Lock, ArrowRight, Phone, User, ShieldCheck, MapPin } from "lucide-react";
@@ -23,45 +24,53 @@ export default function AuthPage() {
 
     try {
       if (isSignup) {
+        // Double verification check
         if (password !== confirmPassword) {
           alert("Passwords do not match!");
           setLoading(false);
           return;
         }
 
-        const res = await fetch("/api/auth/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fullName, email, phone, city, password, confirmPassword }),
+        // 1. Create secure account in Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName, phone_number: phone }
+          }
         });
-        const data = await res.json().catch(() => ({}));
 
-        if (!res.ok || data.error) {
-          alert(data.error || "Something went wrong. Please try again.");
-          return;
+        if (authError) {
+          alert(authError.message); // This will catch the "rate limit exceeded" error
+        } else if (authData.user) {
+          // 2. Save lead data into 'leads' table (Matches your SQL schema)
+          const { error: dbError } = await supabase
+            .from('leads')
+            .insert([
+              { 
+                name: fullName, 
+                email: email, 
+                phone: phone, 
+                city: city, // Required by your SQL 'not null' constraint
+                service: 'New Account Registration', // Required by your SQL 'not null' constraint
+                status: 'New' 
+              }
+            ]);
+
+          if (dbError) {
+            console.error("Lead saving error:", dbError);
+          }
+          alert("Registration successful! Check your email for a verification link.");
+          setIsSignup(false);
         }
-
-        // No email verification step with the Mongo-backed auth, so the
-        // signup response already sets a session cookie — go straight in.
-        router.push("/");
       } else {
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || data.error) {
-          alert(data.error || "Invalid email or password");
-          return;
-        }
-
-        router.push("/");
+        // Login Logic
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message);
+        else router.push("/");
       }
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -189,4 +198,4 @@ export default function AuthPage() {
       </div>
     </div>
   );
-} 
+}

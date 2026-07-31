@@ -1,339 +1,98 @@
 'use client';
 
-import { useState } from 'react';
-import { CITY_DATA, type CityKey } from '@/lib/lasik-city-data';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
+import Script from 'next/script';
+import { CITY_DATA, SHARED_FAQS, type CityKey } from '@/lib/lasik-city-data';
 
+const LEADS_ENDPOINT = '/api/leads';
+const PHONE_TEL = '+919310984753';
+const PHONE_DISPLAY = '+91 93109 84753';
 const WA_NUMBER = '919310984753';
 const WA_MSG = encodeURIComponent("Hi, I'd like to book a free LASIK screening");
 const WA_URL = `https://wa.me/${WA_NUMBER}?text=${WA_MSG}`;
-const TEL_URL = `tel:+${WA_NUMBER}`;
 
-// Drop each city's hero photo into /public with these filenames.
-const HERO_IMAGES: Record<CityKey, string> = {
-  mumbai: '/l-mumbai.png',
-  delhi: '/l-delhi.png',
-  gurugram: '/l-gurugram.png',
-  noida: '/l-noida.png',
-  ghaziabad: '/l-ghaziabad.png',
-  faridabad: '/l-faridabad.png',
-  pune: '/l-pune.png',
-};
+const IMG_EYE_MACRO = 'https://images.unsplash.com/photo-1483519173755-be893fab1f46?auto=format&fit=crop&w=1400&q=80';
+const IMG_EYE_TEST_MACHINE = 'https://images.unsplash.com/photo-1539036776273-021ec1d78bec?auto=format&fit=crop&w=900&q=80';
+const IMG_IRIS_CLOSEUP = 'https://images.unsplash.com/photo-1549872901-c350913bd5cb?auto=format&fit=crop&w=900&q=80';
+const IMG_GLASSES = 'https://images.unsplash.com/photo-1517948430535-1e2469d314fe?auto=format&fit=crop&w=900&q=80';
+const IMG_EYE_EXAM = 'https://images.unsplash.com/photo-1576210117723-cd06449a467d?auto=format&fit=crop&w=900&q=80';
+const IMG_DOCTOR_1 = 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=600&q=80';
+const IMG_DOCTOR_2 = 'https://images.unsplash.com/photo-1645066928295-2506defde470?auto=format&fit=crop&w=600&q=80';
+const IMG_DOCTOR_3 = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80';
 
-// Drop the composite insurance-partner graphic into /public with this filename.
-const INSURANCE_IMAGE = '/insurance.png';
-
-// We don't have individual logos for every insurer, so the rest are shown
-// as a scrolling name strip next to the logo graphic.
-const INSURANCE_NAMES = [
-  'Acko General Insurance',
-  'Aditya Birla Health Insurance',
-  'Bharti AXA General Insurance',
-  'Chola MS General Insurance',
-  'Edelweiss General Insurance',
-  'Future Generali',
-  'Digit General Insurance',
-  'IFFCO-Tokio General Insurance',
-  'Kotak General Insurance',
-  'Liberty General Insurance',
-  'Magma HDI General Insurance',
-  'Manipal Cigna Health Insurance',
-  'Navi General Insurance',
-  'National Insurance Company',
-  'Reliance General Insurance',
-  'Royal Sundaram General Insurance',
-  'The New India Assurance',
-  'Oriental Insurance',
-  'United India Insurance',
-  'Universal Sompo General Insurance',
-  'Star Health Insurance',
-  'Care Health Insurance',
-  'Niva Bupa Health Insurance',
-  'HDFC ERGO General Insurance',
-  'ICICI Lombard General Insurance',
-  'Bajaj Allianz General Insurance',
-  'SBI General Insurance',
-  'Tata AIG General Insurance',
-  'Religare Health Insurance',
-  'Cigna TTK Health Insurance',
-];
-
-// Second-line trust signals — shown as their own scrolling strip.
-const TRUST_BADGES = [
-  'NABH Accredited Hospitals',
-  '1000+ Successful Surgeries',
-  '500+ Trusted Doctors',
-  '0% EMI Available',
-  '4.8/5 Patient Rating',
-  'Cashless Treatment',
-  'Hassle-free Documentation',
-  '20+ Insurance Partners',
-];
-
-// Drop these two procedure photos into /public with these filenames.
-const ABOUT_IMAGES = {
-  consult: '/lasik-1.png',
-  procedure: '/lasik-2.png',
-};
-
-// Drop the before/after composite graphic into /public with this filename —
-// it's a single image with "Before/After LASIK" already baked into it.
-const EXPERIENCE_IMAGE = '/b-a.png';
-
-// Drop the 3-step "How Does LASIK Work?" composite graphic into /public
-// with this filename — the steps, icons, and captions are baked into it.
-const PROCESS_IMAGE = '/lasik-work.png';
-
-// Drop the "Types of LASIK" composite graphic into /public with this
-// filename — the icons, names, and descriptions are baked into it.
-const TYPES_IMAGE = '/eye-type.png';
-
-// Drop each specialist's headshot into /public with these filenames.
-// If a photo is missing, the card falls back to a plain initials avatar
-// automatically, so this won't ever show a broken-image icon.
-const DOCTORS = [
-  { name: 'Dr. Ananya Sharma', role: 'Lead LASIK Surgeon', exp: '15+ yrs experience', photo: '/doctor-1.png' },
-  { name: 'Dr. Rohan Mehta', role: 'Senior Ophthalmologist', exp: '12+ yrs experience', photo: '/doctor-2.png' },
-  { name: 'Dr. Kavita Nair', role: 'Cataract & LASIK Specialist', exp: '10+ yrs experience', photo: '/doctor-3.png' },
-  { name: 'Dr. Arjun Verma', role: 'Refractive Surgery Expert', exp: '14+ yrs experience', photo: '/doctor-4.png' },
-  { name: 'Dr. Priya Iyer', role: 'Corneal Specialist', exp: '9+ yrs experience', photo: '/doctor-5.png' },
-  { name: 'Dr. Sameer Khan', role: 'LASIK & SMILE Surgeon', exp: '11+ yrs experience', photo: '/doctor-6.png' },
-];
-
-// PLACEHOLDER reviews — swap in your real patients' names, photos, and
-// actual quotes once you have them. Photos are optional (falls back to an
-// initials avatar, same as the doctor cards).
-const REVIEWS = [
-  {
-    name: 'Patient Name',
-    photo: '/review-1.png',
-    headline: 'Glasses-free after years of depending on them',
-    quote: "I was nervous before the surgery, but the team explained every step and made sure I was comfortable. The procedure was quick, and I could see clearly the very next day. Best decision I've made for myself.",
-  },
-  {
-    name: 'Patient Name',
-    photo: '/review-2.png',
-    headline: 'Painless procedure, honest advice throughout',
-    quote: "What stood out was how upfront the doctors were about what to expect. No pressure, no rush — just clear answers to every question I had. My vision has been sharp ever since.",
-  },
-  {
-    name: 'Patient Name',
-    photo: '/review-3.png',
-    headline: 'Back to work the very next day',
-    quote: "I was worried about downtime, but I was back to my normal routine within 24 hours. The follow-up care gave me a lot of confidence that everything was healing the right way.",
-  },
-];
-
-// PLACEHOLDER video testimonials — swap in your real YouTube video IDs and
-// details once you have them. The ID is the part after "v=" in a YouTube
-// URL (e.g. youtube.com/watch?v=KH34CgQXBP8 → 'KH34CgQXBP8').
-const TESTIMONIALS = [
-  { youtubeId: 'dQw4w9WgXcQ', name: 'Tanvi Makharia', procedure: 'Femto LASIK' },
-  { youtubeId: 'dQw4w9WgXcQ', name: 'Rahul Kapoor', procedure: 'Contoura Vision' },
-  { youtubeId: 'dQw4w9WgXcQ', name: 'Sneha Reddy', procedure: 'SMILE LASIK' },
-  { youtubeId: 'dQw4w9WgXcQ', name: 'Arjun Malhotra', procedure: 'Standard LASIK' },
-];
-
-const LASIK_STATS = [
-  { value: '15 min', label: 'Procedure duration' },
-  { value: '99.9%', label: 'Precision accuracy' },
-  { value: 'Blade-Free', label: 'All-laser technology' },
-  { value: '24 hrs', label: 'Back to daily routine' },
-];
-
-// Rejects anything that isn't a real, plausible Indian mobile number —
-// wrong length, wrong starting digit, all-same-digit, or straight
-// sequences — so junk/fake leads don't reach the sales team.
-function validatePhone(digits: string): string {
-  if (digits.length !== 10) return 'Enter a valid 10-digit mobile number';
-  if (!/^[6-9]/.test(digits)) return 'Enter a valid Indian mobile number';
-  const fake = [
-    /^(\d)\1{9}$/,
-    /^1234567890$/,
-    /^0987654321$/,
-    /^1234554321$/,
-    /^(\d{2})\1{4}$/,
-    /^(\d{5})\1$/,
-  ];
-  if (fake.some((p) => p.test(digits))) return 'Enter a real mobile number';
-  return '';
+interface FormData {
+  name: string;
+  phone: string;
+  email: string;
+  age: string;
+  city: CityKey;
+  eyeCondition: string;
+  wearGlasses: string;
 }
 
-function validateName(value: string): string {
-  const trimmed = value.trim();
-  if (trimmed.length < 2) return 'Enter your full name';
-  if (!/^[a-zA-Z\s.'-]+$/.test(trimmed)) return 'Name can only contain letters';
-  return '';
-}
-
-// Turns "Dr. Ananya Sharma" into "AS" for the fallback avatar.
-function getInitials(fullName: string): string {
-  return fullName
-    .replace(/^Dr\.\s*/i, '')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
-
-// Original WhatsApp glyph
-const WaIcon = ({ size = 26 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.553 4.118 1.527 5.846L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.375l-.36-.213-3.73.885.927-3.636-.233-.374A9.816 9.816 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z" />
-  </svg>
-);
-
-// Original filled phone-call glyph
-const PhoneIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6.62 10.79a15.09 15.09 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.36 11.36 0 003.57.57 1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.57 1 1 0 01-.25 1.02l-2.2 2.2z" />
-  </svg>
-);
-
-// Doctor card: shows the headshot if it loads, otherwise falls back to a
-// plain initials avatar — never a broken-image icon.
-function DoctorCard({ doctor }: { doctor: (typeof DOCTORS)[number] }) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  return (
-    <div className="llp-doc-card">
-      <div className="llp-doc-photo">
-        {!imgFailed ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={doctor.photo}
-            alt={doctor.name}
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <div className="llp-doc-avatar" aria-hidden="true">
-            {getInitials(doctor.name)}
-          </div>
-        )}
-      </div>
-      <div className="llp-doc-info">
-        <div className="llp-doc-name">{doctor.name}</div>
-        <div className="llp-doc-role">{doctor.role}</div>
-        <div className="llp-doc-exp">{doctor.exp}</div>
-      </div>
-    </div>
-  );
-}
-
-// Review card: shows the patient photo if it loads, otherwise falls back
-// to a plain initials avatar.
-function ReviewCard({ review }: { review: (typeof REVIEWS)[number] }) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  return (
-    <div className="llp-review-card">
-      <div className="llp-review-avatar-wrap">
-        {!imgFailed ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={review.photo}
-            alt={review.name}
-            className="llp-review-avatar-img"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <div className="llp-review-avatar-fallback" aria-hidden="true">
-            {getInitials(review.name)}
-          </div>
-        )}
-      </div>
-      <div className="llp-review-name">{review.name}</div>
-      <div className="llp-review-headline">{review.headline}</div>
-      <p className="llp-review-quote">&ldquo;{review.quote}&rdquo;</p>
-    </div>
-  );
-}
-
-// FAQ content — mostly evergreen, but the first question references the
-// current city so it feels tailored to the page.
-function getFaqs(cityName: string) {
-  return [
-    {
-      q: `Is LASIK available near me in ${cityName}?`,
-      a: `Yes — we have partner centres in ${cityName} with the full range of laser technology. Book a free screening and our team will confirm the nearest location and a slot that works for you.`,
-    },
-    {
-      q: 'Is LASIK painful?',
-      a: 'No. Numbing eye drops are used before the procedure, so most patients feel little to no pain — just mild pressure for a few seconds. Any discomfort afterward is usually minor and settles within a day.',
-    },
-    {
-      q: 'How long does the procedure take?',
-      a: 'The actual laser treatment takes about 10-15 minutes for both eyes. Including prep and post-procedure checks, plan for about an hour at the centre.',
-    },
-    {
-      q: 'How soon can I go back to work?',
-      a: 'Most patients resume normal activities, including screen work, within 24 hours. Your doctor will give you specific guidance based on your recovery.',
-    },
-    {
-      q: 'Am I a good candidate for LASIK?',
-      a: "It depends on factors like your prescription, corneal thickness, and eye health. The free screening includes a detailed eye exam to confirm whether LASIK — or an alternative like SMILE or Contoura Vision — is right for you.",
-    },
-    {
-      q: 'Does insurance cover LASIK?',
-      a: 'Many of our insurance partners offer cashless coverage for LASIK depending on your policy. Our team can check your eligibility and handle the paperwork for you.',
-    },
-    {
-      q: 'Are the results permanent?',
-      a: "LASIK permanently reshapes the cornea, so results are long-lasting for most patients. Natural age-related vision changes (like needing reading glasses later in life) can still occur, same as anyone else.",
-    },
-  ];
-}
-
-// Single accordion row: click the question to expand/collapse the answer.
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className={`llp-faq-item${open ? ' is-open' : ''}`}>
-      <button
-        type="button"
-        className="llp-faq-q"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        <span>{q}</span>
-        <span className="llp-faq-icon" aria-hidden="true">{open ? '−' : '+'}</span>
-      </button>
-      {open && <p className="llp-faq-a">{a}</p>}
-    </div>
-  );
-}
-
-interface LasikLandingPageProps {
+interface LasikLandingProps {
   cityKey: CityKey;
 }
 
-export default function LasikLandingPage({ cityKey }: LasikLandingPageProps) {
-  const cityData = CITY_DATA[cityKey];
-  const heroImage = HERO_IMAGES[cityKey];
+function validatePhone(digits: string): string {
+  if (digits.length !== 10) return 'Enter a valid 10-digit mobile number';
+  if (!/^[6-9]/.test(digits)) return 'Enter a valid Indian mobile number';
+  const fake = [/^(\d)\1{9}$/, /^1234567890$/, /^0987654321$/, /^1234554321$/];
+  if (fake.some(p => p.test(digits))) return 'Enter a real mobile number';
+  return '';
+}
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [error, setError] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+const WaIcon = ({ size = 17 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.553 4.118 1.527 5.846L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.375l-.36-.213-3.73.885.927-3.636-.233-.374A9.816 9.816 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
+  </svg>
+);
+
+const PhoneIcon = ({ size = 15 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>
+  </svg>
+);
+
+export default function LasikLandingPage({ cityKey }: LasikLandingProps) {
+  const cityData = CITY_DATA[cityKey];
+
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    phone: '',
+    email: '',
+    age: '',
+    city: cityKey,
+    eyeCondition: '',
+    wearGlasses: '',
+  });
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [expandedFAQ, setExpandedFAQ] = useState(0);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   if (!cityData) return <div style={{ padding: 40 }}>City not found: &quot;{cityKey}&quot;</div>;
 
-  const faqs = getFaqs(cityData.name);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const nameErr = validateName(name);
-    if (nameErr) {
-      setError(nameErr);
+    const trimName = formData.name.trim();
+    if (trimName.length < 2) {
+      setError('Enter your full name');
       return;
     }
-    const phoneErr = validatePhone(phone);
+
+    const digits = formData.phone.replace(/\D/g, '');
+    const phoneErr = validatePhone(digits);
     if (phoneErr) {
       setError(phoneErr);
       return;
@@ -341,825 +100,980 @@ export default function LasikLandingPage({ cityKey }: LasikLandingPageProps) {
 
     setLoading(true);
     try {
-      // Wire this up to /api/leads in a later step.
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setSubmitted(true);
+      const res = await fetch(LEADS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: trimName,
+          phone: digits,
+          city: cityData.name,
+          source: cityData.formSource,
+          service: 'lasik',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+      } else {
+        window.location.href = '/thank-you';
+      }
+    } catch {
+      setError('Could not reach our server. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const scrollToForm = () => {
+    document.getElementById('lead-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => nameRef.current?.focus(), 400);
+  };
+
   return (
     <div className="llp">
+      {/* ── GOOGLE TAG MANAGER ── */}
+      <Script
+        id="gtm-script"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5PJZFM59');`,
+        }}
+      />
+      <noscript>
+        <iframe
+          src="https://www.googletagmanager.com/ns.html?id=GTM-5PJZFM59"
+          height="0"
+          width="0"
+          style={{ display: 'none', visibility: 'hidden' }}
+        />
+      </noscript>
       <style>{`
+        /* ── GLOBAL RESET ── */
         .llp *, .llp *::before, .llp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .llp {
-          font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #0E2B27;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+          color: #1a1a1a;
           background: #ffffff;
-          --ink: #0E2B27;
-          --accent: #0E8C82;
-          --accent-deep: #085F58;
-          --accent-soft: #EAF6F3;
-          --line: #E4E9E7;
-          --muted: #5B6B67;
+          line-height: 1.6;
+          --accent: #4CAF50;
         }
-        .llp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
 
-        .llp-hero { padding: 56px 0 72px; }
-
-        .llp-hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: stretch; }
-
-        .llp-hero-visual { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); height: 100%; min-width: 0; }
-        .llp-hero-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .llp-lead {
-          background: #fff; border: 1px solid var(--line); border-radius: 16px;
-          padding: 30px 30px 26px; align-self: center; min-width: 0;
+        /* ── HEADER ── */
+        .llp-header {
+          position: sticky;
+          top: 0;
+          z-index: 200;
+          background: #ffffff;
+          border-bottom: 1.5px solid #e5e7eb;
+          box-shadow: 0 1px 8px rgba(0,0,0,0.04);
         }
-        .llp-lead-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 8px; }
-        .llp-lead h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; color: var(--ink); margin-bottom: 4px; }
-        .llp-lead-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
-
-        .llp-field { margin-bottom: 16px; }
-        .llp-field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 7px; }
-        .llp-field input { width: 100%; border: none; border-bottom: 1.5px solid var(--line); padding: 7px 2px 9px; font-size: 15px; font-family: 'Manrope', sans-serif; color: var(--ink); background: transparent; outline: none; transition: border-color .2s ease; }
-        .llp-field input::placeholder { color: #B7C2BF; }
-        .llp-field input:focus { border-color: var(--accent); }
-
-        .llp-phone-field { display: flex; align-items: flex-end; gap: 8px; border-bottom: 1.5px solid var(--line); transition: border-color .2s ease; }
-        .llp-phone-field:focus-within { border-color: var(--accent); }
-        .llp-phone-field .prefix { font-size: 15px; color: var(--muted); font-weight: 600; padding-bottom: 9px; }
-        .llp-phone-field input { border-bottom: none; flex: 1; }
-
-        .llp-lead-error { background: #FDECEC; color: #A32D2D; font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; }
-        .llp-lead-success { background: var(--accent-soft); color: var(--accent-deep); font-size: 13.5px; font-weight: 600; padding: 14px 16px; border-radius: 10px; text-align: center; }
-
-        .llp-lead-submit { width: 100%; padding: 13px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: background .2s ease, transform .2s ease; }
-        .llp-lead-submit:hover:not(:disabled) { background: var(--accent-deep); transform: translateY(-1px); }
-        .llp-lead-submit:disabled { opacity: 0.65; cursor: not-allowed; }
-
-        .llp-lead-trust { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
-        .llp-lead-trust span { font-size: 10.5px; color: var(--muted); font-weight: 600; }
-
-        .llp-trust { padding: 8px 0 60px; overflow-x: hidden; }
-        .llp-trust-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 40px; align-items: center; margin-bottom: 34px; }
-        .llp-trust-visual { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
-        .llp-trust-visual img { width: 100%; display: block; }
-        .llp-trust-copy { min-width: 0; }
-        .llp-trust-copy h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 25px; color: var(--ink); margin: 6px 0 10px; line-height: 1.28; }
-        .llp-trust-sub { font-size: 14px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
-
-        .llp-marquee { min-width: 0; max-width: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-        .llp-marquee-track { display: flex; gap: 12px; width: max-content; animation: llp-scroll 36s linear infinite; }
-        .llp-marquee:hover .llp-marquee-track { animation-play-state: paused; }
-        .llp-marquee-reverse .llp-marquee-track { animation-direction: reverse; animation-duration: 26s; }
-        @keyframes llp-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-        .llp-pill { flex: 0 0 auto; padding: 9px 18px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink); background: #fff; white-space: nowrap; }
-
-        .llp-badges-strip { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; }
-        .llp-badge-pill { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 9px 20px; font-size: 13.5px; font-weight: 700; color: var(--accent-deep); white-space: nowrap; }
-        .llp-badge-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-deep); flex-shrink: 0; }
-
-        .llp-types { padding: 10px 0 64px; }
-        .llp-types-visual { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); margin-bottom: 30px; }
-        .llp-types-visual img { width: 100%; height: auto; display: block; }
-        .llp-types-cta { text-align: center; }
-        .llp-types-cta button { padding: 15px 32px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
-        .llp-types-cta button:hover { background: var(--accent-deep); transform: translateY(-1px); }
-
-        .llp-process { padding: 10px 0 64px; }
-        .llp-process-head { max-width: 640px; margin: 0 auto 30px; text-align: center; }
-        .llp-process-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-process-head p { font-size: 15px; color: var(--muted); line-height: 1.75; margin-top: 10px; }
-        .llp-process-visual { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #F4F7F6; margin-bottom: 30px; }
-        .llp-process-visual img { width: 100%; height: auto; display: block; }
-        .llp-process-cta { text-align: center; }
-        .llp-process-cta button { padding: 15px 32px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
-        .llp-process-cta button:hover { background: var(--accent-deep); transform: translateY(-1px); }
-
-        .llp-experience { padding: 10px 0 64px; }
-        .llp-exp-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
-        .llp-exp-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-exp-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-exp-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
-
-        .llp-exp-visual { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #F4F7F6; margin-bottom: 34px; }
-        .llp-exp-visual img { width: 100%; height: auto; display: block; }
-
-        .llp-exp-cta { text-align: center; }
-        .llp-exp-cta button { padding: 15px 32px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
-        .llp-exp-cta button:hover { background: var(--accent-deep); transform: translateY(-1px); }
-
-        .llp-about { padding: 10px 0 64px; }
-        .llp-about-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
-        .llp-about-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-about-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-about-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
-
-        .llp-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
-        .llp-about-img { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 4 / 3; min-width: 0; }
-        .llp-about-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .llp-about-fact { background: var(--accent-soft); border-radius: 14px; padding: 18px 22px; margin-bottom: 32px; font-size: 14px; color: var(--accent-deep); font-weight: 600; line-height: 1.65; display: flex; gap: 12px; align-items: flex-start; }
-        .llp-about-fact .spark { flex-shrink: 0; font-size: 18px; line-height: 1; }
-
-        .llp-about-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 34px; }
-        .llp-about-stat { text-align: center; padding: 22px 12px; border: 1px solid var(--line); border-radius: 14px; }
-        .llp-about-stat .value { font-family: 'Fraunces', serif; font-weight: 600; font-size: 25px; color: var(--accent-deep); display: block; }
-        .llp-about-stat .label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 6px; display: block; }
-
-        .llp-about-cta { text-align: center; }
-        .llp-about-cta button { padding: 15px 32px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
-        .llp-about-cta button:hover { background: var(--accent-deep); transform: translateY(-1px); }
-
-        .llp-company { padding: 10px 0 64px; overflow: hidden; position: relative; }
-        .llp-company-card {
-          background: var(--ink); border-radius: 24px; padding: 56px 48px;
-          position: relative; overflow: hidden; color: #fff;
+        .llp-header-inner {
+          max-width: 1400px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 2px 24px;
+          gap: 16px;
+          min-height: 52px;
         }
-        .llp-company-glow {
-          position: absolute; width: 420px; height: 420px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(14,140,130,0.55) 0%, rgba(14,140,130,0) 70%);
-          top: -160px; right: -120px; pointer-events: none;
+        .llp-logo {
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+          flex-shrink: 0;
+          transition: transform 0.3s ease;
         }
-        .llp-company-glow-2 {
-          position: absolute; width: 320px; height: 320px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(234,246,243,0.10) 0%, rgba(234,246,243,0) 70%);
-          bottom: -140px; left: -80px; pointer-events: none;
+        .llp-logo:hover { transform: scale(1.04); }
+        .llp-logo img, .llp-logo-img {
+          height: auto;
+          width: auto;
+          max-height: 50px;
+          max-width: 240px;
+          display: block;
+          object-fit: contain;
         }
-        .llp-company-inner { position: relative; z-index: 1; }
-        .llp-company-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8FD8CE; margin-bottom: 16px; }
-        .llp-company-headline {
-          font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(26px, 3.6vw, 42px);
-          line-height: 1.28; max-width: 780px; margin-bottom: 22px;
+        .llp-nav { display: flex; align-items: center; gap: 10px; }
+
+        /* ── NAV BUTTONS ── */
+        .llp-btn-wa {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          background: var(--accent);
+          color: #fff;
+          text-decoration: none;
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          transition: all 0.3s ease;
         }
-        .llp-company-headline em { font-style: italic; color: #8FD8CE; }
-        .llp-company-sub { font-size: 15.5px; line-height: 1.8; color: rgba(255,255,255,0.78); max-width: 620px; margin-bottom: 36px; }
-
-        .llp-company-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-        .llp-company-point { border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; padding: 20px 20px 22px; background: rgba(255,255,255,0.04); }
-        .llp-company-point .num { font-family: 'Fraunces', serif; font-size: 22px; color: #8FD8CE; display: block; margin-bottom: 8px; }
-        .llp-company-point .txt { font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.82); }
-
-        .llp-company-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .llp-company-cta {
-          padding: 15px 30px; border: none; border-radius: 10px; background: #fff; color: var(--ink);
-          font-size: 14.5px; font-weight: 700; cursor: pointer; transition: transform .2s ease, background .2s ease;
+        .llp-btn-wa:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(76, 175, 80, 0.3); }
+        .llp-btn-call {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          background: #fff;
+          color: #111827;
+          border: 1.5px solid #e5e7eb;
+          text-decoration: none;
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          transition: all 0.3s ease;
         }
-        .llp-company-cta:hover { background: #8FD8CE; transform: translateY(-1px); }
-        .llp-company-note { font-size: 12.5px; color: rgba(255,255,255,0.6); }
-
-        .llp-doctors { padding: 10px 0 64px; overflow-x: hidden; }
-        .llp-doc-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
-        .llp-doc-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-doc-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-doc-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
-
-        .llp-doc-marquee { min-width: 0; max-width: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
-        .llp-doc-track { display: flex; gap: 22px; width: max-content; animation: llp-scroll 42s linear infinite; }
-        .llp-doc-marquee:hover .llp-doc-track { animation-play-state: paused; }
-
-        .llp-doc-card { flex: 0 0 auto; width: 220px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; }
-        .llp-doc-photo { width: 100%; aspect-ratio: 4 / 5; background: var(--accent-soft); }
-        .llp-doc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .llp-doc-avatar {
-          width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-          font-family: 'Fraunces', serif; font-weight: 600; font-size: 34px; color: var(--accent-deep);
-          background: var(--accent-soft);
+        .llp-btn-call:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .llp-btn-screen {
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
         }
-        .llp-doc-info { padding: 16px 16px 18px; }
-        .llp-doc-name { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
-        .llp-doc-role { font-size: 12.5px; color: var(--accent-deep); font-weight: 600; margin-bottom: 3px; }
-        .llp-doc-exp { font-size: 12px; color: var(--muted); }
+        .llp-btn-screen:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
 
-        .llp-faq { padding: 10px 0 64px; }
-        .llp-faq-head { max-width: 640px; margin: 0 auto 30px; text-align: center; }
-        .llp-faq-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-faq-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-faq-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
+        /* ── CITY BAR ── */
+        .llp-city-bar {
+          background: #ffffff;
+          border-bottom: 1.5px solid #e5e7eb;
+          padding: 10px 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .llp-city-bar-label { font-size: 11px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 0.08em; }
+        .llp-city-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .llp-city-tab {
+          padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+          border: 1.5px solid #e5e7eb; color: #374151; background: #fff; cursor: pointer;
+          transition: all 0.3s ease; text-decoration: none; display: inline-block;
+        }
+        .llp-city-tab.active, .llp-city-tab:hover {
+          background: var(--accent); color: #fff; border-color: var(--accent);
+        }
 
-        .llp-faq-list { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-        .llp-faq-item { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
-        .llp-faq-item.is-open { border-color: var(--accent); }
+        /* ── PAGE LAYOUT ── */
+        .llp-page { max-width: 1400px; margin: 0 auto; padding: 28px 24px 0; background: #ffffff; }
+        .llp-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+        .llp-main { min-width: 0; }
+        .llp-side { position: sticky; top: 84px; }
+
+        /* ── HERO ── */
+        .llp-hero {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 18px;
+          padding: 44px 40px;
+          margin-bottom: 28px;
+          overflow: hidden;
+          position: relative;
+        }
+        .llp-hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 36px; align-items: center; }
+        .llp-hero-badge {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #ffffff; color: #374151;
+          font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+          padding: 7px 14px; border-radius: 999px; margin-bottom: 18px;
+          border: 1px solid #e5e7eb;
+        }
+        .llp-hero h1 { font-size: 42px; line-height: 1.18; font-weight: 900; color: var(--accent); margin-bottom: 14px; }
+        .llp-hero h1 em { font-style: normal; color: #111827; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+        .llp-hero-sub { font-size: 15.5px; color: #374151; line-height: 1.75; margin-bottom: 24px; max-width: 520px; }
+        .llp-hero-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
+        .llp-hero-pill {
+          display: flex; align-items: center; gap: 8px;
+          background: #fff; border: 1px solid #e5e7eb;
+          padding: 9px 14px; border-radius: 999px; font-size: 13px; color: #374151; font-weight: 600;
+        }
+        .llp-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+        .llp-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+        .llp-hero-cta-primary {
+          background: var(--accent); color: #fff; border: none;
+          padding: 13px 22px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .llp-hero-cta-primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .llp-hero-cta-secondary {
+          background: #fff; color: #111827; border: 1.5px solid #e5e7eb;
+          padding: 13px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none;
+          display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+        }
+        .llp-hero-cta-secondary:hover { background: #ffffff; }
+        .llp-hero-visual { position: relative; }
+        .llp-hero-img-wrap {
+          border-radius: 16px; overflow: hidden; height: 320px;
+          border: 2px solid #e5e7eb;
+        }
+        .llp-hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-hero-floatcard {
+          position: absolute; background: #fff; color: #1a1a1a; border-radius: 12px;
+          padding: 12px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); display: flex; align-items: center; gap: 10px;
+          min-width: 168px; border: 1.5px solid #e5e7eb;
+        }
+        .llp-hero-floatcard .num { font-size: 18px; font-weight: 900; color: var(--accent); line-height: 1; }
+        .llp-hero-floatcard .lbl { font-size: 11px; color: #6b7280; font-weight: 600; }
+        .llp-hero-fc-1 { top: -16px; right: -8px; }
+        .llp-hero-fc-2 { bottom: -16px; left: -10px; }
+
+        /* ── STATS ── */
+        .llp-stats {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+          margin-bottom: 28px;
+        }
+        .llp-stat {
+          background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px;
+          padding: 22px 16px; text-align: center;
+        }
+        .llp-stat-num { font-size: 30px; font-weight: 900; color: var(--accent); }
+        .llp-stat-label { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 600; }
+
+        /* ── SECTIONS ── */
+        .llp-section {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 14px;
+          padding: 34px 32px;
+          margin-bottom: 22px;
+        }
+        .llp-section-tint { background: #ffffff; border: 1.5px solid #e5e7eb; }
+        .llp-section h2 { font-size: 26px; font-weight: 900; color: var(--accent); margin-bottom: 8px; }
+        .llp-section-lead { font-size: 15px; color: #6b7280; margin-bottom: 22px; line-height: 1.7; }
+
+        /* ── WHY GRID ── */
+        .llp-why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .llp-why-card {
+          display: flex; gap: 14px; align-items: flex-start; padding: 18px;
+          border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff; transition: all 0.3s ease;
+        }
+        .llp-why-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .llp-why-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+        .llp-why-text { font-size: 14px; color: #1a1a1a; font-weight: 500; line-height: 1.6; }
+
+        /* ── PROCESS GRID ── */
+        .llp-process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .llp-process-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 22px 18px; text-align: center; transition: all 0.3s ease; }
+        .llp-process-card:hover { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .llp-process-num {
+          display: inline-flex; width: 42px; height: 42px;
+          background: var(--accent); color: #fff;
+          border-radius: 50%; align-items: center; justify-content: center; font-size: 17px; font-weight: 900; margin-bottom: 12px;
+        }
+        .llp-process-card h3 { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+        .llp-process-card p { font-size: 13px; color: #6b7280; line-height: 1.6; }
+
+        /* ── PHOTO GRID ── */
+        .llp-img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+        .llp-img-grid-item { width: 100%; height: 190px; border-radius: 12px; overflow: hidden; border: 1.5px solid #e5e7eb; }
+        .llp-img-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-img-caption { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 8px; font-weight: 500; }
+
+        /* ── LISTS ── */
+        .llp-check { list-style: none; }
+        .llp-check li { display: flex; gap: 12px; margin-bottom: 13px; font-size: 14px; color: #1a1a1a; line-height: 1.6; }
+        .llp-check li::before { content: "✓"; color: var(--accent); font-weight: 900; flex-shrink: 0; font-size: 16px; }
+        .llp-cross { list-style: none; }
+        .llp-cross li { display: flex; gap: 12px; margin-bottom: 13px; font-size: 14px; color: #6b7280; line-height: 1.6; }
+        .llp-cross li::before { content: "✗"; color: #dc2626; font-weight: 900; flex-shrink: 0; font-size: 16px; }
+        .llp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        .llp-two h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+
+        /* ── COMPARE ── */
+        .llp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .llp-compare-col { border-radius: 12px; overflow: hidden; border: 1.5px solid #e5e7eb; }
+        .llp-compare-img { height: 170px; overflow: hidden; }
+        .llp-compare-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-compare-body { padding: 18px; }
+        .llp-compare-body h3 { font-size: 15px; font-weight: 800; margin-bottom: 12px; color: var(--accent); }
+        .llp-compare-col.bad .llp-compare-body h3 { color: #dc2626; }
+        .llp-compare-col.good .llp-compare-body h3 { color: var(--accent); }
+        .llp-compare-col.good { border-color: var(--accent); }
+
+        /* ── DOCTOR CARDS ── */
+        .llp-doctor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .llp-doctor-card { border: 1.5px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+        .llp-doctor-card:hover { border-color: var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .llp-doctor-photo { height: 190px; overflow: hidden; }
+        .llp-doctor-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .llp-doctor-info { padding: 14px 16px; }
+        .llp-doctor-info h3 { font-size: 15px; font-weight: 800; margin-bottom: 2px; color: var(--accent); }
+        .llp-doctor-info .role { font-size: 12.5px; color: #374151; font-weight: 700; margin-bottom: 6px; }
+        .llp-doctor-info .exp { font-size: 12.5px; color: #9ca3af; }
+
+        /* ── EMI CARDS ── */
+        .llp-emi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+        .llp-emi-card { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 18px; text-align: center; }
+        .llp-emi-card .tenure { font-size: 22px; font-weight: 900; color: var(--accent); }
+        .llp-emi-card .note { font-size: 12.5px; color: #9ca3af; margin-top: 4px; }
+
+        /* ── TABLE ── */
+        .llp-tbl-wrap { overflow-x: auto; }
+        .llp-tbl { width: 100%; border-collapse: collapse; border: 1.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .llp-tbl thead { background: #ffffff; }
+        .llp-tbl th { padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 700; color: var(--accent); border-bottom: 2px solid #e5e7eb; }
+        .llp-tbl td { padding: 14px 16px; font-size: 13px; color: #6b7280; border-bottom: 1px solid #f3f4f6; }
+        .llp-tbl tr:last-child td { border-bottom: none; }
+
+        /* ── FAQ ── */
+        .llp-faq { border: 1.5px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: all 0.3s ease; }
+        .llp-faq.active { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .llp-faq-q {
-          width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          text-align: left; background: none; border: none; cursor: pointer;
-          padding: 18px 20px; font-size: 14.5px; font-weight: 700; color: var(--ink); font-family: 'Manrope', sans-serif;
+          padding: 16px 18px; background: #ffffff; cursor: pointer; display: flex; justify-content: space-between;
+          align-items: center; font-size: 14px; font-weight: 700; color: var(--accent); gap: 12px; border: none; width: 100%;
+          text-align: left; transition: all 0.3s ease;
         }
-        .llp-faq-icon { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-deep); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; line-height: 1; }
-        .llp-faq-a { padding: 0 20px 20px; font-size: 13.5px; line-height: 1.75; color: var(--muted); }
+        .llp-faq.active .llp-faq-q { background: #ffffff; color: var(--accent); }
+        .llp-faq-icon { flex-shrink: 0; transition: transform 0.3s ease; font-size: 16px; }
+        .llp-faq.active .llp-faq-icon { transform: rotate(180deg); }
+        .llp-faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .llp-faq.active .llp-faq-a { max-height: 400px; }
+        .llp-faq-a-inner { padding: 16px 18px; font-size: 13px; color: #6b7280; line-height: 1.8; background: #fff; }
 
-        .llp-final-cta { padding: 10px 0 64px; }
-        .llp-final-cta-card {
-          background: var(--accent-soft); border-radius: 20px; padding: 44px 40px;
-          display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+        /* ── CHIPS ── */
+        .llp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .llp-chip {
+          padding: 8px 16px; border-radius: 999px; background: #ffffff; color: #374151;
+          font-size: 13px; font-weight: 700; border: 1px solid #e5e7eb; transition: all 0.3s ease;
         }
-        .llp-final-cta-text h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(22px, 2.6vw, 28px); color: var(--ink); margin-bottom: 8px; }
-        .llp-final-cta-text p { font-size: 14px; color: var(--muted); }
-        .llp-final-cta-btn { flex-shrink: 0; padding: 15px 32px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
-        .llp-final-cta-btn:hover { background: var(--accent-deep); transform: translateY(-1px); }
+        .llp-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        .llp-footer-logo { height: 72px; width: auto; display: block; }
+        /* ── TESTIMONIALS ── */
+        .llp-testi { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 20px 18px; margin-bottom: 14px; transition: all 0.3s ease; }
+        .llp-testi:hover { border-color: #111827; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .llp-testi-stars { color: #fbbf24; font-size: 14px; margin-bottom: 10px; }
+        .llp-testi-quote { font-size: 13px; color: #374151; line-height: 1.7; margin-bottom: 12px; font-style: italic; }
+        .llp-testi-name { font-size: 13px; font-weight: 700; color: var(--accent); }
+        .llp-testi-role { font-size: 12px; color: #9ca3af; }
 
-        .llp-footer { position: relative; background: var(--ink); color: rgba(255,255,255,0.88); padding: 72px 0 0; overflow: hidden; margin-top: 8px; }
-        .llp-footer::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-          background: linear-gradient(90deg, var(--accent) 0%, #8FD8CE 50%, var(--accent) 100%);
+        /* ── CLOSING ── */
+        .llp-closing {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 14px; padding: 38px 36px; text-align: center; margin-bottom: 0;
         }
-        .llp-footer-glow {
-          position: absolute; width: 460px; height: 460px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(14,140,130,0.35) 0%, rgba(14,140,130,0) 70%);
-          top: -220px; right: -140px; pointer-events: none;
+        .llp-closing h2 { font-size: 26px; font-weight: 900; margin-bottom: 10px; color: var(--accent); }
+        .llp-closing p { font-size: 15px; color: #374151; margin-bottom: 22px; line-height: 1.7; }
+        .llp-closing-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .llp-cb-wa {
+          display: flex; align-items: center; gap: 8px;
+          background: var(--accent); color: #fff; text-decoration: none;
+          padding: 13px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.3s ease;
+        }
+        .llp-cb-wa:hover { transform: translateY(-2px); }
+        .llp-cb-screen {
+          background: var(--accent); color: #fff; border: none;
+          padding: 13px 26px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .llp-cb-screen:hover { filter: brightness(1.06); }
+
+        /* ── LEAD CARD ── */
+        .llp-lead {
+          background: #ffffff;
+          border: 1.5px solid #e5e7eb;
+          color: #1a1a1a; border-radius: 16px; padding: 22px 20px;
+          position: relative; overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .llp-lead-content { position: relative; z-index: 1; }
+        .llp-lead-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
+        .llp-lead h3 { font-size: 19px; font-weight: 900; color: var(--accent); margin-bottom: 4px; line-height: 1.2; }
+        .llp-lead-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; line-height: 1.5; }
+        .llp-lead-field { margin-bottom: 12px; }
+        .llp-lead-label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .llp-lead-input {
+          width: 100%; padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+          font-size: 13px; background: #fff; color: #111827; outline: none; transition: all 0.3s ease;
+        }
+        .llp-lead-input::placeholder { color: #9ca3af; }
+        .llp-lead-input:focus { border-color: var(--accent); }
+        .llp-phone-row { display: flex; align-items: center; border: 1.5px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+        .llp-phone-row:focus-within { border-color: var(--accent); }
+        .llp-phone-pre { padding: 10px 10px; font-size: 13px; color: #6b7280; border-right: 1px solid #e5e7eb; white-space: nowrap; background: #ffffff; font-weight: 600; }
+        .llp-phone-row input { border: none; padding: 10px 13px; font-size: 13px; background: transparent; color: #111827; outline: none; width: 100%; }
+        .llp-phone-row input::placeholder { color: #9ca3af; }
+        .llp-lead-submit {
+          width: 100%; padding: 12px; background: var(--accent); color: #fff;
+          border: none; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; transition: all 0.3s ease;
+        }
+        .llp-lead-submit:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+        .llp-lead-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .llp-lead-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+        .llp-lead-success { background: #ffffff; border: 1px solid var(--accent); color: var(--accent); padding: 13px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; }
+        .llp-lead-trust { display: flex; justify-content: space-around; margin-top: 12px; font-size: 11px; color: #9ca3af; font-weight: 700; }
+
+        /* ── FLOATING BUTTONS ── */
+        .llp-fab { position: fixed; right: 20px; bottom: 26px; z-index: 300; display: flex; flex-direction: column; gap: 14px; }
+        .llp-fab-btn {
+          width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; transition: transform 0.25s ease; text-decoration: none;
+        }
+        .llp-fab-btn:hover { transform: scale(1.08); }
+        .llp-fab-wa { background: var(--accent); }
+        .llp-fab-call { background: var(--accent); }
+        .llp-fab-ping { position: absolute; inset: 0; border-radius: 50%; background: var(--accent); opacity: 0.55; animation: fabping 2.2s ease-out infinite; }
+        @keyframes fabping { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.6); opacity: 0; } }
+
+        /* ── MOBILE STICKY CTA ── */
+        .llp-sticky-cta { display: none; }
+        .llp-sticky-cta button {
+          width: 100%; padding: 13px; border: none; border-radius: 10px;
+          background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;
         }
 
-        .llp-footer-top { position: relative; z-index: 1; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; }
-
-        .llp-footer-logo-mark { background: #fff; display: inline-flex; padding: 10px 16px; border-radius: 12px; margin-bottom: 16px; }
-        .llp-footer-about-text { font-size: 13.5px; line-height: 1.75; color: rgba(255,255,255,0.62); max-width: 300px; margin-bottom: 20px; }
-        .llp-footer-social { display: flex; gap: 10px; }
-        .llp-footer-social a {
-          width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18);
-          display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none;
-          transition: background .2s ease, border-color .2s ease, transform .2s ease;
+        /* ── FOOTER ── */
+        .llp-footer { background: #ffffff; border-top: 1.5px solid #e5e7eb; color: #1a1a1a; padding: 52px 24px 24px; margin-top: 24px; }
+        .llp-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 32px; }
+        .llp-footer-brand-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .llp-footer-brand-logo img { width: 180px !important; height: auto !important; object-fit: contain; }
+        .llp-footer-brand p { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 18px; }
+        .llp-footer-wa-btn {
+          display: inline-flex; align-items: center; gap: 6px; background: var(--accent);
+          color: #fff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; transition: all 0.3s ease;
         }
-        .llp-footer-social a:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
+        .llp-footer-wa-btn:hover { transform: translateY(-2px); }
+        .llp-footer-section h4 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px; }
+        .llp-footer-section ul { list-style: none; }
+        .llp-footer-section li { margin-bottom: 10px; font-size: 13px; }
+        .llp-footer-section a { color: #374151; text-decoration: none; transition: color 0.3s ease; }
+        .llp-footer-section a:hover { color: var(--accent); }
+        .llp-footer-bottom { border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; font-size: 12px; color: #9ca3af; max-width: 1400px; margin: 0 auto; }
+        .llp-footer-bottom a { color: #6b7280; text-decoration: none; transition: color 0.3s ease; }
+        .llp-footer-bottom a:hover { color: var(--accent); }
 
-        .llp-footer-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8FD8CE; margin-bottom: 20px; }
-        .llp-footer-col-links { display: flex; flex-direction: column; gap: 13px; }
-        .llp-footer-col-links a, .llp-footer-col-links button {
-          background: none; border: none; padding: 0; text-align: left; cursor: pointer;
-          font-size: 13.5px; color: rgba(255,255,255,0.72); text-decoration: none;
-          font-family: 'Manrope', sans-serif; transition: color .2s ease, padding-left .2s ease;
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+          .llp-grid { grid-template-columns: 1fr; }
+          .llp-side { position: static; order: -1; }
+          .llp { padding-bottom: 86px; }
+          .llp-nav .llp-btn-wa, .llp-nav .llp-btn-call { display: none; }
+          .llp-hero { padding: 30px 22px; }
+          .llp-hero-grid { grid-template-columns: 1fr; gap: 24px; }
+          .llp-hero h1 { font-size: 32px; }
+          .llp-hero-img-wrap { height: 220px; }
+          .llp-footer-inner { grid-template-columns: 1fr 1fr; }
+          .llp-fab { bottom: 92px; right: 16px; }
+          .llp-fab-btn { width: 50px; height: 50px; }
+          .llp-sticky-cta { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 290; background: #fff; border-top: 1.5px solid #e5e7eb; padding: 10px 16px 14px; box-shadow: 0 -4px 16px rgba(0,0,0,0.08); }
         }
-        .llp-footer-col-links a:hover, .llp-footer-col-links button:hover { color: #fff; padding-left: 4px; }
 
-        .llp-footer-contact-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: rgba(255,255,255,0.72); margin-bottom: 16px; line-height: 1.6; }
-        .llp-footer-contact-item svg { flex-shrink: 0; margin-top: 2px; color: #8FD8CE; }
-        .llp-footer-contact-item a { color: inherit; text-decoration: none; }
-        .llp-footer-contact-item a:hover { color: #fff; }
-
-        .llp-footer-bottom {
-          position: relative; z-index: 1; border-top: 1px solid rgba(255,255,255,0.12);
-          padding: 22px 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-        }
-        .llp-footer-copy { font-size: 12px; color: rgba(255,255,255,0.5); }
-        .llp-footer-bottom-links { display: flex; gap: 20px; }
-        .llp-footer-bottom-links a { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; }
-        .llp-footer-bottom-links a:hover { color: #fff; }
-
-        .llp-reviews { padding: 10px 0 64px; }
-        .llp-review-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
-        .llp-review-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-review-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-review-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
-
-        .llp-review-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-        .llp-review-card { background: var(--ink); border-radius: 18px; padding: 32px 26px 30px; text-align: center; }
-        .llp-review-avatar-wrap { width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 18px; overflow: hidden; border: 2px solid rgba(255,255,255,0.18); }
-        .llp-review-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .llp-review-avatar-fallback {
-          width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-          font-family: 'Fraunces', serif; font-weight: 600; font-size: 24px; color: #fff;
-          background: rgba(255,255,255,0.12);
-        }
-        .llp-review-name { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 12px; }
-        .llp-review-headline { font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; color: #8FD8CE; line-height: 1.4; margin-bottom: 14px; }
-        .llp-review-quote { font-size: 13.5px; line-height: 1.75; color: rgba(255,255,255,0.72); }
-
-        .llp-testimonials { padding: 10px 0 64px; }
-        .llp-testi-head { max-width: 640px; margin: 0 auto 34px; text-align: center; }
-        .llp-testi-head .llp-lead-eyebrow { display: block; text-align: center; }
-        .llp-testi-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(28px, 3.4vw, 38px); color: var(--ink); margin: 8px 0 14px; line-height: 1.22; }
-        .llp-testi-head p { font-size: 15px; color: var(--muted); line-height: 1.75; }
-
-        .llp-testi-row { display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
-        .llp-testi-row::-webkit-scrollbar { height: 6px; }
-        .llp-testi-row::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
-
-        .llp-testi-card { flex: 0 0 auto; width: 320px; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; }
-        .llp-testi-video { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #0E2B27; }
-        .llp-testi-video iframe { width: 100%; height: 100%; display: block; border: none; }
-        .llp-testi-info { padding: 14px 16px 16px; }
-        .llp-testi-name { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-        .llp-testi-procedure { font-size: 12.5px; color: var(--accent-deep); font-weight: 600; }
-
-        /* Fixed WhatsApp + Call buttons, stuck to the page as you scroll */
-        .llp-float-stack { position: fixed; right: 22px; bottom: 90px; display: flex; flex-direction: column; gap: 14px; z-index: 999; }
-        .llp-float-btn {
-          width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-          color: #fff; text-decoration: none; box-shadow: 0 6px 18px rgba(0,0,0,0.22);
-          transition: transform .2s ease, box-shadow .2s ease;
-        }
-        .llp-float-btn:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 22px rgba(0,0,0,0.28); }
-        .llp-float-wa { background: #25D366; }
-        .llp-float-call { background: #0E8C82; }
-
-        @media (max-width: 900px) {
-          .llp-hero-grid { grid-template-columns: 1fr; gap: 28px; }
-          .llp-hero-visual { order: -1; height: auto; }
-          .llp-lead { align-self: stretch; }
-          .llp-trust-grid { grid-template-columns: 1fr; gap: 24px; }
-          .llp-about-grid { grid-template-columns: 1fr; }
-          .llp-about-stats { grid-template-columns: repeat(2, 1fr); }
-          .llp-type-divider { display: none; }
-          .llp-type-item { padding: 0 16px; max-width: 140px; }
-          .llp-company-card { padding: 40px 26px; }
-          .llp-company-points { grid-template-columns: 1fr; }
-          .llp-review-row { grid-template-columns: 1fr; }
-          .llp-final-cta-card { flex-direction: column; text-align: center; padding: 34px 26px; }
-          .llp-final-cta-btn { width: 100%; }
-          .llp-footer-top { grid-template-columns: 1fr 1fr; gap: 32px; padding-bottom: 40px; }
-        }
-        @media (max-width: 560px) {
-          .llp-wrap { padding: 0 20px; }
-          .llp-hero { padding: 32px 0 48px; }
-          .llp-lead { padding: 22px 20px 20px; }
-          .llp-float-stack { right: 14px; bottom: 70px; gap: 10px; }
-          .llp-float-btn { width: 46px; height: 46px; }
-          .llp-trust-copy h3 { font-size: 21px; }
-          .llp-doc-card { width: 170px; }
-          .llp-testi-card { width: 260px; }
-          .llp-company-card { padding: 32px 20px; }
-          .llp-faq-q { padding: 15px 16px; font-size: 13.5px; }
-          .llp-footer { padding: 48px 0 0; }
-          .llp-footer-top { grid-template-columns: 1fr; gap: 32px; }
-          .llp-footer-bottom { flex-direction: column; align-items: flex-start; }
-          .llp-company-actions { flex-direction: column; align-items: stretch; }
-          .llp-company-cta { width: 100%; }
+        @media (max-width: 640px) {
+          .llp-page { padding: 18px 16px; }
+          .llp-why-grid, .llp-process-grid, .llp-two, .llp-img-grid, .llp-compare, .llp-doctor-grid, .llp-emi-grid { grid-template-columns: 1fr; }
+          .llp-nav .llp-btn-screen { display: none; }
+          .llp-section { padding: 22px 18px; }
+          .llp-hero h1 { font-size: 27px; }
+          .llp-hero-floatcard { position: static; margin-top: 10px; width: fit-content; }
+          .llp-hero-fc-1, .llp-hero-fc-2 { position: static; }
+          .llp-lead { padding: 18px 14px; }
+          .llp-lead h3 { font-size: 18px; }
+          .llp-footer-inner { grid-template-columns: 1fr; gap: 24px; }
+          .llp-stats { grid-template-columns: 1fr; }
+          .llp-section h2 { font-size: 21px; }
+          .llp-logo img, .llp-logo-img { max-height: 40px; }
         }
       `}</style>
 
-      <section className="llp-hero">
-        <div className="llp-wrap">
-          <div className="llp-hero-grid">
+      {/* ── HEADER ── */}
+      <header className="llp-header">
+        <div className="llp-header-inner">
+          <a href="/" className="llp-logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/vv.png" alt="HealviaCare" className="llp-logo-img" />
+          </a>
+          <nav className="llp-nav">
+            <a href={WA_URL} className="llp-btn-wa" target="_blank" rel="noopener noreferrer">
+              <WaIcon size={15} /> WhatsApp
+            </a>
+            <a href={`tel:${PHONE_TEL}`} className="llp-btn-call">
+              <PhoneIcon size={14} /> Call Us
+            </a>
+            <button className="llp-btn-screen" onClick={scrollToForm}>
+              Free Checkup
+            </button>
+          </nav>
+        </div>
+      </header>
 
-            <div className="llp-hero-visual">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={heroImage} alt={`LASIK patient free from glasses in ${cityData.name}`} />
+      {/* ── FLOATING BUTTONS ── */}
+      <div className="llp-fab">
+        <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="llp-fab-btn llp-fab-wa" aria-label="Chat on WhatsApp">
+          <span className="llp-fab-ping" />
+          <WaIcon size={26} />
+        </a>
+        <a href={`tel:${PHONE_TEL}`} className="llp-fab-btn llp-fab-call" aria-label="Call us">
+          <PhoneIcon size={22} />
+        </a>
+      </div>
+
+      {/* ── CITY BAR ── */}
+      <div className="llp-city-bar">
+        <span className="llp-city-bar-label">Select City:</span>
+        <div className="llp-city-tabs">
+          {(['delhi', 'mumbai', 'gurugram', 'noida', 'ghaziabad', 'faridabad', 'pune'] as CityKey[]).map((k) => (
+            <a key={k} href={`/lp/lasik/${k}`} className={`llp-city-tab${k === cityKey ? ' active' : ''}`}>
+              {CITY_DATA[k].name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* ── PAGE BODY ── */}
+      <div className="llp-page">
+        <div className="llp-grid">
+
+          {/* ── MAIN CONTENT ── */}
+          <div className="llp-main">
+
+            {/* HERO */}
+            <section className="llp-hero">
+              <div className="llp-hero-grid">
+                <div>
+                  <div className="llp-hero-badge">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+                    </svg>
+                    Laser Eye Surgery, No Blade Used
+                  </div>
+                  <h1 dangerouslySetInnerHTML={{ __html: `${cityData.headline} <em>${cityData.headlineEm}</em>` }} />
+                  <p className="llp-hero-sub">{cityData.sub}</p>
+                  <div className="llp-hero-pills">
+                    {['Done In 15 Minutes', 'No Blade Used', 'No More Glasses', 'Free Eye Checkup'].map((t) => (
+                      <div className="llp-hero-pill" key={t}><span className="llp-dot" />{t}</div>
+                    ))}
+                  </div>
+                  <div className="llp-hero-cta">
+                    <button className="llp-hero-cta-primary" onClick={scrollToForm}>Book Free Checkup</button>
+                  </div>
+                </div>
+                <div className="llp-hero-visual">
+                  <div className="llp-hero-img-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_MACRO} alt="Close-up of a human eye" />
+                  </div>
+                  <div className="llp-hero-floatcard llp-hero-fc-1">
+                    <div><div className="num">10K+</div><div className="lbl">Surgeries Done</div></div>
+                  </div>
+                  <div className="llp-hero-floatcard llp-hero-fc-2">
+                    <div><div className="num">98%</div><div className="lbl">Happy Patients</div></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* STATS */}
+            <div className="llp-stats">
+              <div className="llp-stat"><div className="llp-stat-num">10K+</div><div className="llp-stat-label">Successful Surgeries</div></div>
+              <div className="llp-stat"><div className="llp-stat-num">7</div><div className="llp-stat-label">Cities Covered</div></div>
+              <div className="llp-stat"><div className="llp-stat-num">98%</div><div className="llp-stat-label">Patients Satisfied</div></div>
             </div>
 
-            <div className="llp-lead" id="lead">
-              <div className="llp-lead-eyebrow">Free screening · {cityData.name}</div>
-              <h3>Check your eligibility</h3>
-              <p className="llp-lead-sub">Share your details — our care team calls within 5 minutes.</p>
+            {/* WHY US */}
+            <section className="llp-section">
+              <h2>Why People Choose Us</h2>
+              <p className="llp-section-lead">We only suggest LASIK if it's actually right for your eyes — never to make a sale.</p>
+              <div className="llp-why-grid">
+                {[
+                  { icon: '🔬', text: 'Modern, blade-free laser — approved and widely used' },
+                  { icon: '🧑‍⚕️', text: 'Senior eye surgeons with years of hands-on experience' },
+                  { icon: '📋', text: "Honest checkup first — we say no if LASIK isn't right for you" },
+                  { icon: '📞', text: "We call and check on you after surgery, not just hand you a discharge slip" },
+                ].map((c, i) => (
+                  <div className="llp-why-card" key={i}>
+                    <span className="llp-why-icon">{c.icon}</span>
+                    <span className="llp-why-text">{c.text}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-              {submitted ? (
-                <div className="llp-lead-success">Thanks! Our team will call you shortly.</div>
-              ) : (
+            {/* AREAS */}
+            <section className="llp-section llp-section-tint">
+              <h2>{cityData.areasTitle}</h2>
+              <p className="llp-section-lead">{cityData.areasLead}</p>
+              <div className="llp-chips">
+                {cityData.areas.map((a) => <span className="llp-chip" key={a}>{a}</span>)}
+              </div>
+            </section>
+
+            {/* WHAT IS LASIK */}
+            <section className="llp-section">
+              <h2>What Is LASIK?</h2>
+              <p className="llp-section-lead">LASIK is a quick laser treatment for your eyes. It reshapes the clear front part of your eye (the cornea) so you can see clearly — often without needing glasses or contact lenses anymore.</p>
+              <div className="llp-img-grid">
+                <div>
+                  <div className="llp-img-grid-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_IRIS_CLOSEUP} alt="Close-up of an eye iris" />
+                  </div>
+                  <div className="llp-img-caption">Your Eye, Up Close</div>
+                </div>
+                <div>
+                  <div className="llp-img-grid-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_TEST_MACHINE} alt="Laser eye treatment equipment" />
+                  </div>
+                  <div className="llp-img-caption">The Laser Machine Used</div>
+                </div>
+              </div>
+              <ul className="llp-check">
+                <li>Fixes nearsightedness (trouble seeing things far away) — even strong numbers</li>
+                <li>Fixes farsightedness (trouble seeing things up close)</li>
+                <li>Fixes astigmatism (blurry or stretched-looking vision)</li>
+                <li>Day procedure — you go home the same day, no hospital stay</li>
+                <li>Most patients don't need glasses or contacts after this</li>
+              </ul>
+            </section>
+
+            {/* GLASSES VS LASIK */}
+            <section className="llp-section llp-section-tint">
+              <h2>Glasses & Contacts vs. LASIK</h2>
+              <p className="llp-section-lead">A simple way to compare your two options.</p>
+              <div className="llp-compare">
+                <div className="llp-compare-col bad">
+                  <div className="llp-compare-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_GLASSES} alt="A pair of eyeglasses" />
+                  </div>
+                  <div className="llp-compare-body">
+                    <h3>Glasses & Contacts</h3>
+                    <ul className="llp-cross">
+                      <li>Something to carry, clean and replace, every day</li>
+                      <li>Can fog up, slip, or break</li>
+                      <li>Ongoing cost — new pairs, new lenses, every year</li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="llp-compare-col good">
+                  <div className="llp-compare-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={IMG_EYE_EXAM} alt="Eye examination" />
+                  </div>
+                  <div className="llp-compare-body">
+                    <h3>LASIK (One-Time)</h3>
+                    <ul className="llp-check">
+                      <li>One 15-minute procedure, done once</li>
+                      <li>Wake up, work out, swim — without worrying about glasses</li>
+                      <li>One upfront cost — no recurring lens expenses</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* HOW IT WORKS */}
+            <section className="llp-section">
+              <h2>How It Works — 3 Simple Steps</h2>
+              <p className="llp-section-lead">The whole thing takes about 15 minutes. Numbing eye drops mean you won't feel pain.</p>
+              <div className="llp-process-grid">
+                {[
+                  { n: '1', title: 'A Thin Flap Is Opened', p: 'A laser gently lifts a thin flap on the surface of your eye. No blade is used.' },
+                  { n: '2', title: 'Your Eye Is Reshaped', p: 'A second laser reshapes the surface in under a minute, matching your exact prescription.' },
+                  { n: '3', title: 'The Flap Heals On Its Own', p: 'The flap is placed back down and heals naturally overnight — no stitches needed.' },
+                ].map((s) => (
+                  <div className="llp-process-card" key={s.n}>
+                    <div className="llp-process-num">{s.n}</div>
+                    <h3>{s.title}</h3>
+                    <p>{s.p}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* PROCEDURE TYPES */}
+            <section className="llp-section llp-section-tint">
+              <h2>Types of LASIK We Offer</h2>
+              <p className="llp-section-lead">After your free checkup, we'll tell you which one suits your eyes.</p>
+              <div className="llp-tbl-wrap">
+                <table className="llp-tbl">
+                  <thead><tr><th>Procedure</th><th>How It Works</th><th>Good For</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Femto LASIK</strong></td><td>Blade-free laser flap</td><td>Most people — our most common choice</td></tr>
+                    <tr><td><strong>Contoura Vision</strong></td><td>Maps your eye's shape before reshaping</td><td>Irregular corneas, sharper night vision</td></tr>
+                    <tr><td><strong>SMILE</strong></td><td>Smallest cut, fully laser-based</td><td>Faster, more comfortable healing</td></tr>
+                    <tr><td><strong>PRK / TransPRK</strong></td><td>Reshapes the surface, no flap</td><td>Thinner corneas, special cases</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* ELIGIBILITY */}
+            <section className="llp-section">
+              <h2>Is LASIK Right For You?</h2>
+              <p className="llp-section-lead">Every eye is different — the only way to really know is a free checkup with us.</p>
+              <div className="llp-two">
+                <div>
+                  <h3 style={{ color: 'var(--accent)' }}>✓ Usually a Good Fit</h3>
+                  <ul className="llp-check">
+                    <li>18 years or older</li>
+                    <li>Eye power hasn't changed much in the last 12 months</li>
+                    <li>Cornea (front of the eye) is a normal thickness</li>
+                    <li>No active eye infection right now</li>
+                    <li>Not pregnant or breastfeeding</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 style={{ color: '#dc2626' }}>✗ May Need a Different Plan</h3>
+                  <ul className="llp-cross">
+                    <li>Very dry eyes</li>
+                    <li>Thin or irregularly-shaped cornea</li>
+                    <li>Keratoconus (a cornea-thinning condition)</li>
+                    <li>Glaucoma that isn't under control</li>
+                    <li>Certain autoimmune conditions</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* COST & EMI */}
+            <section className="llp-section llp-section-tint">
+              <h2>Cost & Easy Payment Options</h2>
+              <p className="llp-section-lead">Your exact cost depends on which procedure your eyes need — we'll confirm this for free at your checkup.</p>
+              <div className="llp-emi-grid">
+                <div className="llp-emi-card"><div className="tenure">0%</div><div className="note">Interest On EMI</div></div>
+                <div className="llp-emi-card"><div className="tenure">3–12</div><div className="note">Month Plans Available</div></div>
+                <div className="llp-emi-card"><div className="tenure">Insurance</div><div className="note">Accepted At Most Centres</div></div>
+              </div>
+              <p className="llp-section-lead" style={{ marginBottom: 0 }}>Ask our team on WhatsApp for the exact price list for your city and procedure.</p>
+            </section>
+
+            {/* RISKS */}
+            <section className="llp-section">
+              <h2>Possible Side Effects</h2>
+              <p className="llp-section-lead">LASIK is considered safe when the right checkup is done first. Here's what to expect.</p>
+              <div className="llp-two">
+                <div>
+                  <h3>Common — Usually Goes Away</h3>
+                  <ul className="llp-check">
+                    <li>Dry eyes for a few months</li>
+                    <li>Glare or halos at night for 2–4 weeks</li>
+                    <li>Mild discomfort for the first 24–48 hours</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 style={{ color: '#dc2626' }}>Rare But Serious</h3>
+                  <ul className="llp-cross">
+                    <li>Cornea thinning over time (ectasia)</li>
+                    <li>Infection or strong inflammation</li>
+                    <li>Vision slightly over- or under-corrected, needing a touch-up</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* RECOVERY */}
+            <section className="llp-section llp-section-tint">
+              <h2>What Recovery Looks Like</h2>
+              <p className="llp-section-lead">Most people are back to normal life within a few days.</p>
+              <div className="llp-tbl-wrap">
+                <table className="llp-tbl">
+                  <thead><tr><th>Time After Surgery</th><th>What You'll Notice</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>First 24 hours</strong></td><td>Vision improves noticeably. Mild redness is normal. Rest your eyes and skip screens.</td></tr>
+                    <tr><td><strong>1 week</strong></td><td>Big improvement. Most daily activities are safe to resume.</td></tr>
+                    <tr><td><strong>1 month</strong></td><td>Vision settles for most people. Sports and intense work are usually fine.</td></tr>
+                    <tr><td><strong>3–6 months</strong></td><td>Full healing. Any dryness usually clears up. Final vision achieved.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* SPECIALISTS */}
+            <section className="llp-section">
+              <h2>Meet Our Eye Specialists</h2>
+              <p className="llp-section-lead">Experienced surgeons who'll walk you through every step.</p>
+              <div className="llp-doctor-grid">
+                {[
+                  { img: IMG_DOCTOR_1, name: 'Add Doctor Name', role: 'LASIK & Cornea Specialist', exp: '12+ years experience' },
+                  { img: IMG_DOCTOR_2, name: 'Add Doctor Name', role: 'Refractive Surgeon', exp: '15+ years experience' },
+                  { img: IMG_DOCTOR_3, name: 'Add Doctor Name', role: 'Cataract & LASIK Surgeon', exp: '10+ years experience' },
+                ].map((d, i) => (
+                  <div className="llp-doctor-card" key={i}>
+                    <div className="llp-doctor-photo">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={d.img} alt={d.role} />
+                    </div>
+                    <div className="llp-doctor-info">
+                      <h3>{d.name}</h3>
+                      <div className="role">{d.role}</div>
+                      <div className="exp">{d.exp}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="llp-img-caption" style={{ marginTop: 14 }}>
+                Placeholder photos — replace with your actual surgeons' real photos and names before this goes live.
+              </p>
+            </section>
+
+            {/* FAQ */}
+            <section className="llp-section llp-section-tint">
+              <h2>Common Questions</h2>
+              <br />
+              {SHARED_FAQS.map((item, i) => (
+                <div key={i} className={`llp-faq${expandedFAQ === i ? ' active' : ''}`}>
+                  <button className="llp-faq-q" onClick={() => setExpandedFAQ(expandedFAQ === i ? -1 : i)}>
+                    <span>{item.q}</span>
+                    <span className="llp-faq-icon">▾</span>
+                  </button>
+                  <div className="llp-faq-a">
+                    <div className="llp-faq-a-inner">{item.a}</div>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {/* TESTIMONIALS */}
+            <section className="llp-section">
+              <h2>What Patients in {cityData.name} Say</h2>
+              <p className="llp-section-lead">Real stories, real results. No sponsored reviews.</p>
+              {cityData.testimonials.map((t, i) => (
+                <div className="llp-testi" key={i}>
+                  <div className="llp-testi-stars">★★★★★</div>
+                  <p className="llp-testi-quote">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="llp-testi-name">{t.name}</div>
+                  <div className="llp-testi-role">{t.role}</div>
+                </div>
+              ))}
+            </section>
+
+            {/* CLOSING */}
+            <section className="llp-closing">
+              <h2>{cityData.closingHeadline}</h2>
+              <p>{cityData.closingSub}</p>
+              <div className="llp-closing-btns">
+                <a href={WA_URL} className="llp-cb-wa" target="_blank" rel="noopener noreferrer">
+                  <WaIcon size={17} /> WhatsApp Us Now
+                </a>
+                <button className="llp-cb-screen" onClick={scrollToForm}>
+                  Book Your Free Checkup
+                </button>
+              </div>
+            </section>
+          </div>
+
+          {/* ── LEAD CARD ── */}
+          <div className="llp-side">
+            <div className="llp-lead" id="lead-card">
+              <div className="llp-lead-content">
+                <div className="llp-lead-eyebrow">🏥 {cityData.name} · Free Checkup</div>
+                <h3>Book Your Free Checkup</h3>
+                <p className="llp-lead-sub">Drop your name & number — we'll call within 5 minutes.</p>
+
                 <form onSubmit={handleSubmit}>
                   {error && <div className="llp-lead-error">{error}</div>}
-                  <div className="llp-field">
-                    <label htmlFor="llp-name">Full name</label>
+                  <div className="llp-lead-field">
+                    <label className="llp-lead-label" htmlFor="llp-name">Full Name</label>
                     <input
+                      className="llp-lead-input"
                       id="llp-name"
+                      ref={nameRef}
                       type="text"
-                      placeholder="Enter your name"
+                      name="name"
+                      placeholder="Your full name"
                       autoComplete="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={formData.name}
+                      onChange={handleInputChange}
                       disabled={loading}
+                      required
                     />
                   </div>
-                  <div className="llp-field">
-                    <label htmlFor="llp-phone">Mobile number</label>
-                    <div className="llp-phone-field">
-                      <span className="prefix">+91</span>
+                  <div className="llp-lead-field">
+                    <label className="llp-lead-label" htmlFor="llp-phone">Mobile Number</label>
+                    <div className="llp-phone-row">
+                      <span className="llp-phone-pre">+91</span>
                       <input
                         id="llp-phone"
                         type="tel"
+                        name="phone"
                         placeholder="10-digit number"
                         maxLength={10}
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        value={formData.phone}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, '');
+                          if (v.length <= 10) setFormData((prev) => ({ ...prev, phone: v }));
+                        }}
                         disabled={loading}
+                        required
                       />
                     </div>
                   </div>
                   <button className="llp-lead-submit" type="submit" disabled={loading}>
-                    {loading ? 'Checking...' : 'Check my eligibility'}
+                    {loading ? 'Booking...' : '✓ Book Free Checkup'}
                   </button>
                 </form>
-              )}
 
-              <div className="llp-lead-trust">
-                <span>Free</span>
-                <span>No obligation</span>
-                <span>Confidential</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-trust">
-        <div className="llp-wrap">
-          <div className="llp-trust-grid">
-            <div className="llp-trust-visual">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={INSURANCE_IMAGE} alt="HealviaCare cashless insurance partners" />
-            </div>
-
-            <div className="llp-trust-copy">
-              <div className="llp-lead-eyebrow">Cashless Insurance</div>
-              <h3>All these insurers are accepted at HealviaCare</h3>
-              <p className="llp-trust-sub">
-                We work with 20+ leading insurance partners for cashless treatment, plus many more
-                general and health insurers accepted on reimbursement:
-              </p>
-              <div className="llp-marquee">
-                <div className="llp-marquee-track">
-                  {[...INSURANCE_NAMES, ...INSURANCE_NAMES].map((name, i) => (
-                    <span className="llp-pill" key={`${name}-${i}`}>{name}</span>
-                  ))}
+                <div className="llp-lead-trust">
+                  <span>✓ Free</span>
+                  <span>✓ No obligation</span>
+                  <span>✓ Confidential</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="llp-marquee llp-marquee-reverse llp-badges-strip">
-            <div className="llp-marquee-track">
-              {[...TRUST_BADGES, ...TRUST_BADGES].map((badge, i) => (
-                <span className="llp-badge-pill" key={`${badge}-${i}`}>
-                  <span className="dot" />
-                  {badge}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
-      </section>
+      </div>
 
-      <section className="llp-company">
-        <div className="llp-wrap">
-          <div className="llp-company-card">
-            <div className="llp-company-glow" aria-hidden="true" />
-            <div className="llp-company-glow-2" aria-hidden="true" />
-            <div className="llp-company-inner">
-              <div className="llp-company-eyebrow">Who We Are</div>
-              <h2 className="llp-company-headline">
-                Glasses off. <em>Life on.</em> That&apos;s the whole idea behind HealviaCare.
-              </h2>
-              <p className="llp-company-sub">
-                We&apos;re a network of NABH-accredited eye hospitals built around one simple goal —
-                give you clear, natural vision without the wait, the confusion, or the worry. Real
-                surgeons, honest advice, and a team that treats every question like it matters.
-                Because it does.
-              </p>
+      {/* ── MOBILE STICKY CTA ── */}
+      <div className="llp-sticky-cta">
+        <button onClick={scrollToForm}>Book Free Checkup</button>
+      </div>
 
-              <div className="llp-company-points">
-                <div className="llp-company-point">
-                  <span className="num">01</span>
-                  <span className="txt">Every patient gets a free, unhurried eligibility check before any decision is made.</span>
-                </div>
-                <div className="llp-company-point">
-                  <span className="num">02</span>
-                  <span className="txt">Surgeries by senior doctors using blade-free, all-laser technology — nothing outsourced.</span>
-                </div>
-                <div className="llp-company-point">
-                  <span className="num">03</span>
-                  <span className="txt">Cashless insurance, simple paperwork, and support that stays with you after surgery too.</span>
-                </div>
-              </div>
-
-              <div className="llp-company-actions">
-                <button
-                  type="button"
-                  className="llp-company-cta"
-                  onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                >
-                  Talk to Our Expert
-                </button>
-                <span className="llp-company-note">Free · 5-minute call · No obligation</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-about">
-        <div className="llp-wrap">
-          <div className="llp-about-head">
-            <span className="llp-lead-eyebrow">The Procedure</span>
-            <h2>Blink. And Freedom Begins.</h2>
-            <p>
-              LASIK uses a computer-guided laser to gently reshape your cornea, correcting exactly
-              how light focuses on your retina — in one sitting, with no blade and no stitches.
-              Most patients are back to reading, driving, and scrolling their phone within a day,
-              glasses-free for good.
-            </p>
-          </div>
-
-          <div className="llp-about-grid">
-            <div className="llp-about-img">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ABOUT_IMAGES.consult} alt="Eye specialist examining a patient before LASIK" />
-            </div>
-            <div className="llp-about-img">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ABOUT_IMAGES.procedure} alt="Patient undergoing laser-guided LASIK surgery" />
-            </div>
-          </div>
-
-          <div className="llp-about-fact">
-            <span className="spark">✦</span>
-            <span>
-              Did you know? The laser reshapes each cornea in under 20 seconds per eye — faster
-              than the blink it&apos;s replacing.
-            </span>
-          </div>
-
-          <div className="llp-about-stats">
-            {LASIK_STATS.map((stat) => (
-              <div className="llp-about-stat" key={stat.label}>
-                <span className="value">{stat.value}</span>
-                <span className="label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="llp-about-cta">
-            <button
-              type="button"
-              onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            >
-              Book Free Consultation
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-experience">
-        <div className="llp-wrap">
-          <div className="llp-exp-head">
-            <span className="llp-lead-eyebrow">Experience Clear Vision</span>
-            <h2>See The World With HealviaCare Clarity</h2>
-            <p>
-              Before LASIK, life is squinting at street signs, wiping foggy lenses, and reaching
-              for glasses first thing every morning. After LASIK, it&apos;s waking up and simply
-              seeing — mountains, menus, faces across the room, all in focus, no glass between you
-              and the world.
-            </p>
-          </div>
-
-          <div className="llp-exp-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={EXPERIENCE_IMAGE} alt="HealviaCare LASIK — before and after clarity" />
-          </div>
-
-          <div className="llp-exp-cta">
-            <button
-              type="button"
-              onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            >
-              Book Now
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-process">
-        <div className="llp-wrap">
-          <div className="llp-process-head">
-            <span className="llp-lead-eyebrow">The Process</span>
-            <p>
-              At HealviaCare, every patient follows this same three-step path — a thorough
-              consultation to check your eligibility, a precise 10–15 minute laser procedure, and
-              a guided recovery with follow-ups until your vision fully settles. Nothing skipped,
-              nothing rushed.
-            </p>
-          </div>
-
-          <div className="llp-process-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={PROCESS_IMAGE} alt="How LASIK works: consultation, procedure, and recovery" />
-          </div>
-
-          <div className="llp-process-cta">
-            <button
-              type="button"
-              onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            >
-              Book Free Consultation
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-types">
-        <div className="llp-wrap">
-          <div className="llp-types-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={TYPES_IMAGE} alt="Types of LASIK: Standard, Femto, SMILE, Silk, and Contoura Vision" />
-          </div>
-
-          <div className="llp-types-cta">
-            <button
-              type="button"
-              onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            >
-              Book Now — Free Consultation
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-doctors">
-        <div className="llp-wrap">
-          <div className="llp-doc-head">
-            <span className="llp-lead-eyebrow">Meet Our Experts</span>
-            <h2>Surgeons You Can Trust</h2>
-            <p>
-              A team of experienced, board-certified ophthalmologists and refractive surgeons —
-              each one has guided hundreds of patients from glasses to 20/20 vision.
-            </p>
-          </div>
-
-          <div className="llp-doc-marquee">
-            <div className="llp-doc-track">
-              {[...DOCTORS, ...DOCTORS].map((doctor, i) => (
-                <DoctorCard doctor={doctor} key={`${doctor.name}-${i}`} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-reviews">
-        <div className="llp-wrap">
-          <div className="llp-review-head">
-            <span className="llp-lead-eyebrow">Patient Reviews</span>
-            <h2>What Our Patients Have to Say</h2>
-            <p>A few words from people who trusted us with their vision.</p>
-          </div>
-
-          <div className="llp-review-row">
-            {REVIEWS.map((review, i) => (
-              <ReviewCard review={review} key={`${review.name}-${i}`} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-testimonials">
-        <div className="llp-wrap">
-          <div className="llp-testi-head">
-            <span className="llp-lead-eyebrow">Real Stories</span>
-            <h2>See What Our Happy Patients Are Saying</h2>
-            <p>Hear it straight from the people who made the switch — in their own words.</p>
-          </div>
-
-          <div className="llp-testi-row">
-            {TESTIMONIALS.map((testimonial, i) => (
-              <div className="llp-testi-card" key={`${testimonial.youtubeId}-${i}`}>
-                <div className="llp-testi-video">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${testimonial.youtubeId}`}
-                    title={`${testimonial.name} — ${testimonial.procedure} patient story`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                </div>
-                <div className="llp-testi-info">
-                  <div className="llp-testi-name">{testimonial.name}</div>
-                  <div className="llp-testi-procedure">{testimonial.procedure}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-faq">
-        <div className="llp-wrap">
-          <div className="llp-faq-head">
-            <span className="llp-lead-eyebrow">Questions & Answers</span>
-            <h2>Frequently Asked Questions</h2>
-            <p>Everything patients usually ask before booking a LASIK screening.</p>
-          </div>
-
-          <div className="llp-faq-list">
-            {faqs.map((faq, i) => (
-              <FaqItem q={faq.q} a={faq.a} key={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="llp-final-cta">
-        <div className="llp-wrap">
-          <div className="llp-final-cta-card">
-            <div className="llp-final-cta-text">
-              <h3>Still have questions?</h3>
-              <p>Talk to our expert for a free, no-obligation LASIK screening in {cityData.name}.</p>
-            </div>
-            <button
-              type="button"
-              className="llp-final-cta-btn"
-              onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            >
-              Talk to Our Expert
-            </button>
-          </div>
-        </div>
-      </section>
-
+      {/* ── FOOTER ── */}
       <footer className="llp-footer">
-        <div className="llp-footer-glow" aria-hidden="true" />
-        <div className="llp-wrap">
-          <div className="llp-footer-top">
-
-            <div>
-              <div className="llp-footer-logo-mark">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/vv.png" alt="HealviaCare logo" className="llp-footer-logo" />
-              </div>
-              <p className="llp-footer-about-text">
-                A network of NABH-accredited eye hospitals focused on one thing — clear, natural
-                vision without the wait, the confusion, or the worry.
-              </p>
-              <div className="llp-footer-social">
-                <a href={WA_URL} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-                  <WaIcon size={16} />
-                </a>
-                <a href={TEL_URL} aria-label="Call">
-                  <PhoneIcon size={15} />
-                </a>
-              </div>
+        <div className="llp-footer-inner">
+          <div className="llp-footer-brand">
+            <div className="llp-footer-brand-logo">
+              <Image src="/vv.png" alt="Healvia" width={180} height={64} style={{ objectFit: 'contain', width: '180px', height: 'auto' }} />
             </div>
-
-            <div>
-              <div className="llp-footer-col-title">Explore</div>
-              <div className="llp-footer-col-links">
-                <button type="button" onClick={() => document.querySelector('.llp-company')?.scrollIntoView({ behavior: 'smooth' })}>About Us</button>
-                <button type="button" onClick={() => document.querySelector('.llp-doctors')?.scrollIntoView({ behavior: 'smooth' })}>Meet Our Doctors</button>
-                <button type="button" onClick={() => document.querySelector('.llp-reviews')?.scrollIntoView({ behavior: 'smooth' })}>Patient Reviews</button>
-                <button type="button" onClick={() => document.querySelector('.llp-faq')?.scrollIntoView({ behavior: 'smooth' })}>FAQs</button>
-              </div>
-            </div>
-
-            <div>
-              <div className="llp-footer-col-title">Care</div>
-              <div className="llp-footer-col-links">
-                <button type="button" onClick={() => document.querySelector('.llp-types')?.scrollIntoView({ behavior: 'smooth' })}>Types of LASIK</button>
-                <button type="button" onClick={() => document.querySelector('.llp-trust')?.scrollIntoView({ behavior: 'smooth' })}>Insurance Partners</button>
-                <button type="button" onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>Free Screening</button>
-                <button type="button" onClick={() => document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>Book Consultation</button>
-              </div>
-            </div>
-
-            <div>
-              <div className="llp-footer-col-title">Get In Touch</div>
-              <div className="llp-footer-contact-item">
-                <PhoneIcon size={15} />
-                <a href={TEL_URL}>+91 93109 84753</a>
-              </div>
-              <div className="llp-footer-contact-item">
-                <WaIcon size={15} />
-                <a href={WA_URL} target="_blank" rel="noopener noreferrer">Chat with us on WhatsApp</a>
-              </div>
-              <div className="llp-footer-contact-item">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginTop: 2 }}>
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span>Serving {cityData.name} & nearby areas</span>
-              </div>
-            </div>
-
+            <p>India's most trusted LASIK partner. Free checkups, honest advice, real follow-up calls. Serving 7 cities with world-class eye care.</p>
+            <a href={WA_URL} className="llp-footer-wa-btn" target="_blank" rel="noopener noreferrer">
+              <WaIcon size={15} /> Message on WhatsApp
+            </a>
           </div>
-
-          <div className="llp-footer-bottom">
-            <div className="llp-footer-copy" suppressHydrationWarning>
-              © {new Date().getFullYear()} HealviaCare. All rights reserved.
-            </div>
-            <div className="llp-footer-bottom-links">
-              <a href="#lead" onClick={(e) => { e.preventDefault(); document.getElementById('lead')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>
-                Book Free Screening
-              </a>
-            </div>
+          <div className="llp-footer-section">
+            <h4>Services</h4>
+            <ul>
+              <li><a href="#">Femto LASIK</a></li>
+              <li><a href="#">SMILE Procedure</a></li>
+              <li><a href="#">Contoura Vision</a></li>
+              <li><a href="#">PRK/TransPRK</a></li>
+            </ul>
           </div>
+          <div className="llp-footer-section">
+            <h4>Locations</h4>
+            <ul>
+              {(['delhi', 'mumbai', 'gurugram', 'noida', 'ghaziabad', 'faridabad', 'pune'] as CityKey[]).map((k) => (
+                <li key={k}><a href={`/lp/lasik/${k}`}>{CITY_DATA[k].name}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div className="llp-footer-section">
+            <h4>Contact</h4>
+            <ul>
+              <li><a href={`tel:${PHONE_TEL}`}>📞 {PHONE_DISPLAY}</a></li>
+              <li><a href={WA_URL} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></li>
+              <li><a href="mailto:info@healviacare.com">✉️ info@healviacare.com</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="llp-footer-bottom">
+          © {new Date().getFullYear()} HealviaCare. All rights reserved. &nbsp;|&nbsp;
+          <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms of Use</a>
         </div>
       </footer>
-
-      {/* Fixed WhatsApp + Call buttons, visible throughout the page */}
-      <div className="llp-float-stack">
-        <a
-          href={WA_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="llp-float-btn llp-float-wa"
-          aria-label="Chat on WhatsApp"
-        >
-          <WaIcon size={26} />
-        </a>
-        <a href={TEL_URL} className="llp-float-btn llp-float-call" aria-label="Call us">
-          <PhoneIcon size={22} />
-        </a>
-      </div>
     </div>
   );
 }
