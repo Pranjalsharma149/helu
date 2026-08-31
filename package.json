@@ -16,7 +16,7 @@
     "axios": "^1.14.0",
     "dotenv": "^17.4.0",
     "framer-motion": "^12.38.0",
-    "lucide-react": "^1.7.0",
+    "lucide-react": "^1.28.0",
     "mongodb": "^7.5.0",
     "mongoose": "^9.3.3",
     "next": "16.2.1",

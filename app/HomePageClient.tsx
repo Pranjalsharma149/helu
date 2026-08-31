@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { sendCapiEvent } from "@/lib/sendCapiEvent";
 import BookingPopup from "@/app/book-now/page";
 
 import {
@@ -300,6 +301,7 @@ function StickyContactButtons({ onBookClick }: { onBookClick: () => void }) {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => sendCapiEvent("Contact", { customData: { content_name: "WhatsApp Click - Sticky" } })}
         aria-label="Chat on WhatsApp"
         title="Chat on WhatsApp"
         className="group flex items-center overflow-hidden h-[54px] w-[54px] hover:w-auto pl-[15px] hover:pl-4 pr-[15px] hover:pr-5 rounded-full bg-[#25D366] text-white shadow-[0_4px_20px_rgba(37,211,102,0.45)] hover:shadow-[0_6px_28px_rgba(37,211,102,0.55)] hover:-translate-y-0.5 transition-all duration-300 ease-in-out"
@@ -315,6 +317,7 @@ function StickyContactButtons({ onBookClick }: { onBookClick: () => void }) {
       {/* Call */}
       <a
         href={`tel:${phoneTel}`}
+        onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Sticky" } })}
         aria-label="Call us"
         title="Call Us 24/7"
         className="group flex items-center overflow-hidden h-[54px] w-[54px] hover:w-auto pl-[15px] hover:pl-4 pr-[15px] hover:pr-5 rounded-full bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white shadow-[0_4px_20px_rgba(29,100,107,0.4)] hover:shadow-[0_6px_28px_rgba(29,100,107,0.5)] hover:-translate-y-0.5 transition-all duration-300 ease-in-out"
@@ -398,10 +401,16 @@ export default function HomePageClient() {
           {/* ── Left copy ── */}
           <div className="w-full lg:w-1/2 flex flex-col items-start gap-6">
 
-            {/* Badge */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-              <span className="w-2 h-2 rounded-full bg-[#00c8aa] animate-pulse" />
-              <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted Healthcare Network</span>
+           {/* Badges — Trusted Network + ISO Certified, both visible in hero on all screen sizes */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <span className="w-2 h-2 rounded-full bg-[#00c8aa] animate-pulse" />
+                <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted Healthcare Network</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <span className="text-sm">📜</span>
+                <span className="text-white/90 text-xs font-semibold tracking-wide">ISO 9001:2015 Certified</span>
+              </div>
             </div>
 
             {/* Headline */}
@@ -455,6 +464,7 @@ export default function HomePageClient() {
               <a
                 href={`tel:${phoneTel}`}
                 className="flex items-center gap-3 px-7 py-4 rounded-2xl font-semibold text-base transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Hero" } })}
                 style={{
                   background: "rgba(255,255,255,0.08)",
                   color: "#ffffff",
@@ -504,6 +514,12 @@ export default function HomePageClient() {
                     <p className="text-white/70 text-xs leading-tight">Patient Rating</p>
                   </div>
                 </div>
+
+                {/* ISO Certified — TODO: confirm exact standard/number matches your certificate */}
+                <div className="col-span-2 flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <span className="text-lg flex-shrink-0">📜</span>
+                  <p className="text-white text-xs font-bold leading-tight">ISO 9001:2015 Certified</p>
+                </div>
               </div>
             </div>
           </div>
@@ -542,6 +558,12 @@ export default function HomePageClient() {
               ))}
             </div>
             <span className="text-sm font-semibold text-slate-700">4.8/5 Patient Rating</span>
+          </div>
+          <div className="hidden sm:block w-px h-5 bg-slate-200" />
+          {/* ISO Certified — TODO: confirm exact standard/number matches your certificate */}
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📜</span>
+            <span className="text-sm font-semibold text-slate-700">ISO 9001:2015 Certified</span>
           </div>
         </div>
       </section>
@@ -817,7 +839,7 @@ export default function HomePageClient() {
             >
               Book Free Consultation
             </button>
-            <a href={`tel:${phoneTel}`} className="w-full sm:w-auto">
+            <a href={`tel:${phoneTel}`} className="w-full sm:w-auto" onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Bottom CTA" } })}>
               <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
                 📞 Call Now: {phoneDisplay}
               </button>
@@ -833,3 +855,4 @@ export default function HomePageClient() {
     </>
   );
 }
+

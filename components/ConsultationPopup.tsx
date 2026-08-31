@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { X, CheckCircle2, Loader2, Phone, Stethoscope, CalendarCheck } from "lucide-react";
+import { sendCapiEvent } from "@/lib/sendCapiEvent";
 
 const steps = [
   { icon: Phone, text: "Care coordinator will contact you." },
@@ -15,6 +16,12 @@ const stats = [
   { value: "10+", label: "Cities" },
 ];
 
+function getCookie(name: string) {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : undefined;
+}
+
 export default function ConsultationPopup() {
   const [isVisible, setIsVisible] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", city: "" });
@@ -22,7 +29,6 @@ export default function ConsultationPopup() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    // Show on every page load/refresh after 1 second
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 1000);
@@ -42,6 +48,11 @@ export default function ConsultationPopup() {
     if (!form.name || !form.phone || !form.city) return;
     setLoading(true);
     try {
+      const eventId = await sendCapiEvent("Lead", {
+        userData: { phone: form.phone },
+        customData: { city: form.city },
+      });
+
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,13 +61,15 @@ export default function ConsultationPopup() {
           phone: form.phone,
           city: form.city,
           source: "consultation_popup",
+          fbp: getCookie("_fbp"),
+          fbc: getCookie("_fbc"),
+          event_source_url: window.location.href,
+          original_event_id: eventId,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
 
-      // API returns 200 + { error, duplicate: true } for existing leads,
-      // so success must be checked explicitly rather than relying on res.ok alone.
       if (!res.ok || data.error) {
         throw new Error(data.error || "Failed to submit. Please try again.");
       }
@@ -85,8 +98,6 @@ export default function ConsultationPopup() {
         style={{ animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
       >
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[680px] overflow-hidden relative">
-
-          {/* HEADER */}
           <div className="bg-gradient-to-r from-[#1D646B] to-[#3BA99C] px-5 py-3.5 flex items-center justify-between">
             <h2 className="text-white font-bold text-sm md:text-base">
               Book Your Free Consultation
@@ -111,8 +122,6 @@ export default function ConsultationPopup() {
             </div>
           ) : (
             <div className="flex flex-col md:flex-row">
-
-              {/* LEFT PANEL */}
               <div className="md:w-[42%] p-5 border-b md:border-b-0 md:border-r border-slate-100 bg-[#f5fbfb]">
                 <h3 className="text-base font-bold text-slate-800 mb-0.5">
                   Simplifying Surgery
@@ -142,9 +151,7 @@ export default function ConsultationPopup() {
                 </div>
               </div>
 
-              {/* RIGHT PANEL - FORM */}
               <div className="md:w-[58%] p-5 flex flex-col justify-center gap-3">
-
                 <input
                   type="text"
                   name="name"

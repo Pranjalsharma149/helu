@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { sendCapiEvent } from "@/lib/sendCapiEvent";
 
 export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
   return (
@@ -26,7 +27,7 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
               <Phone size={16} />
-              <a href="tel:+918882804301">+91 8882804301</a>
+              <a href="tel:+918882804301" onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Footer" } })}>+91 8882804301</a>
             </div>
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
               <Mail size={16} />
@@ -55,7 +56,7 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
                 Book Consultation
               </button>
             </li>
-            {/* ✅ Privacy Policy link added here */}
+            {/* âœ… Privacy Policy link added here */}
             <li>
               <Link href="/privacy-policy" className="hover:text-[#1D646B] transition-colors">
                 Privacy Policy
@@ -105,9 +106,9 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
 
       {/* BOTTOM */}
       <div className="relative z-10 text-center py-6 text-sm text-gray-600">
-        © 2026 HealviaCare. All rights reserved.
-        {/* ✅ Privacy Policy link in bottom bar */}
-        <span className="mx-2 text-gray-400">·</span>
+        Â© 2026 HealviaCare. All rights reserved.
+        {/* âœ… Privacy Policy link in bottom bar */}
+        <span className="mx-2 text-gray-400">Â·</span>
         <Link
           href="/privacy-policy"
           className="hover:text-[#1D646B] underline underline-offset-2 transition-colors"
@@ -122,3 +123,5 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
     </footer>
   );
 }
+
+

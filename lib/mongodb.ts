@@ -1,12 +1,4 @@
-﻿import dns from "dns";
-import { MongoClient, Db } from "mongodb";
-
-// Force Node's DNS resolver to use Google's public DNS.
-// Fixes "querySrv ECONNREFUSED" errors on some Windows dev machines
-// (e.g. when security software like McAfee intercepts the system resolver).
-// Safe to run in production too.
-console.log("[mongodb.ts] Setting DNS servers to Google DNS. NODE_ENV =", process.env.NODE_ENV);
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+﻿import { MongoClient, Db } from "mongodb";
 
 const uri = process.env.MONGODB_URI!;
 const dbName = process.env.MONGODB_DB_NAME || "healviacare";
