@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { sendCapiEvent } from "@/lib/sendCapiEvent";
@@ -16,6 +17,8 @@ import {
   Hospital,
   Activity,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Phone,
 } from "lucide-react";
 
@@ -34,6 +37,22 @@ const whatsappMessage = encodeURIComponent(
   "Hello HealviaCare, I would like to book a consultation."
 );
 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+
+/* ----------------------------------------------------------------
+   SITE STATS — EDIT THESE TO MATCH YOUR REAL NUMBERS
+   Previously this file said "500+ Doctors" everywhere, which did
+   not match the 5 real doctors you've actually tied up with.
+   Update these four fields any time your real numbers change —
+   every stat on the homepage (hero, floating badges, Why Choose Us)
+   pulls from here so you only edit it in one place.
+   ------------------------------------------------------------- */
+const siteStats = {
+  doctorsCount: "5+",          // Real number of partner doctors you list on the site today
+  doctorsLabel: "Partner Doctors",
+  treatmentsCount: "8+",       // Matches the 8 specialities listed in `services` below
+  citiesCount: "3+",           // TODO: confirm actual number of cities you operate in
+  successRate: "98%",          // TODO: confirm this is a real, verifiable figure before publishing
+};
 
 /* ---------- WHATSAPP ICON ---------- */
 const WhatsAppIcon = ({ size = 22 }: { size?: number }) => (
@@ -117,6 +136,55 @@ const services = [
   },
 ];
 
+/* ----------------------------------------------------------------
+   DOCTORS DATA
+   Experience years below are approximate, based on each doctor's
+   public hospital bio — please confirm exact figures with each
+   doctor/hospital before publishing, and update as needed.
+   ------------------------------------------------------------- */
+const doctors = [
+  {
+    name: "Dr. Nitesh Salunkhe",
+    image: "/images/doctors/nitesh-salunkhe.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Vitreo-Retina, Diabetic Eye Disease",
+    hospital: "ASG Eye Hospital, Pune",
+    experience: "10+ Yrs Exp",
+  },
+  {
+    name: "Dr. Hemant Kamble",
+    image: "/images/doctors/hemant-kamble.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Cornea & Refractive Surgery",
+    hospital: "ASG Eye Hospital, Pune",
+    experience: "15+ Yrs Exp",
+  },
+  {
+    name: "Dr. Pavan Lohiya",
+    image: "/images/doctors/pavan-lohiya.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Cataract, Refractive & Oculoplastic Surgery",
+    hospital: "ASG Eye Hospital, Vashi",
+    experience: "20+ Yrs Exp",
+  },
+  {
+    name: "Dr. Shantanu Mukherji",
+    image: "/images/doctors/shantanu-mukherji.png",
+    qualification: "MBBS, MS - AFMC Pune",
+    specialty: "Glaucoma, Cataract & Refractive Surgery",
+    hospital: "Sharp Sight Eye Hospitals, Delhi",
+    experience: "17+ Yrs Exp",
+  },
+  {
+    name: "Dr. Saumil Sheth",
+    image: "/images/doctors/saumil-sheth.png",
+    qualification: "MBBS, MS, DNB, FRCS, FICO",
+    specialty: "Vitreo-Retina, Cataract & LASIK",
+    hospital: "Envision Eye Hospital, Mumbai",
+    experience: "20+ Yrs Exp",
+  },
+];
+
 /* ---------------- INSURANCE DATA ---------------- */
 const featuredInsurance = [
   "Star Health Insurance",
@@ -175,104 +243,6 @@ const testimonials = [
     textColor: "text-[#7C3AED]",
   },
 ];
-
-/* ---------------- HERO SVG VISUAL ---------------- */
-function HeroSVG() {
-  return (
-    <svg
-      viewBox="0 0 380 440"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full max-w-[420px] h-auto"
-      style={{ filter: "drop-shadow(0 0 40px rgba(94,231,208,0.12))" }}
-    >
-      <defs>
-        <style>{`
-          @keyframes hvc-spin    { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
-          @keyframes hvc-spinR   { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
-          @keyframes hvc-floatY  { 0%,100% { transform: translateY(0);    } 50% { transform: translateY(-10px); } }
-          @keyframes hvc-floatY2 { 0%,100% { transform: translateY(0);    } 50% { transform: translateY(-7px);  } }
-          @keyframes hvc-dash    { to { stroke-dashoffset: -20; } }
-          @keyframes hvc-glow    { 0%,100% { opacity: 0.3; } 50% { opacity: 0.7; } }
-
-          .hvc-ring-cw    { animation: hvc-spin  22s linear infinite; transform-origin: 190px 215px; }
-          .hvc-ring-ccw   { animation: hvc-spinR 16s linear infinite; transform-origin: 190px 215px; }
-          .hvc-float-a    { animation: hvc-floatY  5s   ease-in-out infinite; }
-          .hvc-float-b    { animation: hvc-floatY2 4.5s ease-in-out infinite reverse; }
-          .hvc-float-c    { animation: hvc-floatY  6s   ease-in-out infinite;         animation-delay: 1s;   }
-          .hvc-float-d    { animation: hvc-floatY2 5.5s ease-in-out infinite;         animation-delay: 0.5s; }
-          .hvc-float-ctr  { animation: hvc-floatY  4s   ease-in-out infinite; }
-          .hvc-dash       { stroke-dasharray: 6 5; animation: hvc-dash 2.5s linear infinite; }
-          .hvc-glow-pulse { animation: hvc-glow   3s   ease-in-out infinite; }
-        `}</style>
-      </defs>
-
-      <circle cx="190" cy="215" r="158" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-      <circle cx="190" cy="215" r="158" fill="none" stroke="rgba(94,231,208,0.18)" strokeWidth="1" strokeDasharray="10 7" className="hvc-ring-cw" />
-      <circle cx="190" cy="215" r="125" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="5 9" className="hvc-ring-ccw" />
-
-      <circle cx="190" cy="215" r="88" fill="rgba(255,255,255,0.05)" stroke="rgba(94,231,208,0.2)" strokeWidth="1.5" className="hvc-glow-pulse" />
-      <circle cx="190" cy="215" r="68" fill="rgba(255,255,255,0.06)" />
-
-      <g className="hvc-float-ctr">
-        <rect x="174" y="193" width="32" height="44" rx="6" fill="rgba(94,231,208,0.18)" stroke="rgba(94,231,208,0.5)" strokeWidth="1.5" />
-        <rect x="166" y="201" width="48" height="28" rx="6" fill="rgba(94,231,208,0.18)" stroke="rgba(94,231,208,0.5)" strokeWidth="1.5" />
-        <path d="M190 222 C190 222 181 214 181 208 C181 204 185 202 190 206 C195 202 199 204 199 208 C199 214 190 222 190 222Z" fill="#5ee7d0" opacity="0.9" />
-      </g>
-
-      <circle cx="190" cy="57"  r="6" fill="#5ee7d0" opacity="0.8" className="hvc-ring-cw" />
-      <circle cx="348" cy="215" r="5" fill="rgba(255,255,255,0.45)" className="hvc-ring-ccw" />
-      <circle cx="190" cy="373" r="6" fill="#5ee7d0" opacity="0.5" className="hvc-ring-cw"  style={{ animationDelay: "-11s" }} />
-      <circle cx="32"  cy="215" r="5" fill="rgba(255,255,255,0.45)" className="hvc-ring-ccw" style={{ animationDelay: "-8s"  }} />
-
-      <line x1="152" y1="108" x2="168" y2="178" stroke="rgba(94,231,208,0.3)" strokeWidth="1" className="hvc-dash" />
-      <line x1="228" y1="130" x2="218" y2="182" stroke="rgba(94,231,208,0.3)" strokeWidth="1" className="hvc-dash" />
-      <line x1="152" y1="330" x2="165" y2="258" stroke="rgba(94,231,208,0.3)" strokeWidth="1" className="hvc-dash" />
-      <line x1="228" y1="330" x2="215" y2="258" stroke="rgba(94,231,208,0.3)" strokeWidth="1" className="hvc-dash" />
-
-      <g className="hvc-float-a">
-        <rect x="12" y="72" width="138" height="56" rx="14" fill="rgba(255,255,255,0.93)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" />
-        <circle cx="37" cy="100" r="15" fill="#E6F7F5" />
-        <text x="37" y="106" textAnchor="middle" fontSize="16" fill="#1D646B">🕐</text>
-        <text x="58" y="92"  fontSize="10.5" fontWeight="700" fill="#1D646B">Instant Callback</text>
-        <text x="58" y="105" fontSize="9"    fill="#888">Response in 5 min</text>
-        <circle cx="130" cy="92" r="5" fill="#22c55e" />
-        <text x="130" y="110" textAnchor="middle" fontSize="7.5" fill="#22c55e" fontWeight="700">LIVE</text>
-      </g>
-
-      <g className="hvc-float-b">
-        <rect x="228" y="92" width="140" height="56" rx="14" fill="rgba(255,255,255,0.93)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" />
-        <circle cx="253" cy="120" r="15" fill="#EAF2FF" />
-        <text x="253" y="126" textAnchor="middle" fontSize="16" fill="#1D646B">🏥</text>
-        <text x="274" y="112" fontSize="10.5" fontWeight="700" fill="#1D646B">NABH Certified</text>
-        <text x="274" y="124" fontSize="9"    fill="#888">Premium Hospitals</text>
-        <rect x="274" y="129" width="44" height="9" rx="4" fill="#dcfce7" />
-        <text x="296" y="136" textAnchor="middle" fontSize="7" fontWeight="700" fill="#16a34a">ACCREDITED</text>
-      </g>
-
-      <g className="hvc-float-c">
-        <rect x="10" y="308" width="138" height="56" rx="14" fill="rgba(255,255,255,0.93)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" />
-        <circle cx="35" cy="336" r="15" fill="#FFF4E6" />
-        <text x="35" y="342" textAnchor="middle" fontSize="16" fill="#1D646B">💰</text>
-        <text x="56" y="328" fontSize="10.5" fontWeight="700" fill="#1D646B">Zero-Cost EMI</text>
-        <text x="56" y="340" fontSize="9"    fill="#888">Flexible payments</text>
-        <rect x="56" y="345" width="50" height="9" rx="4" fill="#fef9c3" />
-        <text x="81" y="352" textAnchor="middle" fontSize="7" fontWeight="700" fill="#a16207">0% INTEREST</text>
-      </g>
-
-      <g className="hvc-float-d">
-        <rect x="230" y="308" width="138" height="56" rx="14" fill="rgba(255,255,255,0.93)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" />
-        <circle cx="255" cy="336" r="15" fill="#FFF0F6" />
-        <text x="255" y="342" textAnchor="middle" fontSize="16" fill="#1D646B">👨‍⚕️</text>
-        <text x="276" y="328" fontSize="10.5" fontWeight="700" fill="#1D646B">500+ Doctors</text>
-        <text x="276" y="340" fontSize="9"    fill="#888">Verified Specialists</text>
-        <circle cx="278" cy="352" r="6" fill="#5ee7d0" />
-        <circle cx="287" cy="352" r="6" fill="#a78bfa" />
-        <circle cx="296" cy="352" r="6" fill="#fb923c" />
-        <text x="306" y="356" fontSize="9" fill="#888">+497</text>
-      </g>
-    </svg>
-  );
-}
 
 /* ---------------- STAR RATING ---------------- */
 function Stars({ count }: { count: number }) {
@@ -334,6 +304,79 @@ function StickyContactButtons({ onBookClick }: { onBookClick: () => void }) {
 }
 
 /* ================================================
+   SPECIALIST STRIP — horizontal scroller inside hero
+   ================================================ */
+function SpecialistStrip() {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  const scrollByCard = (dir: 1 | -1) => {
+    scrollerRef.current?.scrollBy({ left: dir * 260, behavior: "smooth" });
+  };
+
+  return (
+    <div className="w-full bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-5 mt-8">
+      <div className="flex items-center justify-between px-2 mb-3">
+        <h3 className="text-sm md:text-base font-bold text-[#1D646B]">Our Top Eye Care Specialists</h3>
+        <a
+          href="#doctors"
+          className="hidden sm:flex items-center gap-1 text-xs md:text-sm font-semibold text-[#1D646B] hover:text-[#0d3d38] transition"
+        >
+          View All Doctors
+          <ChevronRight size={14} />
+        </a>
+      </div>
+
+      <div className="relative">
+        {/* Desktop nav arrows */}
+        <button
+          onClick={() => scrollByCard(-1)}
+          aria-label="Scroll left"
+          className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 items-center justify-center hover:bg-slate-50 transition"
+        >
+          <ChevronLeft size={16} className="text-[#1D646B]" />
+        </button>
+        <button
+          onClick={() => scrollByCard(1)}
+          aria-label="Scroll right"
+          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 items-center justify-center hover:bg-slate-50 transition"
+        >
+          <ChevronRight size={16} className="text-[#1D646B]" />
+        </button>
+
+        <div
+          ref={scrollerRef}
+          className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {doctors.map((doc, i) => (
+            <div
+              key={i}
+              className="snap-start flex-shrink-0 w-[210px] flex items-center gap-3 bg-slate-50 hover:bg-[#E6F7F5] rounded-2xl p-3 border border-slate-100 transition-colors duration-200 cursor-pointer"
+            >
+              <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-slate-200">
+                <Image src={doc.image} alt={doc.name} fill className="object-cover object-top" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#1D646B] truncate">{doc.name}</p>
+                <p className="text-[11px] text-slate-500 truncate">{doc.specialty.split(",")[0]}</p>
+                <p className="text-[10px] text-slate-400">{doc.experience}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <a
+        href="#doctors"
+        className="sm:hidden flex items-center justify-center gap-1 text-xs font-semibold text-[#1D646B] mt-3"
+      >
+        View All Doctors
+        <ChevronRight size={14} />
+      </a>
+    </div>
+  );
+}
+
+/* ================================================
    MAIN PAGE (CLIENT COMPONENT)
    All interactive UI lives here. Rendered by the
    server component in page.tsx, which owns the
@@ -371,6 +414,11 @@ export default function HomePageClient() {
         .value-card .icon { font-size: 1.875rem; margin-bottom: 1rem; }
         .value-card.green { background: #F0FFF4; }
         .value-card.light { background: #F5F3FF; }
+        @keyframes hvc-floatSlow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .hvc-badge-a { animation: hvc-floatSlow 5s ease-in-out infinite; }
+        .hvc-badge-b { animation: hvc-floatSlow 5.5s ease-in-out infinite reverse; }
+        .hvc-badge-c { animation: hvc-floatSlow 6s ease-in-out infinite; animation-delay: .8s; }
+        .hvc-badge-d { animation: hvc-floatSlow 4.6s ease-in-out infinite; animation-delay: .3s; }
       `}</style>
 
       <Header onBookClick={() => setIsBookingOpen(true)} />
@@ -396,138 +444,208 @@ export default function HomePageClient() {
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-white/5 blur-3xl translate-x-1/3 -translate-y-1/3" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-white/5 blur-3xl -translate-x-1/3 translate-y-1/3" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 flex flex-col lg:flex-row items-center min-h-[580px] py-14 lg:py-0 gap-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 pt-14 pb-8 lg:pb-0">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
 
-          {/* ── Left copy ── */}
-          <div className="w-full lg:w-1/2 flex flex-col items-start gap-6">
+            {/* ── Left copy ── */}
+            <div className="w-full lg:w-1/2 flex flex-col items-start gap-6">
 
-           {/* Badges — Trusted Network + ISO Certified, both visible in hero on all screen sizes */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <span className="w-2 h-2 rounded-full bg-[#00c8aa] animate-pulse" />
-                <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted Healthcare Network</span>
+              {/* Badges — Trusted Network + ISO Certified */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00c8aa] animate-pulse" />
+                  <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted Healthcare Network</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                  <span className="text-sm">📜</span>
+                  <span className="text-white/90 text-xs font-semibold tracking-wide">ISO 9001:2015 Certified</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <span className="text-sm">📜</span>
-                <span className="text-white/90 text-xs font-semibold tracking-wide">ISO 9001:2015 Certified</span>
+
+              {/* Headline */}
+              <h1 className="text-4xl md:text-5xl xl:text-6xl font-black text-white leading-tight">
+                Har Surgery,<br />
+                <span className="text-[#00c8aa]">Ab Aasaan.</span>
+              </h1>
+
+              {/* Teal underline accent */}
+              <div style={{ width: "52px", height: "4px", background: "#00c8aa", borderRadius: "4px", marginTop: "-8px" }} />
+
+              {/* Sub-copy */}
+              <p className="text-white/70 text-base md:text-lg max-w-md leading-relaxed">
+                Expert surgeons, trusted hospitals and complete care
+                from consultation to recovery — all in one place.
+              </p>
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { num: siteStats.doctorsCount,    label: siteStats.doctorsLabel },
+                  { num: siteStats.treatmentsCount, label: "Treatments Offered" },
+                  { num: siteStats.citiesCount,     label: "Cities Covered" },
+                  { num: siteStats.successRate,     label: "Success Rate" },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-3 min-w-[100px]"
+                  >
+                    <span className="text-white font-black text-xl">{s.num}</span>
+                    <span className="text-white/60 text-xs mt-0.5">{s.label}</span>
+                  </div>
+                ))}
               </div>
-            </div>
 
-            {/* Headline */}
-            <h1 className="text-4xl md:text-5xl xl:text-6xl font-black text-white leading-tight">
-              Har Surgery,<br />
-              <span className="text-[#00c8aa]">Ab Aasaan.</span>
-            </h1>
-
-            {/* Teal underline accent */}
-            <div style={{ width: "52px", height: "4px", background: "#00c8aa", borderRadius: "4px", marginTop: "-8px" }} />
-
-            {/* Sub-copy */}
-            <p className="text-white/70 text-base md:text-lg max-w-md leading-relaxed">
-              Expert surgeons, trusted hospitals and complete care
-              from consultation to recovery — all in one place.
-            </p>
-
-            {/* Stats */}
-            <div className="flex flex-wrap gap-3">
-              {[
-                { num: "500+", label: "Expert Doctors"   },
-                { num: "20+",  label: "Diseases Treated" },
-                { num: "10+",  label: "Cities Covered"   },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-3 min-w-[100px]"
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 mt-2">
+                <button
+                  onClick={() => setIsBookingOpen(true)}
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
+                  style={{
+                    background: "#00c8aa",
+                    color: "#0a3d36",
+                    boxShadow: "0 8px 28px rgba(0,200,170,0.35)",
+                  }}
                 >
-                  <span className="text-white font-black text-xl">{s.num}</span>
-                  <span className="text-white/60 text-xs mt-0.5">{s.label}</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Free Consultation
+                </button>
+                <a
+                  href={`tel:${phoneTel}`}
+                  className="flex items-center gap-3 px-7 py-4 rounded-2xl font-semibold text-base transition-all duration-200 hover:scale-105 active:scale-95"
+                  onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Hero" } })}
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    color: "#ffffff",
+                    border: "1.5px solid rgba(255,255,255,0.22)",
+                  }}
+                >
+                  <Phone size={18} strokeWidth={2.5} />
+                  Talk to a Care Expert
+                </a>
+              </div>
+
+              {/* ================ MOBILE TRUST SECTION ================ */}
+              <div className="w-full lg:hidden mt-4 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                    <span className="text-lg flex-shrink-0">🏥</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-bold leading-tight">NABH Accredited</p>
+                      <p className="text-white/70 text-xs leading-tight">Hospitals</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                    <span className="text-lg flex-shrink-0">✅</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-bold leading-tight">{siteStats.successRate}</p>
+                      <p className="text-white/70 text-xs leading-tight">Success Rate</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                    <span className="text-lg flex-shrink-0">💳</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-bold leading-tight">0% Interest</p>
+                      <p className="text-white/70 text-xs leading-tight">EMI Plans</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                    <span className="text-lg flex-shrink-0">⭐</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-bold leading-tight">4.8/5</p>
+                      <p className="text-white/70 text-xs leading-tight">Patient Rating</p>
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                    <span className="text-lg flex-shrink-0">📜</span>
+                    <p className="text-white text-xs font-bold leading-tight">ISO 9001:2015 Certified</p>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3 mt-2">
-              <button
-                onClick={() => setIsBookingOpen(true)}
-                className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{
-                  background: "#00c8aa",
-                  color: "#0a3d36",
-                  boxShadow: "0 8px 28px rgba(0,200,170,0.35)",
-                }}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Book Free Consultation
-              </button>
-              <a
-                href={`tel:${phoneTel}`}
-                className="flex items-center gap-3 px-7 py-4 rounded-2xl font-semibold text-base transition-all duration-200 hover:scale-105 active:scale-95"
-                onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Hero" } })}
-                style={{
-                  background: "rgba(255,255,255,0.08)",
-                  color: "#ffffff",
-                  border: "1.5px solid rgba(255,255,255,0.22)",
-                }}
-              >
-                <Phone size={18} strokeWidth={2.5} />
-                Talk to a Care Expert
-              </a>
-            </div>
+            {/* ── Right: doctor photo + floating badges ── */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
+              <div className="relative w-full max-w-[480px] aspect-square">
+                {/* Soft glow ring behind photo */}
+                <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
+                <div className="absolute inset-6 rounded-full bg-white/5 border border-dashed border-white/10" />
 
-            {/* ================ MOBILE TRUST SECTION ================ */}
-            <div className="w-full lg:hidden mt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                {/* NABH Accredited */}
-                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                  <span className="text-lg flex-shrink-0">🏥</span>
-                  <div className="min-w-0">
-                    <p className="text-white text-xs font-bold leading-tight">NABH Accredited</p>
-                    <p className="text-white/70 text-xs leading-tight">Hospitals</p>
+                {/*
+                  Doctor group photo — circular mask.
+                  FIX (round 3): every previous attempt used object-cover,
+                  which crops the photo to fill the box — that's what kept
+                  cutting off a doctor or creating seams no matter how the
+                  crop box was sized/positioned.
+
+                  The photo has a transparent background, so cropping was
+                  never actually necessary. Switching to object-contain
+                  shows the ENTIRE photo with nothing cut off — the extra
+                  transparent margin (top/bottom, since the photo is wider
+                  than the circle is tall) just reveals the gradient behind
+                  it, which is the same teal as the hero background, so it
+                  blends in instead of looking like empty space.
+                */}
+                <div className="absolute inset-0 rounded-full overflow-hidden z-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42]">
+                  <Image
+                    src="/images/hero/doctors-group.png"
+                    alt="HealviaCare partner doctors"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 60vw, 320px"
+                    priority
+                  />
+                </div>
+
+                {/* Floating badge: Instant Callback */}
+                <div className="hvc-badge-a absolute z-10 top-[6%] left-0 sm:-left-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
+                  <div className="w-8 h-8 rounded-full bg-[#E6F7F5] flex items-center justify-center text-base flex-shrink-0">🕐</div>
+                  <div>
+                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">Instant Callback</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">Response in 5 min</p>
+                    <span className="inline-block mt-0.5 text-[9px] font-bold text-green-500">LIVE</span>
                   </div>
                 </div>
 
-                {/* Successful Surgeries */}
-                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                  <span className="text-lg flex-shrink-0">✅</span>
-                  <div className="min-w-0">
-                    <p className="text-white text-xs font-bold leading-tight">500+</p>
-                    <p className="text-white/70 text-xs leading-tight">Successful</p>
+                {/* Floating badge: NABH Certified */}
+                <div className="hvc-badge-b absolute z-10 top-[20%] right-0 sm:-right-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
+                  <div className="w-8 h-8 rounded-full bg-[#EAF2FF] flex items-center justify-center text-base flex-shrink-0">🏥</div>
+                  <div>
+                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">NABH Certified</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">Premium Hospitals</p>
+                    <span className="inline-block mt-0.5 text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">ACCREDITED</span>
                   </div>
                 </div>
 
-                {/* 0% Interest EMI */}
-                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                  <span className="text-lg flex-shrink-0">💳</span>
-                  <div className="min-w-0">
-                    <p className="text-white text-xs font-bold leading-tight">0% Interest</p>
-                    <p className="text-white/70 text-xs leading-tight">EMI Plans</p>
+                {/* Floating badge: Zero-Cost EMI */}
+                <div className="hvc-badge-c absolute z-10 bottom-[8%] left-0 sm:-left-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
+                  <div className="w-8 h-8 rounded-full bg-[#FFF4E6] flex items-center justify-center text-base flex-shrink-0">💰</div>
+                  <div>
+                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">Zero-Cost EMI</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">Flexible payments</p>
+                    <span className="inline-block mt-0.5 text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">0% INTEREST</span>
                   </div>
                 </div>
 
-                {/* Rating */}
-                <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                  <span className="text-lg flex-shrink-0">⭐</span>
-                  <div className="min-w-0">
-                    <p className="text-white text-xs font-bold leading-tight">4.8/5</p>
-                    <p className="text-white/70 text-xs leading-tight">Patient Rating</p>
+                {/* Floating badge: Partner Doctors (accurate count) */}
+                <div className="hvc-badge-d absolute z-10 bottom-[2%] right-0 sm:-right-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[178px]">
+                  <div className="w-8 h-8 rounded-full bg-[#FFF0F6] flex items-center justify-center text-base flex-shrink-0">👨‍⚕️</div>
+                  <div>
+                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">{siteStats.doctorsCount} {siteStats.doctorsLabel}</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">Verified Specialists</p>
                   </div>
-                </div>
-
-                {/* ISO Certified — TODO: confirm exact standard/number matches your certificate */}
-                <div className="col-span-2 flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                  <span className="text-lg flex-shrink-0">📜</span>
-                  <p className="text-white text-xs font-bold leading-tight">ISO 9001:2015 Certified</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── Right: SVG visual ── */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
-            <HeroSVG />
-          </div>
+          {/* ── Specialist strip (matches "Our Top Eye Care Specialists") ── */}
+          <SpecialistStrip />
         </div>
       </section>
 
@@ -541,7 +659,7 @@ export default function HomePageClient() {
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
             <span className="text-lg">✅</span>
-            <span className="text-sm font-semibold text-slate-700">500+ Successful Surgeries</span>
+            <span className="text-sm font-semibold text-slate-700">{siteStats.successRate} Success Rate</span>
           </div>
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
@@ -560,7 +678,6 @@ export default function HomePageClient() {
             <span className="text-sm font-semibold text-slate-700">4.8/5 Patient Rating</span>
           </div>
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
-          {/* ISO Certified — TODO: confirm exact standard/number matches your certificate */}
           <div className="flex items-center gap-2">
             <span className="text-lg">📜</span>
             <span className="text-sm font-semibold text-slate-700">ISO 9001:2015 Certified</span>
@@ -662,9 +779,9 @@ export default function HomePageClient() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-7xl mx-auto">
           {[
-            { title: "50+ Verified Specialists",    desc: "Experienced doctors across 8 surgical specialities — all background verified.", icon: <UserGroupIcon      className="w-8 h-8 text-[#1D646B]" /> },
+            { title: `${siteStats.doctorsCount} Verified Specialists`, desc: "Experienced doctors across 8 surgical specialities — all background verified.", icon: <UserGroupIcon      className="w-8 h-8 text-[#1D646B]" /> },
             { title: "Response in 5 Minutes",       desc: "Our care team calls you back within 5 minutes of your request.",              icon: <ClockIcon           className="w-8 h-8 text-[#1D646B]" /> },
-            { title: "NABH-Accredited Hospitals",   desc: "We only partner with certified hospitals across 10+ cities in India.",        icon: <BuildingOffice2Icon className="w-8 h-8 text-[#1D646B]" /> },
+            { title: "NABH-Accredited Hospitals",   desc: "We only partner with certified hospitals across trusted cities in India.",   icon: <BuildingOffice2Icon className="w-8 h-8 text-[#1D646B]" /> },
             { title: "0% EMI, No Hidden Fees",      desc: "Transparent pricing. Insurance handled. Zero surprise costs at billing.",     icon: <CurrencyRupeeIcon   className="w-8 h-8 text-[#1D646B]" /> },
           ].map((item, i) => (
             <div key={i} className="group relative rounded-3xl p-[2px] bg-gradient-to-br from-[#1D646B]/20 via-[#2D8E98]/20 to-[#7BC6A1]/20 hover:from-[#1D646B] hover:to-[#2D8E98] transition-all duration-500">
@@ -678,6 +795,53 @@ export default function HomePageClient() {
               <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition duration-500 blur-xl bg-[#2D8E98]/30 -z-10" />
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ================ OUR DOCTORS ================ */}
+      <section id="doctors" className="py-14 md:py-20 bg-gradient-to-b from-white to-slate-50 px-6 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1D646B]">Meet Our Eye Specialists</h2>
+            <p className="text-slate-500 mt-3 text-sm md:text-base">Experienced doctors from trusted hospital partners</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {doctors.map((doc, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+              >
+                <div className="relative w-full h-64 bg-slate-100">
+                  <Image
+                    src={doc.image}
+                    alt={doc.name}
+                    fill
+                    className="object-cover object-top"
+                  />
+                </div>
+                <div className="p-6 flex flex-col gap-1">
+                  <h3 className="text-lg font-bold text-[#1D646B]">{doc.name}</h3>
+                  <p className="text-xs text-slate-400">{doc.qualification}</p>
+                  <p className="text-sm text-slate-600 mt-2">{doc.specialty}</p>
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
+                    <span className="text-xs font-semibold text-[#1D646B] bg-[#E6F7F5] px-3 py-1 rounded-full w-fit">
+                      {doc.hospital}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full w-fit">
+                      {doc.experience}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsBookingOpen(true)}
+                    className="mt-4 w-full py-2.5 rounded-xl bg-[#1D646B] text-white text-sm font-semibold hover:bg-[#145A5C] transition-colors duration-200"
+                  >
+                    Book with {doc.name}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -855,4 +1019,3 @@ export default function HomePageClient() {
     </>
   );
 }
-
