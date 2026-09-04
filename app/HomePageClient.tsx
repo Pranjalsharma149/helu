@@ -414,11 +414,6 @@ export default function HomePageClient() {
         .value-card .icon { font-size: 1.875rem; margin-bottom: 1rem; }
         .value-card.green { background: #F0FFF4; }
         .value-card.light { background: #F5F3FF; }
-        @keyframes hvc-floatSlow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .hvc-badge-a { animation: hvc-floatSlow 5s ease-in-out infinite; }
-        .hvc-badge-b { animation: hvc-floatSlow 5.5s ease-in-out infinite reverse; }
-        .hvc-badge-c { animation: hvc-floatSlow 6s ease-in-out infinite; animation-delay: .8s; }
-        .hvc-badge-d { animation: hvc-floatSlow 4.6s ease-in-out infinite; animation-delay: .3s; }
       `}</style>
 
       <Header onBookClick={() => setIsBookingOpen(true)} />
@@ -572,20 +567,23 @@ export default function HomePageClient() {
             {/* ── Right: doctor photo + floating badges ── */}
             <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
               <div className="relative w-full max-w-[480px] aspect-square">
-                {/* Soft glow ring behind photo */}
-                <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10" />
-                <div className="absolute inset-6 rounded-full bg-white/5 border border-dashed border-white/10" />
-
                 {/*
                   Doctor group photo — circular mask.
-                  FIX (round 3): every previous attempt used object-cover,
-                  which crops the photo to fill the box — that's what kept
-                  cutting off a doctor or creating seams no matter how the
-                  crop box was sized/positioned.
+                  FIX (round 4): removed the two decorative ring divs
+                  (plain circle + dashed circle) that used to sit behind
+                  the photo. When doctors-group.png fails to load or the
+                  path is wrong, those empty rings were the only thing
+                  visible — which is what made it look like a stray
+                  "circular thing" / fallback icon floating in the hero.
+
+                  FIX (round 3, still in effect): every previous attempt
+                  used object-cover, which crops the photo to fill the
+                  box — that's what kept cutting off a doctor or creating
+                  seams no matter how the crop box was sized/positioned.
 
                   The photo has a transparent background, so cropping was
-                  never actually necessary. Switching to object-contain
-                  shows the ENTIRE photo with nothing cut off — the extra
+                  never actually necessary. object-contain shows the
+                  ENTIRE photo with nothing cut off — the extra
                   transparent margin (top/bottom, since the photo is wider
                   than the circle is tall) just reveals the gradient behind
                   it, which is the same teal as the hero background, so it
@@ -593,52 +591,13 @@ export default function HomePageClient() {
                 */}
                 <div className="absolute inset-0 rounded-full overflow-hidden z-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42]">
                   <Image
-                    src="/images/hero/doctors-group.png"
+                    src="/images/hero/doctors-group.old.png"
                     alt="HealviaCare partner doctors"
                     fill
                     className="object-contain"
                     sizes="(max-width: 768px) 60vw, 320px"
                     priority
                   />
-                </div>
-
-                {/* Floating badge: Instant Callback */}
-                <div className="hvc-badge-a absolute z-10 top-[6%] left-0 sm:-left-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
-                  <div className="w-8 h-8 rounded-full bg-[#E6F7F5] flex items-center justify-center text-base flex-shrink-0">🕐</div>
-                  <div>
-                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">Instant Callback</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">Response in 5 min</p>
-                    <span className="inline-block mt-0.5 text-[9px] font-bold text-green-500">LIVE</span>
-                  </div>
-                </div>
-
-                {/* Floating badge: NABH Certified */}
-                <div className="hvc-badge-b absolute z-10 top-[20%] right-0 sm:-right-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
-                  <div className="w-8 h-8 rounded-full bg-[#EAF2FF] flex items-center justify-center text-base flex-shrink-0">🏥</div>
-                  <div>
-                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">NABH Certified</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">Premium Hospitals</p>
-                    <span className="inline-block mt-0.5 text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">ACCREDITED</span>
-                  </div>
-                </div>
-
-                {/* Floating badge: Zero-Cost EMI */}
-                <div className="hvc-badge-c absolute z-10 bottom-[8%] left-0 sm:-left-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[168px]">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF4E6] flex items-center justify-center text-base flex-shrink-0">💰</div>
-                  <div>
-                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">Zero-Cost EMI</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">Flexible payments</p>
-                    <span className="inline-block mt-0.5 text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">0% INTEREST</span>
-                  </div>
-                </div>
-
-                {/* Floating badge: Partner Doctors (accurate count) */}
-                <div className="hvc-badge-d absolute z-10 bottom-[2%] right-0 sm:-right-3 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 max-w-[178px]">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF0F6] flex items-center justify-center text-base flex-shrink-0">👨‍⚕️</div>
-                  <div>
-                    <p className="text-[11px] font-bold text-[#1D646B] leading-tight">{siteStats.doctorsCount} {siteStats.doctorsLabel}</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">Verified Specialists</p>
-                  </div>
                 </div>
               </div>
             </div>
