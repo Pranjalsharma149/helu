@@ -41,17 +41,19 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 /* ----------------------------------------------------------------
    SITE STATS — EDIT THESE TO MATCH YOUR REAL NUMBERS
    Previously this file said "500+ Doctors" everywhere, which did
-   not match the 5 real doctors you've actually tied up with.
-   Update these four fields any time your real numbers change —
+   not match the real number of doctors you've actually tied up
+   with. Update these fields any time your real numbers change —
    every stat on the homepage (hero, floating badges, Why Choose Us)
    pulls from here so you only edit it in one place.
+
+   NOTE: the "Success Rate" stat/tag has been removed site-wide
+   (hero stats, mobile trust badges, desktop trust bar) per request.
    ------------------------------------------------------------- */
 const siteStats = {
-  doctorsCount: "5+",          // Real number of partner doctors you list on the site today
+  doctorsCount: "30+",         // Real number of partner doctors
   doctorsLabel: "Partner Doctors",
   treatmentsCount: "8+",       // Matches the 8 specialities listed in `services` below
-  citiesCount: "3+",           // TODO: confirm actual number of cities you operate in
-  successRate: "98%",          // TODO: confirm this is a real, verifiable figure before publishing
+  citiesCount: "8+",           // Cities covered
 };
 
 /* ---------- WHATSAPP ICON ---------- */
@@ -478,7 +480,6 @@ export default function HomePageClient() {
                   { num: siteStats.doctorsCount,    label: siteStats.doctorsLabel },
                   { num: siteStats.treatmentsCount, label: "Treatments Offered" },
                   { num: siteStats.citiesCount,     label: "Cities Covered" },
-                  { num: siteStats.successRate,     label: "Success Rate" },
                 ].map((s) => (
                   <div
                     key={s.label}
@@ -533,14 +534,6 @@ export default function HomePageClient() {
                   </div>
 
                   <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
-                    <span className="text-lg flex-shrink-0">✅</span>
-                    <div className="min-w-0">
-                      <p className="text-white text-xs font-bold leading-tight">{siteStats.successRate}</p>
-                      <p className="text-white/70 text-xs leading-tight">Success Rate</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
                     <span className="text-lg flex-shrink-0">💳</span>
                     <div className="min-w-0">
                       <p className="text-white text-xs font-bold leading-tight">0% Interest</p>
@@ -556,9 +549,12 @@ export default function HomePageClient() {
                     </div>
                   </div>
 
-                  <div className="col-span-2 flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
                     <span className="text-lg flex-shrink-0">📜</span>
-                    <p className="text-white text-xs font-bold leading-tight">ISO 9001:2015 Certified</p>
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-bold leading-tight">ISO 9001:2015</p>
+                      <p className="text-white/70 text-xs leading-tight">Certified</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -614,11 +610,6 @@ export default function HomePageClient() {
           <div className="flex items-center gap-2">
             <span className="text-lg">🏥</span>
             <span className="text-sm font-semibold text-slate-700">NABH Accredited Hospitals</span>
-          </div>
-          <div className="hidden sm:block w-px h-5 bg-slate-200" />
-          <div className="flex items-center gap-2">
-            <span className="text-lg">✅</span>
-            <span className="text-sm font-semibold text-slate-700">{siteStats.successRate} Success Rate</span>
           </div>
           <div className="hidden sm:block w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
