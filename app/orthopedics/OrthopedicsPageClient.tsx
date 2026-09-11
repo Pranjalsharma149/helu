@@ -7,8 +7,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, Bone, Stethoscope, Zap, CheckCircle2,
-  ArrowRight, MapPin, ShieldCheck, Award, Clock, Users,
-  ChevronDown, Star, Phone, Microscope, HeartPulse, AlertCircle
+  ArrowRight, ShieldCheck, Award, Clock, Users,
+  ChevronDown, Phone, Microscope, HeartPulse, AlertCircle
 } from "lucide-react";
 
 // ─── PHONE VALIDATION ────────────────────────────────────────────────────────
@@ -116,63 +116,6 @@ const steps = [
     idx: "03",
     title: "Personalised Fast-Track Rehab",
     desc: "Your dedicated physio begins targeted exercises within hours of surgery. Most patients go home in 2 days; many return to daily routines within 3 weeks.",
-  },
-];
-
-const doctors = [
-  {
-    name: "Dr. Rajesh Mehta",
-    title: "Sr. Consultant — Knee & Hip",
-    exp: "22 Years",
-    surgeries: "8,000+",
-    initials: "RM",
-    color: "#0F766E",
-    qualifications: "MS Ortho · FRCS (Edinburgh) · Fellowship, HSS New York",
-  },
-  {
-    name: "Dr. Sunita Kapoor",
-    title: "Sr. Consultant — Spine Surgery",
-    exp: "18 Years",
-    surgeries: "5,500+",
-    initials: "SK",
-    color: "#7C3AED",
-    qualifications: "MCh Spine · AO Spine Fellow · ISASS Member",
-  },
-  {
-    name: "Dr. Arjun Verma",
-    title: "Consultant — Sports Medicine",
-    exp: "15 Years",
-    surgeries: "3,200+",
-    initials: "AV",
-    color: "#1D4ED8",
-    qualifications: "DNB Ortho · Sports Medicine, IOC Diploma · FIFA Medical Centre",
-  },
-];
-
-const testimonials = [
-  {
-    name: "Priya Sharma",
-    city: "Delhi",
-    age: 58,
-    treatment: "Knee Replacement",
-    text: "I had been in pain for six years. After Dr. Mehta's robotic surgery I walked the same evening — something I thought was impossible. The whole team was warm, thorough, and genuinely caring.",
-    stars: 5,
-  },
-  {
-    name: "Rajan Nair",
-    city: "Mumbai",
-    age: 44,
-    treatment: "Spine Surgery",
-    text: "My sciatica had made sitting unbearable. The endoscopic procedure left barely a scar and I was off pain medication in four days. Unbelievable turnaround.",
-    stars: 5,
-  },
-  {
-    name: "Meena Bose",
-    city: "Pune",
-    age: 31,
-    treatment: "ACL Reconstruction",
-    text: "As a state-level cricketer I was devastated by my ACL tear. Dr. Verma's team had me back on the field in exactly six months. Couldn't have asked for more.",
-    stars: 5,
   },
 ];
 
@@ -599,142 +542,6 @@ export default function OrthopedicsPageClient() {
                   </motion.div>
                 ))}
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════
-            DOCTORS
-        ══════════════════════════════════════════════════════ */}
-        <section className="py-28 bg-[#0A1628]">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <div className="inline-block bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">
-                Our Surgeons
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
-                India's Most Trusted<br />Orthopaedic Specialists
-              </h2>
-              <p className="text-slate-500 text-base max-w-md mx-auto font-light">
-                Every surgeon on our team has trained at globally renowned institutions and performed thousands of successful procedures.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {doctors.map((d, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  whileHover={{ y: -6 }}
-                  className="bg-white/5 border border-white/8 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:bg-white/8"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black shrink-0"
-                      style={{ background: d.color + "25", color: d.color, border: `2px solid ${d.color}35` }}
-                    >
-                      {d.initials}
-                    </div>
-                    <div>
-                      <div className="text-white font-black text-base">{d.name}</div>
-                      <div className="text-slate-400 text-xs font-medium mt-0.5">{d.title}</div>
-                    </div>
-                  </div>
-
-                  <p className="text-slate-500 text-xs leading-relaxed mb-6 font-light">{d.qualifications}</p>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {[{ v: d.surgeries, l: "Surgeries" }, { v: d.exp, l: "Experience" }].map(({ v, l }) => (
-                      <div key={l} className="bg-white/5 rounded-2xl p-4 text-center">
-                        <div className="font-black text-lg" style={{ color: d.color }}>{v}</div>
-                        <div className="text-slate-500 text-[10px] font-semibold mt-0.5">{l}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    className="w-full mt-5 py-3 rounded-2xl border text-sm font-bold transition-all"
-                    style={{ borderColor: d.color + "40", color: d.color }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = d.color + "15" }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-                  >
-                    Book with {d.name.split(" ")[1]}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════
-            TESTIMONIALS
-        ══════════════════════════════════════════════════════ */}
-        <section className="py-28 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <div className="inline-block bg-amber-50 text-amber-700 text-[11px] font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">
-                Patient Stories
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
-                Lives Changed.<br />Mobility Restored.
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  className="bg-slate-50 border border-slate-100 rounded-3xl p-8 flex flex-col"
-                >
-                  <div className="flex gap-1 mb-5">
-                    {Array.from({ length: t.stars }).map((_, si) => (
-                      <Star key={si} size={14} fill="#F59E0B" className="text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-700 text-sm leading-relaxed italic flex-1 mb-6">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-5 border-t border-slate-200">
-                    <div className="w-11 h-11 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-black text-sm">
-                      {t.name.split(" ").map(n => n[0]).join("")}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{t.name}, {t.age}</div>
-                      <div className="text-slate-400 text-xs flex items-center gap-1 mt-0.5">
-                        <MapPin size={10} /> {t.city} · {t.treatment}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Social proof strip */}
-            <div className="mt-16 bg-teal-50 border border-teal-100 rounded-3xl p-8 flex flex-wrap items-center justify-between gap-6">
-              <div>
-                <div className="text-3xl font-black text-slate-900">4.9 / 5.0</div>
-                <div className="flex gap-1 mt-1 mb-2">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#F59E0B" className="text-amber-400" />)}
-                </div>
-                <div className="text-slate-500 text-sm">Based on 3,800+ verified reviews</div>
-              </div>
-              <div className="flex gap-8 flex-wrap">
-                {[["Google", "4.9★", "2,100 reviews"], ["Practo", "4.8★", "980 reviews"], ["JustDial", "4.9★", "740 reviews"]].map(([src, rating, count]) => (
-                  <div key={src} className="text-center">
-                    <div className="text-slate-900 font-black text-lg">{rating}</div>
-                    <div className="text-[#0F766E] font-bold text-sm">{src}</div>
-                    <div className="text-slate-400 text-xs">{count}</div>
-                  </div>
-                ))}
-              </div>
-              <a href="#consult" className="flex items-center gap-2 bg-[#0F766E] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#0D6460] transition-colors shadow-lg shadow-teal-900/20">
-                Read All Stories <ArrowRight size={16} />
-              </a>
             </div>
           </div>
         </section>

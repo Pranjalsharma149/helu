@@ -7,7 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, ChevronRight, CheckCircle2, Zap, ShieldCheck,
-  ArrowRight, Target, Flame, MapPin, Star, Phone,
+  ArrowRight, Target, Flame, MapPin, Phone,
   ChevronDown, Clock, Users, Award, HeartPulse, Microscope,
   AlertCircle, BadgeCheck, Loader2,
 } from "lucide-react";
@@ -239,63 +239,6 @@ const steps = [
     idx: "03",
     title: "Zero Wound Care Protocol",
     desc: "No dressings, no packing, no painful post-op cleaning. A simple soft diet for 48 hours and a mild stool softener — most patients return to desk work in 2 days.",
-  },
-];
-
-const doctors = [
-  {
-    name: "Dr. Anand Prakash",
-    title: "Sr. Consultant — Laser Proctology",
-    exp: "19 Years",
-    procedures: "12,000+",
-    initials: "AP",
-    color: "#0F766E",
-    qualifications: "MS Surgery · FMAS · Fellowship in Colorectal Surgery, Germany",
-  },
-  {
-    name: "Dr. Ritu Sharma",
-    title: "Consultant — Colorectal Surgery",
-    exp: "14 Years",
-    procedures: "7,500+",
-    initials: "RS",
-    color: "#7C3AED",
-    qualifications: "MCh Surgery · FACS · Advanced Laparoscopic Colorectal, France",
-  },
-  {
-    name: "Dr. Vikram Joshi",
-    title: "Consultant — Advanced Endoscopy",
-    exp: "11 Years",
-    procedures: "5,000+",
-    initials: "VJ",
-    color: "#EA580C",
-    qualifications: "DNB Surgery · GI Endoscopy Fellow, AIIMS · ASGE Member",
-  },
-];
-
-const testimonials = [
-  {
-    name: "Anil Verma",
-    city: "Delhi",
-    age: 42,
-    treatment: "Laser Piles",
-    text: "I suffered in silence for 3 years out of embarrassment. The laser procedure was done in 25 minutes. No pain whatsoever — I went home the same day and was at my office desk in 2 days. Wish I had done this sooner.",
-    stars: 5,
-  },
-  {
-    name: "Sunita Reddy",
-    city: "Hyderabad",
-    age: 35,
-    treatment: "Anal Fissure",
-    text: "The fissure had made my daily life miserable for over a year. Dr. Sharma's laser treatment was completely painless. The healing was remarkable — gone in 10 days, permanently.",
-    stars: 5,
-  },
-  {
-    name: "Rakesh Gupta",
-    city: "Mumbai",
-    age: 51,
-    treatment: "Fistula VAAFT",
-    text: "I had failed two open surgeries elsewhere. VAAFT was completely different — small incision, no recurrence, and my sphincter was untouched. Best decision of my life.",
-    stars: 5,
   },
 ];
 
@@ -655,142 +598,6 @@ export default function PilesPageClient() {
                 className="mt-12 flex items-center gap-2 text-[#0F766E] font-black text-base group"
               >
                 Start your recovery journey <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════
-            DOCTORS
-        ══════════════════════════════════════════════════════ */}
-        <section className="py-28 bg-[#0A1628]">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <div className="inline-block bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">
-                Our Surgeons
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
-                Specialists Who Understand<br />Your Condition
-              </h2>
-              <p className="text-slate-500 text-base max-w-md mx-auto font-light">
-                Our proctologists have trained internationally and performed thousands of laser procedures — with full respect for your privacy.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {doctors.map((d, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  whileHover={{ y: -6 }}
-                  className="bg-white/5 border border-white/8 rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:bg-white/8"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black shrink-0"
-                      style={{ background: d.color + "25", color: d.color, border: `2px solid ${d.color}35` }}
-                    >
-                      {d.initials}
-                    </div>
-                    <div>
-                      <div className="text-white font-black text-base">{d.name}</div>
-                      <div className="text-slate-400 text-xs font-medium mt-0.5">{d.title}</div>
-                    </div>
-                  </div>
-                  <p className="text-slate-500 text-xs leading-relaxed mb-6 font-light">{d.qualifications}</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[{ v: d.procedures, l: "Procedures" }, { v: d.exp, l: "Experience" }].map(({ v, l }) => (
-                      <div key={l} className="bg-white/5 rounded-2xl p-4 text-center">
-                        <div className="font-black text-lg" style={{ color: d.color }}>{v}</div>
-                        <div className="text-slate-500 text-[10px] font-semibold mt-0.5">{l}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    className="w-full mt-5 py-3 rounded-2xl border text-sm font-bold transition-all"
-                    style={{ borderColor: d.color + "40", color: d.color }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = d.color + "15"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-                  >
-                    Book with {d.name.split(" ")[1]}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════
-            TESTIMONIALS
-        ══════════════════════════════════════════════════════ */}
-        <section className="py-28 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <div className="inline-block bg-amber-50 text-amber-700 text-[11px] font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">
-                Patient Stories
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
-                Real People.<br />Real Relief.
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  className="bg-slate-50 border border-slate-100 rounded-3xl p-8 flex flex-col"
-                >
-                  <div className="flex gap-1 mb-5">
-                    {Array.from({ length: t.stars }).map((_, si) => (
-                      <Star key={si} size={14} fill="#F59E0B" className="text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-700 text-sm leading-relaxed italic flex-1 mb-6">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-5 border-t border-slate-200">
-                    <div className="w-11 h-11 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-black text-sm">
-                      {t.name.split(" ").map((n) => n[0]).join("")}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{t.name}, {t.age}</div>
-                      <div className="text-slate-400 text-xs flex items-center gap-1 mt-0.5">
-                        <MapPin size={10} /> {t.city} · {t.treatment}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Rating strip */}
-            <div className="mt-16 bg-teal-50 border border-teal-100 rounded-3xl p-8 flex flex-wrap items-center justify-between gap-6">
-              <div>
-                <div className="text-3xl font-black text-slate-900">4.9 / 5.0</div>
-                <div className="flex gap-1 mt-1 mb-2">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#F59E0B" className="text-amber-400" />)}
-                </div>
-                <div className="text-slate-500 text-sm">Based on 5,200+ verified reviews</div>
-              </div>
-              <div className="flex gap-8 flex-wrap">
-                {[["Google", "4.9★", "2,800 reviews"], ["Practo", "4.8★", "1,400 reviews"], ["JustDial", "4.9★", "1,000 reviews"]].map(([src, rating, count]) => (
-                  <div key={src} className="text-center">
-                    <div className="text-slate-900 font-black text-lg">{rating}</div>
-                    <div className="text-[#0F766E] font-bold text-sm">{src}</div>
-                    <div className="text-slate-400 text-xs">{count}</div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="flex items-center gap-2 bg-[#0F766E] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#0D6460] transition-colors shadow-lg shadow-teal-900/20"
-              >
-                Book Your Consultation <ArrowRight size={16} />
               </button>
             </div>
           </div>

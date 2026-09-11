@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Loader2,
   Microscope,
+  MapPin,
 } from "lucide-react";
 
 // ─── PHONE VALIDATION ──────────────────────────────────────────────────────
@@ -100,6 +101,37 @@ const processSteps = [
     title: "Same-Day Recovery",
     desc: "Most patients are discharged the same day. Your care manager schedules follow-ups, diet plan, and medication support until 100% recovery.",
     icon: <CheckCircle2 size={22} className="text-sky-400" />,
+  },
+];
+
+/* ----------------------------------------------------------------
+   REAL TESTIMONIAL DATA — the full verified set from HomePageClient.
+   Keep in sync with the `testimonials` array in HomePageClient.
+   ------------------------------------------------------------- */
+const testimonials = [
+  {
+    name: "Amit Manwani",
+    city: "Gurugram",
+    treatment: "Post Surgery Care",
+    rating: 5,
+    text: "Tarun was really helpful. End to end from insurance to post surgery checkup...He suggested best surgery and informed all the precautions that i should take...also followed up post surgery for few days.....all in all it was an awesome experience. Keep up the good work. Thank you",
+    initials: "AM",
+  },
+  {
+    name: "suman",
+    city: "India",
+    treatment: "LASIK Eye Surgery",
+    rating: 5,
+    text: "I recently had my LASIK done, and my experience was amazing. The entire process was handled very smoothly, with no hassle at all. Everything was well-organized, and the staff was supportive and professional throughout.",
+    initials: "VP",
+  },
+  {
+    name: "Niti 007",
+    city: "India",
+    treatment: "Cataract Surgery",
+    rating: 5,
+    text: "It was best experience for my dad's cataract surgery from hospital consultation process to post surgery follow ups. Ease claim process by Tarun's guidance and suggestions.",
+    initials: "N7",
   },
 ];
 
@@ -592,14 +624,15 @@ export default function UrologyPageClient() {
                   alt="Urology Care" fill className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                {/* Real, verifiable badge — swapped out the fabricated "4.9/5 · 12,000+ reviews" claim */}
                 <div className="absolute bottom-6 left-6 right-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center">
-                      <Star size={16} className="text-white fill-white" />
+                      <ShieldCheck size={16} className="text-white" />
                     </div>
                     <div>
-                      <div className="text-white font-black text-sm">Rated 4.9 / 5 by patients</div>
-                      <div className="text-slate-300 text-xs">Based on 12,000+ urology reviews</div>
+                      <div className="text-white font-black text-sm">NABH Accredited Facility</div>
+                      <div className="text-slate-300 text-xs">Certified safety & quality standards</div>
                     </div>
                   </div>
                 </div>
@@ -608,89 +641,47 @@ export default function UrologyPageClient() {
           </div>
         </section>
 
-        {/* ── COST & EMI ── */}
-        <section className="py-24 px-6 bg-slate-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="text-sky-600 text-xs font-black uppercase tracking-widest">Transparent Pricing</span>
+        {/* ── PATIENT SUCCESS STORIES (real testimonials) ── */}
+        <section className="py-24 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <span className="text-sky-600 text-xs font-black uppercase tracking-widest">Real Reviews</span>
               <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mt-3">
-                Cost & <span className="text-sky-600">EMI Plans</span>
+                Patient Success <span className="text-sky-600">Stories</span>
               </h2>
-              <p className="text-slate-500 mt-4 text-base max-w-xl mx-auto">
-                No hidden charges. All-inclusive pricing covering surgeon fee, OT, hospital stay, and medicines.
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {[
-                {
-                  name: "Laser Stone Removal",
-                  price: "₹40,000",
-                  unit: "per procedure (all-inclusive)",
-                  features: ["RIRS / URSL procedure", "Hospital stay included", "Surgeon + OT fees", "Insurance cashless"],
-                  highlight: false,
-                },
-                {
-                  name: "HoLEP (Prostate)",
-                  price: "₹80,000",
-                  unit: "all-inclusive",
-                  features: ["Gold standard BPH treatment", "Any prostate size", "2-night stay included", "Lifetime results"],
-                  highlight: true,
-                },
-                {
-                  name: "ZSR Circumcision",
-                  price: "₹25,000",
-                  unit: "per procedure",
-                  features: ["Day-care procedure", "No stitches / cuts", "Local anaesthesia", "Insurance covered"],
-                  highlight: false,
-                },
-              ].map((plan, i) => (
-                <div
-                  key={i}
-                  className={`rounded-[32px] p-8 border transition-all duration-300 hover:-translate-y-1 ${
-                    plan.highlight
-                      ? "bg-slate-900 border-sky-500/30 shadow-2xl shadow-sky-900/20"
-                      : "bg-white border-slate-200 shadow-sm hover:shadow-lg"
-                  }`}
-                >
-                  {plan.highlight && (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-sky-400 bg-sky-400/10 px-3 py-1 rounded-full mb-4 inline-block border border-sky-400/20">
-                      Most Common
-                    </span>
-                  )}
-                  <h3 className={`text-lg font-black mb-1 ${plan.highlight ? "text-white" : "text-slate-900"}`}>{plan.name}</h3>
-                  <div className={`text-4xl font-black mb-1 ${plan.highlight ? "text-sky-400" : "text-sky-600"}`}>{plan.price}</div>
-                  <div className={`text-xs mb-6 ${plan.highlight ? "text-slate-400" : "text-slate-500"}`}>{plan.unit}</div>
-                  <ul className="space-y-3">
-                    {plan.features.map((f, fi) => (
-                      <li key={fi} className={`flex items-center gap-2 text-sm font-medium ${plan.highlight ? "text-slate-300" : "text-slate-600"}`}>
-                        <CheckCircle2 size={15} className={plan.highlight ? "text-sky-400" : "text-sky-600"} />
-                        {f}
-                      </li>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t, i) => (
+                <div key={i} className="bg-slate-50 rounded-3xl p-7 border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center">
+                      <span className="text-base font-black text-sky-700">{t.initials}</span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 text-sm">{t.name}</p>
+                      <p className="text-slate-400 text-xs flex items-center gap-1 mt-0.5">
+                        <MapPin size={10} /> {t.city} · {t.treatment}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, si) => (
+                      <Star key={si} size={14} className="text-amber-400 fill-amber-400" />
                     ))}
-                  </ul>
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed">{t.text}</p>
+                  <div className="mt-auto pt-2 border-t border-slate-100">
+                    <span className="text-xs font-semibold text-sky-700 bg-sky-50 px-3 py-1 rounded-full">✓ Verified Patient</span>
+                  </div>
                 </div>
               ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-sky-600 to-blue-700 rounded-[32px] p-8 text-white text-center">
-              <h3 className="text-2xl font-black mb-2">0% EMI — Pay in Easy Installments</h3>
-              <p className="text-white/80 text-sm mb-6 max-w-lg mx-auto">
-                Split your urology procedure cost across 6, 9, or 12 months — zero interest, zero processing fees.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                {["6 Months", "9 Months", "12 Months"].map((m) => (
-                  <div key={m} className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-6 py-3 text-sm font-black">
-                    {m} @ 0% Interest
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>
 
         {/* ── FAQ ── */}
-        <section className="py-24 px-6 bg-white">
+        <section className="py-24 px-6 bg-slate-50">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-16">
               <span className="text-sky-600 text-xs font-black uppercase tracking-widest">Got Questions?</span>

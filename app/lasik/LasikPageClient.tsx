@@ -56,6 +56,53 @@ function isValidPhone(rawValue: string): boolean {
   return getPhoneError(rawValue) === null;
 }
 
+/* ----------------------------------------------------------------
+   REAL DOCTOR DATA — the verified ophthalmologist roster from
+   HomePageClient. Keep in sync with the `doctors` array there.
+   ------------------------------------------------------------- */
+const doctors = [
+  {
+    name: "Dr. Nitesh Salunkhe",
+    image: "/images/doctors/nitesh-salunkhe.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Vitreo-Retina, Diabetic Eye Disease",
+    hospital: "ASG Eye Hospital, Pune",
+    experience: "10+ Yrs Exp",
+  },
+  {
+    name: "Dr. Hemant Kamble",
+    image: "/images/doctors/hemant-kamble.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Cornea & Refractive Surgery",
+    hospital: "ASG Eye Hospital, Pune",
+    experience: "15+ Yrs Exp",
+  },
+  {
+    name: "Dr. Pavan Lohiya",
+    image: "/images/doctors/pavan-lohiya.png",
+    qualification: "MD Ophthalmology, AIIMS Delhi",
+    specialty: "Cataract, Refractive & Oculoplastic Surgery",
+    hospital: "ASG Eye Hospital, Vashi",
+    experience: "20+ Yrs Exp",
+  },
+  {
+    name: "Dr. Shantanu Mukherji",
+    image: "/images/doctors/shantanu-mukherji.png",
+    qualification: "MBBS, MS - AFMC Pune",
+    specialty: "Glaucoma, Cataract & Refractive Surgery",
+    hospital: "Sharp Sight Eye Hospitals, Delhi",
+    experience: "17+ Yrs Exp",
+  },
+  {
+    name: "Dr. Saumil Sheth",
+    image: "/images/doctors/saumil-sheth.png",
+    qualification: "MBBS, MS, DNB, FRCS, FICO",
+    specialty: "Vitreo-Retina, Cataract & LASIK",
+    hospital: "Envision Eye Hospital, Mumbai",
+    experience: "20+ Yrs Exp",
+  },
+];
+
 // ── FormCard lifted OUTSIDE LasikPageClient to prevent remount on every keystroke ──
 interface FormCardProps {
   form: { name: string; phone: string };
@@ -568,83 +615,41 @@ export default function LasikPageClient() {
           </div>
         </section>
 
-        {/* ── COST & EMI SECTION ── */}
-        <section className="py-24 px-6 bg-white">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="text-teal-600 text-xs font-black uppercase tracking-widest">Transparent Pricing</span>
+        {/* ── OUR DOCTORS (real data, pulled from the verified homepage roster) ── */}
+        <section id="doctors" className="py-24 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <span className="text-teal-600 text-xs font-black uppercase tracking-widest">Meet The Team</span>
               <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mt-3">
-                Cost & <span className="text-[#1D646B]">EMI Plans</span>
+                Our LASIK <span className="text-[#1D646B]">Specialists</span>
               </h2>
-              <p className="text-slate-500 mt-4 text-base max-w-xl mx-auto">
-                No hidden charges. No surprises. Here's exactly what LASIK costs at HealviaCare partner hospitals.
-              </p>
+              <p className="text-slate-500 mt-4 text-lg font-medium">Verified, experienced ophthalmologists from trusted hospital partners</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {[
-                {
-                  name: "Standard LASIK",
-                  price: "₹25,000",
-                  unit: "per eye",
-                  features: ["Microkeratome blade", "Basic correction", "Suitable for low power", "1-year follow-up"],
-                  highlight: false,
-                },
-                {
-                  name: "Contoura Vision",
-                  price: "₹45,000",
-                  unit: "per eye",
-                  features: ["22,000-point mapping", "Beyond 6/6 possible", "Reduces night glare", "Lifetime warranty"],
-                  highlight: true,
-                },
-                {
-                  name: "SMILE Pro / ICL",
-                  price: "₹55,000+",
-                  unit: "per eye",
-                  features: ["Flapless / lens-based", "Best for dry eyes", "For high power / thin cornea", "Lifetime warranty"],
-                  highlight: false,
-                },
-              ].map((plan, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {doctors.map((doc, i) => (
                 <div
                   key={i}
-                  className={`rounded-[32px] p-8 border transition-all duration-300 hover:-translate-y-1 ${
-                    plan.highlight
-                      ? "bg-slate-900 border-teal-500/30 shadow-2xl shadow-teal-900/20"
-                      : "bg-white border-slate-200 shadow-sm hover:shadow-lg"
-                  }`}
+                  className="bg-white rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
                 >
-                  {plan.highlight && (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-teal-400 bg-teal-400/10 px-3 py-1 rounded-full mb-4 inline-block border border-teal-400/20">
-                      Most Popular
-                    </span>
-                  )}
-                  <h3 className={`text-lg font-black mb-1 ${plan.highlight ? "text-white" : "text-slate-900"}`}>{plan.name}</h3>
-                  <div className={`text-4xl font-black mb-1 ${plan.highlight ? "text-teal-400" : "text-[#1D646B]"}`}>{plan.price}</div>
-                  <div className={`text-xs mb-6 ${plan.highlight ? "text-slate-400" : "text-slate-500"}`}>{plan.unit}</div>
-                  <ul className="space-y-3">
-                    {plan.features.map((f, fi) => (
-                      <li key={fi} className={`flex items-center gap-2 text-sm font-medium ${plan.highlight ? "text-slate-300" : "text-slate-600"}`}>
-                        <CheckCircle2 size={15} className={plan.highlight ? "text-teal-400" : "text-teal-600"} />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="relative w-full h-64 bg-slate-100">
+                    <Image src={doc.image} alt={doc.name} fill className="object-cover object-top" />
+                  </div>
+                  <div className="p-6 flex flex-col gap-1">
+                    <h3 className="text-lg font-black text-slate-900">{doc.name}</h3>
+                    <p className="text-xs text-slate-400">{doc.qualification}</p>
+                    <p className="text-sm text-slate-600 mt-2">{doc.specialty}</p>
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-full w-fit">
+                        {doc.hospital}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full w-fit">
+                        {doc.experience}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-[#1D646B] to-[#2a8d96] rounded-[32px] p-8 text-white text-center">
-              <h3 className="text-2xl font-black mb-2">0% EMI — Pay in Easy Installments</h3>
-              <p className="text-white/80 text-sm mb-6 max-w-lg mx-auto">
-                Split your treatment cost into 6, 9, or 12 monthly payments with zero interest and zero processing fees.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                {["6 Months", "9 Months", "12 Months"].map((m) => (
-                  <div key={m} className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-6 py-3 text-sm font-black">
-                    {m} @ 0% Interest
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>

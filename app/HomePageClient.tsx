@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
@@ -17,7 +17,6 @@ import {
   Hospital,
   Activity,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   Phone,
 } from "lucide-react";
@@ -309,12 +308,6 @@ function StickyContactButtons({ onBookClick }: { onBookClick: () => void }) {
    SPECIALIST STRIP — horizontal scroller inside hero
    ================================================ */
 function SpecialistStrip() {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-
-  const scrollByCard = (dir: 1 | -1) => {
-    scrollerRef.current?.scrollBy({ left: dir * 260, behavior: "smooth" });
-  };
-
   return (
     <div className="w-full bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-5 mt-8">
       <div className="flex items-center justify-between px-2 mb-3">
@@ -329,24 +322,7 @@ function SpecialistStrip() {
       </div>
 
       <div className="relative">
-        {/* Desktop nav arrows */}
-        <button
-          onClick={() => scrollByCard(-1)}
-          aria-label="Scroll left"
-          className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 items-center justify-center hover:bg-slate-50 transition"
-        >
-          <ChevronLeft size={16} className="text-[#1D646B]" />
-        </button>
-        <button
-          onClick={() => scrollByCard(1)}
-          aria-label="Scroll right"
-          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-100 items-center justify-center hover:bg-slate-50 transition"
-        >
-          <ChevronRight size={16} className="text-[#1D646B]" />
-        </button>
-
         <div
-          ref={scrollerRef}
           className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {doctors.map((doc, i) => (
@@ -416,6 +392,30 @@ export default function HomePageClient() {
         .value-card .icon { font-size: 1.875rem; margin-bottom: 1rem; }
         .value-card.green { background: #F0FFF4; }
         .value-card.light { background: #F5F3FF; }
+
+        /* Hero layout: on mobile the image sits between the headline
+           block and the stats/CTA block. On desktop the text stays in
+           one column and the image sits beside it, spanning both rows. */
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "top"
+            "image"
+            "bottom";
+          gap: 2.5rem;
+        }
+        @media (min-width: 1024px) {
+          .hero-grid {
+            grid-template-columns: 1fr 1fr;
+            column-gap: 3rem;
+            row-gap: 3rem;
+            grid-template-areas:
+              "top image"
+              "bottom image";
+            align-items: center;
+          }
+        }
       `}</style>
 
       <Header onBookClick={() => setIsBookingOpen(true)} />
@@ -442,10 +442,10 @@ export default function HomePageClient() {
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-white/5 blur-3xl -translate-x-1/3 translate-y-1/3" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 pt-14 pb-8 lg:pb-0">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
+          <div className="hero-grid">
 
-            {/* ── Left copy ── */}
-            <div className="w-full lg:w-1/2 flex flex-col items-start gap-6">
+            {/* ── Top: badges + headline + sub-copy ── */}
+            <div style={{ gridArea: "top" }} className="flex flex-col items-start gap-6">
 
               {/* Badges — Trusted Network + ISO Certified */}
               <div className="flex flex-wrap items-center gap-3">
@@ -473,6 +473,28 @@ export default function HomePageClient() {
                 Expert surgeons, trusted hospitals and complete care
                 from consultation to recovery — all in one place.
               </p>
+            </div>
+
+            {/* ── Image: doctor photo + floating badges ── */}
+            <div style={{ gridArea: "image" }} className="flex items-center justify-center lg:justify-end">
+              <div className="relative w-full max-w-[620px] aspect-square">
+                <div className="absolute inset-0 rounded-full overflow-hidden z-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42] p-6">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/images/hero/doctors-group.old.png"
+                      alt="HealviaCare partner doctors"
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 768px) 75vw, 420px"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Bottom: stats + CTAs + mobile trust badges ── */}
+            <div style={{ gridArea: "bottom" }} className="flex flex-col items-start gap-6">
 
               {/* Stats */}
               <div className="flex flex-wrap gap-3">
@@ -492,7 +514,7 @@ export default function HomePageClient() {
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-wrap gap-3 mt-2">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setIsBookingOpen(true)}
                   className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
@@ -523,7 +545,7 @@ export default function HomePageClient() {
               </div>
 
               {/* ================ MOBILE TRUST SECTION ================ */}
-              <div className="w-full lg:hidden mt-4 space-y-3">
+              <div className="w-full lg:hidden space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-start gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
                     <span className="text-lg flex-shrink-0">🏥</span>
@@ -556,44 +578,6 @@ export default function HomePageClient() {
                       <p className="text-white/70 text-xs leading-tight">Certified</p>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Right: doctor photo + floating badges ── */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center lg:justify-end">
-              <div className="relative w-full max-w-[480px] aspect-square">
-                {/*
-                  Doctor group photo — circular mask.
-                  FIX (round 4): removed the two decorative ring divs
-                  (plain circle + dashed circle) that used to sit behind
-                  the photo. When doctors-group.png fails to load or the
-                  path is wrong, those empty rings were the only thing
-                  visible — which is what made it look like a stray
-                  "circular thing" / fallback icon floating in the hero.
-
-                  FIX (round 3, still in effect): every previous attempt
-                  used object-cover, which crops the photo to fill the
-                  box — that's what kept cutting off a doctor or creating
-                  seams no matter how the crop box was sized/positioned.
-
-                  The photo has a transparent background, so cropping was
-                  never actually necessary. object-contain shows the
-                  ENTIRE photo with nothing cut off — the extra
-                  transparent margin (top/bottom, since the photo is wider
-                  than the circle is tall) just reveals the gradient behind
-                  it, which is the same teal as the hero background, so it
-                  blends in instead of looking like empty space.
-                */}
-                <div className="absolute inset-0 rounded-full overflow-hidden z-0 bg-gradient-to-br from-[#0d3d38] via-[#0a5c52] to-[#0d4a42]">
-                  <Image
-                    src="/images/hero/doctors-group.old.png"
-                    alt="HealviaCare partner doctors"
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 60vw, 320px"
-                    priority
-                  />
                 </div>
               </div>
             </div>
@@ -834,9 +818,6 @@ export default function HomePageClient() {
             <p className="text-slate-500 max-w-xl mx-auto text-sm md:text-base">
               We work with major insurance providers so your surgery is cashless and hassle-free.
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 bg-[#E6F7F5] px-4 py-2 rounded-full">
-              <span className="text-[#1D646B] text-sm font-semibold">✓ Most cashless claims processed within 30 minutes</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
