@@ -126,7 +126,7 @@ export default function InternalMedicinePageClient() {
     },
     {
       q: "What is the process for emergency admission?",
-      a: "Our 24/7 emergency desk is always active. Walk-in patients are triaged immediately. You can also call our helpline and our team will guide you through the admission process before you arrive.",
+      a: "Our 24/7 emergency desk is always active. Walk-in patients are triaged immediately. You can also submit an enquiry and our team will guide you through the admission process before you arrive.",
     },
     {
       q: "How long are typical inpatient stays?",
@@ -448,7 +448,11 @@ export default function InternalMedicinePageClient() {
               </div>
 
               <a
-                href="tel:+911800000000"
+                href="#patient-inquiry"
+                onClick={e => {
+                  e.preventDefault();
+                  document.getElementById('patient-inquiry')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '10px',
                   padding: '14px 28px', background: '#0f172a', color: '#fff',
@@ -459,12 +463,12 @@ export default function InternalMedicinePageClient() {
                 onMouseOver={e => (e.currentTarget.style.background = '#1d4ed8')}
                 onMouseOut={e => (e.currentTarget.style.background = '#0f172a')}
               >
-                <Phone size={17} /> Call Our Helpline
+                <Phone size={17} /> Request a Callback
               </a>
             </div>
 
             {/* Right — form */}
-            <div style={{ flex: '1 1 340px', maxWidth: '420px' }}>
+            <div id="patient-inquiry" style={{ flex: '1 1 340px', maxWidth: '420px' }}>
               {submitted ? (
                 <div style={{
                   background: '#fff', padding: '48px 36px', borderRadius: '24px',
@@ -808,11 +812,15 @@ export default function InternalMedicinePageClient() {
               <span style={{ color: '#60a5fa' }}>Right Now?</span>
             </h2>
             <p style={{ color: '#94a3b8', fontSize: '16px', lineHeight: 1.65, marginBottom: '36px', maxWidth: '480px', margin: '0 auto 36px' }}>
-              Our team is available 24/7 for emergencies and admissions. Do not delay — reach us immediately.
+              Our team is available 24/7 for emergencies and admissions. Do not delay — reach out immediately.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
               <a
-                href="tel:+911800000000"
+                href="#patient-inquiry"
+                onClick={e => {
+                  e.preventDefault();
+                  document.getElementById('patient-inquiry')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '9px',
                   padding: '15px 30px', background: '#1d4ed8', color: '#fff',
@@ -823,7 +831,7 @@ export default function InternalMedicinePageClient() {
                 onMouseOver={e => (e.currentTarget.style.background = '#1e40af')}
                 onMouseOut={e => (e.currentTarget.style.background = '#1d4ed8')}
               >
-                <Phone size={17} /> Call Emergency Helpline
+                <Phone size={17} /> Request Urgent Callback
               </a>
               <a
                 href="#"
@@ -848,4 +856,4 @@ export default function InternalMedicinePageClient() {
       <Footer />
     </>
   );
-}
+} 

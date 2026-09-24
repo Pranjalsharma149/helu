@@ -7,7 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, ChevronRight, CheckCircle2, Zap, ShieldCheck,
-  ArrowRight, Target, Flame, MapPin, Phone,
+  ArrowRight, Target, Flame, MapPin,
   ChevronDown, Clock, Users, Award, HeartPulse, Microscope,
   AlertCircle, BadgeCheck, Loader2,
 } from "lucide-react";
@@ -677,12 +677,6 @@ export default function PilesPageClient() {
               >
                 Get Free Expert Call <ArrowRight size={18} />
               </button>
-              <a
-                href="tel:8882804301"
-                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all"
-              >
-                <Phone size={18} /> Call: 8882804301
-              </a>
               <a
                 href={whatsappUrl}
                 target="_blank"

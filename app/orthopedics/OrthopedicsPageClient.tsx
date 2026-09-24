@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, Bone, Stethoscope, Zap, CheckCircle2,
   ArrowRight, ShieldCheck, Award, Clock, Users,
-  ChevronDown, Phone, Microscope, HeartPulse, AlertCircle
+  ChevronDown, Microscope, HeartPulse, AlertCircle
 } from "lucide-react";
 
 // ─── PHONE VALIDATION ────────────────────────────────────────────────────────
@@ -609,12 +609,6 @@ export default function OrthopedicsPageClient() {
                 className="flex items-center gap-2 bg-white text-[#0F766E] px-8 py-4 rounded-2xl font-black text-base shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5"
               >
                 Book Free Consultation <ArrowRight size={18} />
-              </a>
-              <a
-                href="tel:+911800000000"
-                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-white/20 transition-all"
-              >
-                <Phone size={18} /> 1800-000-0000
               </a>
             </div>
             <p className="text-teal-200/70 text-xs mt-6">Mon – Sat, 8 AM – 8 PM · Delhi · Mumbai · Pune · Bangalore · Chennai</p>

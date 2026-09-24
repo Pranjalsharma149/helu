@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Microscope,
   ChevronDown,
-  Phone,
   ArrowRight,
   BadgeCheck,
   Users,
@@ -378,13 +377,6 @@ export default function CataractPageClient() {
                   </div>
                 ))}
               </div>
-
-              <a href="tel:8882804301" className="inline-flex items-center gap-3 text-white/80 hover:text-white font-bold text-sm transition">
-                <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                  <Phone size={16} />
-                </div>
-                Call Now: 8882804301
-              </a>
             </div>
 
             <div className="lg:w-5/12 w-full">
@@ -634,11 +626,6 @@ export default function CataractPageClient() {
               Book your free cataract screening today. Our specialist will call you within 15 minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:8882804301">
-                <button className="px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-xl hover:scale-105 transition flex items-center gap-2 justify-center">
-                  <Phone size={18} /> Call: 8882804301
-                </button>
-              </a>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <button className="px-10 py-4 rounded-2xl bg-[#25D366] text-white font-bold shadow-xl hover:scale-105 transition flex items-center gap-2 justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-white">

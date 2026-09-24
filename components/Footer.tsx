@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
-import { sendCapiEvent } from "@/lib/sendCapiEvent";
+import { Mail, MapPin } from "lucide-react";
 
 export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
   return (
@@ -25,10 +24,6 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
             and complete patient support across India.
           </p>
           <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
-              <Phone size={16} />
-              <a href="tel:+918882804301" onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Footer" } })}>+91 8882804301</a>
-            </div>
             <div className="flex items-center gap-2 hover:text-[#1D646B] transition-colors">
               <Mail size={16} />
               <a href="mailto:info@healviacare.in">info@healviacare.in</a>
@@ -88,9 +83,6 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
           <p className="text-gray-600 text-sm mb-2">
             Talk to our medical experts and get guidance for the right treatment.
           </p>
-          <p className="text-[#1D646B] font-bold text-lg mb-5 flex items-center gap-2">
-            <Phone size={18} /> 8882804301
-          </p>
           <button
             onClick={onBookClick}
             className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#1D646B] to-[#3BA99C] text-white text-sm font-semibold shadow hover:scale-105 transition"
@@ -123,5 +115,3 @@ export default function Footer({ onBookClick }: { onBookClick?: () => void }) {
     </footer>
   );
 }
-
-

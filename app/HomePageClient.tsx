@@ -934,11 +934,6 @@ export default function HomePageClient() {
             >
               Book Free Consultation
             </button>
-            <a href={`tel:${phoneTel}`} className="w-full sm:w-auto" onClick={() => sendCapiEvent("Contact", { customData: { content_name: "Call Click - Bottom CTA" } })}>
-              <button className="w-full px-10 py-4 rounded-xl bg-black/40 backdrop-blur-md text-white font-semibold shadow-xl hover:scale-105 transition">
-                📞 Call Now: {phoneDisplay}
-              </button>
-            </a>
           </div>
           <p className="text-white/70 text-xs md:text-sm tracking-wide">
             Free consultation&nbsp;&nbsp;|&nbsp;&nbsp;Quick response&nbsp;&nbsp;|&nbsp;&nbsp;Complete assistance

@@ -12,19 +12,16 @@ import {
   Stethoscope,
   Leaf,
   ChevronDown,
-  Phone,
   ArrowRight,
   BadgeCheck,
   Users,
   Star,
   Clock,
   Award,
-  Wallet,
   ShieldCheck,
   AlertCircle,
   HeartPulse,
   Activity,
-  Pill,
 } from "lucide-react";
 
 // ─── PHONE VALIDATION ────────────────────────────────────────────────────────
@@ -164,8 +161,6 @@ const faqs = [
   },
 ];
 
-const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a gastroenterologist and know more about my treatment options.")}`;
-
 // ─── FormCard lifted OUTSIDE GastroPageClient to prevent remount on every keystroke ──
 interface FormCardProps {
   form: { name: string; phone: string };
@@ -200,7 +195,7 @@ function FormCard({
         </div>
         <h2 className="text-2xl font-black text-slate-900 mb-2">Query Sent!</h2>
         <p className="text-slate-500 mb-8 text-sm leading-relaxed">
-          Our gastroenterology specialist will call you within 10 minutes.
+          Our gastroenterology specialist will get in touch with you shortly.
         </p>
         <button
           onClick={() => {
@@ -406,13 +401,6 @@ export default function GastroPageClient() {
                   </div>
                 ))}
               </div>
-
-              <a href="tel:8882804301" className="inline-flex items-center gap-3 text-white/80 hover:text-white font-bold text-sm transition">
-                <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                  <Phone size={16} />
-                </div>
-                Call Now: 8882804301
-              </a>
             </div>
 
             <div className="lg:w-5/12 w-full">
@@ -629,20 +617,12 @@ export default function GastroPageClient() {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">Get Expert Digestive Care Today.</h2>
             <p className="text-slate-400 text-lg mb-10">
-              Our gastroenterology specialist will call you within 10 minutes of your enquiry.
+              Our gastroenterology specialist will get in touch with you shortly after your enquiry.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:8882804301">
+              <a href="#" onClick={(e) => e.preventDefault()}>
                 <button className="px-10 py-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white font-bold shadow-xl hover:scale-105 transition flex items-center gap-2 justify-center">
-                  <Phone size={18} /> Call: 8882804301
-                </button>
-              </a>
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <button className="px-10 py-4 rounded-2xl bg-[#25D366] text-white font-bold shadow-xl hover:scale-105 transition flex items-center gap-2 justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-white">
-                    <path d="M16 0C7.163 0 0 7.163 0 16c0 2.822.737 5.469 2.027 7.773L0 32l8.479-2.003A15.937 15.937 0 0016 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm7.27 19.455c-.398-.199-2.354-1.162-2.719-1.294-.365-.133-.631-.199-.897.199-.266.398-1.03 1.294-1.263 1.56-.232.266-.465.299-.863.1-.398-.199-1.681-.62-3.202-1.977-1.183-1.056-1.982-2.361-2.214-2.759-.232-.398-.025-.613.174-.811.179-.178.398-.465.597-.698.199-.232.266-.398.398-.664.133-.266.066-.498-.033-.697-.1-.199-.897-2.162-1.229-2.96-.324-.778-.653-.672-.897-.685l-.764-.013c-.266 0-.697.1-1.063.498-.365.398-1.395 1.362-1.395 3.322s1.428 3.853 1.627 4.119c.199.266 2.81 4.291 6.811 6.022.952.411 1.695.657 2.274.841.955.304 1.825.261 2.513.158.766-.114 2.354-.962 2.686-1.891.332-.929.332-1.726.232-1.891-.1-.166-.365-.266-.763-.465z" />
-                  </svg>
-                  WhatsApp Us
+                  Request a Callback
                 </button>
               </a>
             </div>

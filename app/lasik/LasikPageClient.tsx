@@ -19,7 +19,6 @@ import {
   Users,
   Award,
   ChevronDown,
-  Phone,
   ArrowRight,
   HeartPulse,
   Microscope,
@@ -441,13 +440,6 @@ export default function LasikPageClient() {
                   </div>
                 ))}
               </div>
-
-              <a href="tel:8882804301" className="inline-flex items-center gap-3 mt-2 text-white/80 hover:text-white font-bold text-sm transition">
-                <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                  <Phone size={16} />
-                </div>
-                Call Now: 8882804301
-              </a>
             </div>
 
             <div className="lg:w-5/12 w-full">
@@ -699,11 +691,6 @@ export default function LasikPageClient() {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">Ready to See Clearly?</h2>
             <p className="text-slate-400 text-lg mb-10">Book your free eye screening today. Our LASIK counselor will call you within 15 minutes.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:8882804301">
-                <button className="px-10 py-4 rounded-2xl bg-gradient-to-r from-[#1D646B] to-[#2a8d96] text-white font-bold shadow-xl hover:scale-105 transition flex items-center gap-2 justify-center">
-                  <Phone size={18} /> Call: 8882804301
-                </button>
-              </a>
               <a
                 href={`https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free LASIK eye screening.")}`}
                 target="_blank"
