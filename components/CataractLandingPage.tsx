@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 // ── CONTACT CONSTANTS ────────────────────────────────────────────────────────
-const WA_NUMBER = '919310984753';
+const WA_NUMBER = '918882804301';
 const WA_MSG = encodeURIComponent("Hi, I'd like to book a free Cataract checkup");
 const WA_URL = `https://wa.me/${WA_NUMBER}?text=${WA_MSG}`;
 const TEL_URL = `tel:+${WA_NUMBER}`;
@@ -1249,7 +1249,7 @@ export default function CataractLandingPage({ cityKey }: CataractLandingPageProp
               <div className="clp2-footer-col-title">Get In Touch</div>
               <div className="clp2-footer-contact-item">
                 <PhoneIcon size={15} />
-                <a href={TEL_URL}>+91 93109 84753</a>
+                <a href={TEL_URL}>+91 88828 04301</a>
               </div>
               <div className="clp2-footer-contact-item">
                 <WaIcon size={15} />

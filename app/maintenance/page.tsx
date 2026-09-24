@@ -4,9 +4,9 @@
  * maintenance mode is switched on via middleware.ts.
  */
 
-const phoneTel = "+919310984753";
-const phoneDisplay = "+91 9310984753";
-const whatsappNumber = "919310984753";
+const phoneTel = "+918882804301";
+const phoneDisplay = "+91 88828 04301";
+const whatsappNumber = "918882804301";
 const whatsappMessage = encodeURIComponent(
   "Hello HealviaCare, I would like to book a consultation."
 );

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { CITY_DATA, type CityKey } from '@/lib/lasik-city-data';
 
-const WA_NUMBER = '919310984753';
+const WA_NUMBER = '918882804301';
 const WA_MSG = encodeURIComponent("Hi, I'd like to book a free LASIK screening");
 const WA_URL = `https://wa.me/${WA_NUMBER}?text=${WA_MSG}`;
 const TEL_URL = `tel:+${WA_NUMBER}`;
@@ -1129,7 +1129,7 @@ export default function LasikLandingPage({ cityKey }: LasikLandingPageProps) {
               <div className="llp-footer-col-title">Get In Touch</div>
               <div className="llp-footer-contact-item">
                 <PhoneIcon size={15} />
-                <a href={TEL_URL}>+91 93109 84753</a>
+                <a href={TEL_URL}>+91 88828 04301</a>
               </div>
               <div className="llp-footer-contact-item">
                 <WaIcon size={15} />
@@ -1176,4 +1176,4 @@ export default function LasikLandingPage({ cityKey }: LasikLandingPageProps) {
       </div>
     </div>
   );
-}
+} 
