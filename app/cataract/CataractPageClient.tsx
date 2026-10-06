@@ -269,7 +269,7 @@ export default function CataractPageClient() {
     },
   ];
 
-  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free cataract vision screening.")}`;
+  const whatsappUrl = `https://wa.me/1235789?text=${encodeURIComponent("Hello HealviaCare, I want to book a free cataract vision screening.")}`;
 
   // ── FIXED: replaced direct Supabase call with /api/leads fetch (same as LASIK page) ──
   const handleSubmit = async (e: React.FormEvent) => {

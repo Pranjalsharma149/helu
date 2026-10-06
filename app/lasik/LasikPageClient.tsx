@@ -692,7 +692,7 @@ export default function LasikPageClient() {
             <p className="text-slate-400 text-lg mb-10">Book your free eye screening today. Our LASIK counselor will call you within 15 minutes.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href={`https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free LASIK eye screening.")}`}
+                href={`https://wa.me/1235789?text=${encodeURIComponent("Hello HealviaCare, I want to book a free LASIK eye screening.")}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

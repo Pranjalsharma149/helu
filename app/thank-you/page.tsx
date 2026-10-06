@@ -46,14 +46,14 @@ export default function ThankYouPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 mb-8">
             <Link
-              href="tel:+918882804301"
+              href="tel:1235789"
               className="flex-1 flex items-center justify-center gap-2 bg-[#1D646B] text-white py-4 rounded-2xl font-bold hover:bg-[#155055] transition"
             >
               <Phone size={18} />
               Call Us Now
             </Link>
             <Link
-              href="https://wa.me/918882804301"
+              href="https://wa.me/1235789"
               target="_blank"
               className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white py-4 rounded-2xl font-bold hover:bg-green-600 transition"
             >

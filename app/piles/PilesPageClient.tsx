@@ -351,7 +351,7 @@ export default function PilesPageClient() {
     }
   };
 
-  const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to book a free consultation for piles / laser proctology.")}`;
+  const whatsappUrl = `https://wa.me/1235789?text=${encodeURIComponent("Hello HealviaCare, I want to book a free consultation for piles / laser proctology.")}`;
 
   return (
     <>

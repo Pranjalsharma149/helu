@@ -30,13 +30,13 @@ body {
 .hero-section {
   position: relative;
   width: 100%;
-  min-height: 60vh;    /* mobile–tablet friendly */
+  min-height: 60vh;    /* mobile-tablet friendly */
   height: 100dvh;      /* modern: full viewport */
   max-height: 900px;   /* caps on huge desktop */
   overflow: hidden;
 }
 
-/* Tailwind‑style classes via raw CSS */
+/* Tailwind-style classes via raw CSS */
 .hero-section {
   background: url('/ps.png') center / cover no-repeat;
 }
@@ -82,7 +82,7 @@ img {
 
 /* ================= VALUES SECTION (responsive marquee) ================= */
 
-/* Keyframes for auto‑scroll */
+/* Keyframes for auto-scroll */
 @keyframes scrollX {
   0% {
     transform: translateX(0);
@@ -194,4 +194,13 @@ img {
   box-shadow:
     0 15px 30px rgba(29, 100, 107, 0.18),
     0 0 20px rgba(29, 100, 107, 0.1);
+}
+
+
+/* ================= TEMP: HIDE CONTACT LINKS ================= */
+/* Delete this block when the real number is ready */
+a[href^="tel:"],
+a[href*="wa.me"],
+a[href*="whatsapp.com"] {
+  display: none !important;
 }

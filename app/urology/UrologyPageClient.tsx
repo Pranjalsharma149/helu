@@ -161,7 +161,7 @@ const faqs = [
   },
 ];
 
-const whatsappUrl = `https://wa.me/918882804301?text=${encodeURIComponent("Hello HealviaCare, I want to consult a urologist for kidney stone / prostate treatment.")}`;
+const whatsappUrl = `https://wa.me/1235789?text=${encodeURIComponent("Hello HealviaCare, I want to consult a urologist for kidney stone / prostate treatment.")}`;
 
 // ─── FormCard lifted OUTSIDE UrologyPage to prevent remount on every keystroke ──
 interface FormCardProps {

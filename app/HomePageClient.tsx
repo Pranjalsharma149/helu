@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -29,9 +29,9 @@ import {
 } from "@heroicons/react/24/solid";
 
 /* ---------- CONTACT CONFIG (edit once here) ---------- */
-const phoneTel = "+918882804301";
-const phoneDisplay = "+91 88828 04301";
-const whatsappNumber = "918882804301";
+const phoneTel = "1235789";
+const phoneDisplay = "1235789";
+const whatsappNumber = "1235789";
 const whatsappMessage = encodeURIComponent(
   "Hello HealviaCare, I would like to book a consultation."
 );
